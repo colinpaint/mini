@@ -61,61 +61,72 @@
     }
     //}}}
 
-    //{{{
-    namespace Sse41
-    {
-        SIMD_INLINE void Log(const __m128 & value, const std::string & name)
+    #ifdef SIMD_SSE41_ENABLE
+        //{{{
+        namespace Sse41
         {
-            float buffer[F];
-            _mm_storeu_ps(buffer, value);
-            Simd::Log<float>(buffer, F, name);
-        }
+            SIMD_INLINE void Log(const __m128 & value, const std::string & name)
+            {
+                float buffer[F];
+                _mm_storeu_ps(buffer, value);
+                Simd::Log<float>(buffer, F, name);
+            }
 
-        template<class T> SIMD_INLINE void Log(const __m128i & value, const std::string & name)
-        {
-            const size_t n = sizeof(__m128i) / sizeof(T);
-            T buffer[n];
-            _mm_storeu_si128((__m128i*)buffer, value);
-            Simd::Log<T>(buffer, n, name);
+            template<class T> SIMD_INLINE void Log(const __m128i & value, const std::string & name)
+            {
+                const size_t n = sizeof(__m128i) / sizeof(T);
+                T buffer[n];
+                _mm_storeu_si128((__m128i*)buffer, value);
+                Simd::Log<T>(buffer, n, name);
+            }
         }
-    }
-    //}}}
-    //{{{
-    namespace Avx
-    {
-        SIMD_INLINE void Log(const __m256 & value, const std::string & name)
-        {
-            float buffer[F];
-            _mm256_storeu_ps(buffer, value);
-            Simd::Log<float>(buffer, F, name);
-        }
-    }
-    //}}}
-    //{{{
-    namespace Avx2
-    {
-        using Avx::Log;
+        //}}}
+    #endif //SIMD_SSE41_ENABLE
 
-        template<class T> SIMD_INLINE void Log(const __m256i & value, const std::string & name)
+    #ifdef SIMD_AVX_ENABLE
+        //{{{
+        namespace Avx
         {
-            const size_t n = sizeof(__m256i) / sizeof(T);
-            T buffer[n];
-            _mm256_storeu_si256((__m256i*)buffer, value);
-            Simd::Log<T>(buffer, n, name);
+            SIMD_INLINE void Log(const __m256 & value, const std::string & name)
+            {
+                float buffer[F];
+                _mm256_storeu_ps(buffer, value);
+                Simd::Log<float>(buffer, F, name);
+            }
         }
-    }
-    //}}}
-    //{{{
-    namespace Avx512bw
-    {
-        SIMD_INLINE void Log(const __m512 & value, const std::string & name)
+        //}}}
+    #endif //SIMD_AVX_ENABLE
+
+    #ifdef SIMD_AVX2_ENABLE
+        //{{{
+        namespace Avx2
         {
-            float buffer[F];
-            _mm512_storeu_ps(buffer, value);
-            Simd::Log<float>(buffer, F, name);
+            using Avx::Log;
+
+            template<class T> SIMD_INLINE void Log(const __m256i & value, const std::string & name)
+            {
+                const size_t n = sizeof(__m256i) / sizeof(T);
+                T buffer[n];
+                _mm256_storeu_si256((__m256i*)buffer, value);
+                Simd::Log<T>(buffer, n, name);
+            }
         }
-    }
-    //}}}
+        //}}}
+    #endif //SIMD_AVX2_ENABLE
+
+    #ifdef SIMD_AVX512BW_ENABLE
+        //{{{
+        namespace Avx512bw
+        {
+            SIMD_INLINE void Log(const __m512 & value, const std::string & name)
+            {
+                float buffer[F];
+                _mm512_storeu_ps(buffer, value);
+                Simd::Log<float>(buffer, F, name);
+            }
+        }
+        //}}}
+    #endif
 
     #ifdef SIMD_NEON_ENABLE
         //{{{

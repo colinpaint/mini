@@ -27,496 +27,507 @@
 #include "SimdConst.h"
 
 namespace Simd {
-  //{{{
-  namespace Sse41 {
-    template <bool align> SIMD_INLINE __m128 Load(const float * p);
+  #ifdef SIMD_SSE41_ENABLE
     //{{{
-    template <> SIMD_INLINE __m128 Load<false>(const float * p)
-    {
-        return _mm_loadu_ps(p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m128 Load<true>(const float * p)
-    {
-        return _mm_load_ps(p);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128 Load(const float * p0, const float * p1)
-    {
-        return _mm_loadh_pi(_mm_loadl_pi(_mm_setzero_ps(), (__m64*)p0), (__m64*)p1);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128 LoadPadZeroNose1(const float* p)
-    {
-        SIMD_ALIGNED(16) const int32_t m[F] = { 0, -1, -1, -1 };
-        __m128 a = _mm_loadu_ps(p + 1);
-        __m128 b = _mm_shuffle_ps(a, a, 0x90);
-        return _mm_and_ps(b, _mm_load_ps((float*)m));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128 LoadPadZeroTail1(const float* p)
-    {
-        SIMD_ALIGNED(16) const int32_t m[F] = { -1, -1, -1, 0 };
-        __m128 a = _mm_loadu_ps(p - 1);
-        __m128 b = _mm_shuffle_ps(a, a, 0xF9);
-        return _mm_and_ps(b, _mm_load_ps((float*)m));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128 LoadPadZeroTail2(const float* p)
-    {
-        SIMD_ALIGNED(16) const int32_t m[F] = { -1, -1, 0, 0 };
-        __m128 a = _mm_loadu_ps(p - 2);
-        __m128 b = _mm_shuffle_ps(a, a, 0xFE);
-        return _mm_and_ps(b, _mm_load_ps((float*)m));
-    }
-    //}}}
+    namespace Sse41 {
+      template <bool align> SIMD_INLINE __m128 Load(const float * p);
+      //{{{
+      template <> SIMD_INLINE __m128 Load<false>(const float * p)
+      {
+          return _mm_loadu_ps(p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m128 Load<true>(const float * p)
+      {
+          return _mm_load_ps(p);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128 Load(const float * p0, const float * p1)
+      {
+          return _mm_loadh_pi(_mm_loadl_pi(_mm_setzero_ps(), (__m64*)p0), (__m64*)p1);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128 LoadPadZeroNose1(const float* p)
+      {
+          SIMD_ALIGNED(16) const int32_t m[F] = { 0, -1, -1, -1 };
+          __m128 a = _mm_loadu_ps(p + 1);
+          __m128 b = _mm_shuffle_ps(a, a, 0x90);
+          return _mm_and_ps(b, _mm_load_ps((float*)m));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128 LoadPadZeroTail1(const float* p)
+      {
+          SIMD_ALIGNED(16) const int32_t m[F] = { -1, -1, -1, 0 };
+          __m128 a = _mm_loadu_ps(p - 1);
+          __m128 b = _mm_shuffle_ps(a, a, 0xF9);
+          return _mm_and_ps(b, _mm_load_ps((float*)m));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128 LoadPadZeroTail2(const float* p)
+      {
+          SIMD_ALIGNED(16) const int32_t m[F] = { -1, -1, 0, 0 };
+          __m128 a = _mm_loadu_ps(p - 2);
+          __m128 b = _mm_shuffle_ps(a, a, 0xFE);
+          return _mm_and_ps(b, _mm_load_ps((float*)m));
+      }
+      //}}}
 
-    template <bool align> SIMD_INLINE __m128i Load(const __m128i * p);
-    //{{{
-    template <> SIMD_INLINE __m128i Load<false>(const __m128i * p)
-    {
-        return _mm_loadu_si128(p);
-    }
+      template <bool align> SIMD_INLINE __m128i Load(const __m128i * p);
+      //{{{
+      template <> SIMD_INLINE __m128i Load<false>(const __m128i * p)
+      {
+          return _mm_loadu_si128(p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m128i Load<true>(const __m128i * p)
+      {
+          return _mm_load_si128(p);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i Load(const __m128i* p0, const __m128i* p1)
+      {
+          return _mm_castps_si128(_mm_loadh_pi(_mm_loadl_pi(_mm_setzero_ps(), (__m64*)p0), (__m64*)p1));
+      }
+      //}}}
+      //{{{
+      template <bool align> SIMD_INLINE __m128i LoadMaskI8(const __m128i * p, __m128i index)
+      {
+          return _mm_cmpeq_epi8(Load<align>(p), index);
+      }
+      //}}}
+      //{{{
+      template <size_t count> SIMD_INLINE __m128i LoadBeforeFirst(__m128i first)
+      {
+          return _mm_or_si128(_mm_slli_si128(first, count), _mm_and_si128(first, _mm_srli_si128(K_INV_ZERO, A - count)));
+      }
+      //}}}
+      //{{{
+      template <size_t count> SIMD_INLINE __m128i LoadAfterLast(__m128i last)
+      {
+          return _mm_or_si128(_mm_srli_si128(last, count), _mm_and_si128(last, _mm_slli_si128(K_INV_ZERO, A - count)));
+      }
+      //}}}
+      }
     //}}}
-    //{{{
-    template <> SIMD_INLINE __m128i Load<true>(const __m128i * p)
-    {
-        return _mm_load_si128(p);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i Load(const __m128i* p0, const __m128i* p1)
-    {
-        return _mm_castps_si128(_mm_loadh_pi(_mm_loadl_pi(_mm_setzero_ps(), (__m64*)p0), (__m64*)p1));
-    }
-    //}}}
-    //{{{
-    template <bool align> SIMD_INLINE __m128i LoadMaskI8(const __m128i * p, __m128i index)
-    {
-        return _mm_cmpeq_epi8(Load<align>(p), index);
-    }
-    //}}}
-    //{{{
-    template <size_t count> SIMD_INLINE __m128i LoadBeforeFirst(__m128i first)
-    {
-        return _mm_or_si128(_mm_slli_si128(first, count), _mm_and_si128(first, _mm_srli_si128(K_INV_ZERO, A - count)));
-    }
-    //}}}
-    //{{{
-    template <size_t count> SIMD_INLINE __m128i LoadAfterLast(__m128i last)
-    {
-        return _mm_or_si128(_mm_srli_si128(last, count), _mm_and_si128(last, _mm_slli_si128(K_INV_ZERO, A - count)));
-    }
-    //}}}
-    }
-  //}}}
-  //{{{
-  namespace Avx {
-    template <bool align> SIMD_INLINE __m256 Load(const float * p);
-    //{{{
-    template <> SIMD_INLINE __m256 Load<false>(const float * p)
-    {
-        return _mm256_loadu_ps(p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m256 Load<true>(const float * p)
-    {
-        return _mm256_load_ps(p);
-    }
-    //}}}
-    //{{{
-    template<bool align> SIMD_INLINE __m256 Load(const float * p0, const float * p1)
-    {
-        return _mm256_insertf128_ps(_mm256_castps128_ps256(Sse41::Load<align>(p0)), Sse41::Load<align>(p1), 1);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256 Load(const float * p0, const float * p1, const float * p2, const float * p3)
-    {
-        return _mm256_insertf128_ps(_mm256_castps128_ps256(Sse41::Load(p0, p1)), Sse41::Load(p2, p3), 1);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256 Load(const float * ptr, __m256i mask)
-    {
-        return _mm256_maskload_ps(ptr, mask);
-    }
-    //}}}
-    }
-  //}}}
-  //{{{
-  namespace Avx2 {
-    using namespace Avx;
+  #endif
 
-    template <bool align> SIMD_INLINE __m256i Load (const __m256i * p);
+  #ifdef SIMD_AVX_ENABLE
     //{{{
-    template <> SIMD_INLINE __m256i Load <false> (const __m256i * p)
-    {
-        return _mm256_loadu_si256(p);
-    }
+    namespace Avx {
+      template <bool align> SIMD_INLINE __m256 Load(const float * p);
+      //{{{
+      template <> SIMD_INLINE __m256 Load<false>(const float * p)
+      {
+          return _mm256_loadu_ps(p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m256 Load<true>(const float * p)
+      {
+          return _mm256_load_ps(p);
+      }
+      //}}}
+      //{{{
+      template<bool align> SIMD_INLINE __m256 Load(const float * p0, const float * p1)
+      {
+          return _mm256_insertf128_ps(_mm256_castps128_ps256(Sse41::Load<align>(p0)), Sse41::Load<align>(p1), 1);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256 Load(const float * p0, const float * p1, const float * p2, const float * p3)
+      {
+          return _mm256_insertf128_ps(_mm256_castps128_ps256(Sse41::Load(p0, p1)), Sse41::Load(p2, p3), 1);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256 Load(const float * ptr, __m256i mask)
+      {
+          return _mm256_maskload_ps(ptr, mask);
+      }
+      //}}}
+      }
     //}}}
-    //{{{
-    template <> SIMD_INLINE __m256i Load <true> (const __m256i * p)
-    {
-        return _mm256_load_si256(p);
-    }
-    //}}}
-    //{{{
-    template<bool align> SIMD_INLINE __m256i Load (const __m128i* p0, const __m128i* p1)
-    {
-        return _mm256_inserti128_si256(_mm256_castsi128_si256(Sse41::Load<align>(p0)), Sse41::Load<align>(p1), 1);
-    }
-    //}}}
+  #endif
 
-    template <bool align> SIMD_INLINE __m128i LoadHalf(const __m128i * p);
+  #ifdef SIMD_AVX2_ENABLE
     //{{{
-    template <> SIMD_INLINE __m128i LoadHalf <false> (const __m128i * p)
-    {
-        return _mm_loadu_si128(p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m128i LoadHalf <true> (const __m128i * p)
-    {
-        return _mm_load_si128(p);
-    }
-    //}}}
-    //{{{
-    template <size_t count> SIMD_INLINE __m128i LoadHalfBeforeFirst (__m128i first)
-    {
-        return _mm_or_si128(_mm_slli_si128(first, count), _mm_and_si128(first, _mm_srli_si128(Sse41::K_INV_ZERO, HA - count)));
-    }
-    //}}}
-    //{{{
-    template <size_t count> SIMD_INLINE __m128i LoadHalfAfterLast (__m128i last)
-    {
-        return _mm_or_si128(_mm_srli_si128(last, count), _mm_and_si128(last, _mm_slli_si128(Sse41::K_INV_ZERO, HA - count)));
-    }
-    //}}}
-    //{{{
-    template <bool align> SIMD_INLINE __m256i LoadPermuted (const __m256i * p)
-    {
-        return _mm256_permute4x64_epi64(Load<align>(p), 0xD8);
-    }
-    //}}}
-    //{{{
-    template <bool align> SIMD_INLINE __m256i LoadMaskI8 (const __m256i * p, __m256i index)
-    {
-        return _mm256_cmpeq_epi8(Load<align>(p), index);
-    }
-    //}}}
+    namespace Avx2 {
+      using namespace Avx;
 
-    //{{{
-    SIMD_INLINE __m256i PermutedUnpackLoU8 (__m256i a, __m256i b = K_ZERO)
-    {
-        return _mm256_permute4x64_epi64(_mm256_unpacklo_epi8(a, b), 0xD8);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i PermutedUnpackHiU8 (__m256i a, __m256i b = K_ZERO)
-    {
-        return _mm256_permute4x64_epi64(_mm256_unpackhi_epi8(a, b), 0xD8);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i PermutedUnpackLoU16 (__m256i a, __m256i b = K_ZERO)
-    {
-        return _mm256_permute4x64_epi64(_mm256_unpacklo_epi16(a, b), 0xD8);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i PermutedUnpackHiU16 (__m256i a, __m256i b = K_ZERO)
-    {
-        return _mm256_permute4x64_epi64(_mm256_unpackhi_epi16(a, b), 0xD8);
-    }
-    //}}}
+      template <bool align> SIMD_INLINE __m256i Load (const __m256i * p);
+      //{{{
+      template <> SIMD_INLINE __m256i Load <false> (const __m256i * p)
+      {
+          return _mm256_loadu_si256(p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m256i Load <true> (const __m256i * p)
+      {
+          return _mm256_load_si256(p);
+      }
+      //}}}
+      //{{{
+      template<bool align> SIMD_INLINE __m256i Load (const __m128i* p0, const __m128i* p1)
+      {
+          return _mm256_inserti128_si256(_mm256_castsi128_si256(Sse41::Load<align>(p0)), Sse41::Load<align>(p1), 1);
+      }
+      //}}}
 
-    //{{{
-    template <bool align, size_t step> SIMD_INLINE __m256i LoadBeforeFirst (const uint8_t * p)
-    {
-        __m128i lo = LoadHalfBeforeFirst<step>(LoadHalf<align>((__m128i*)p));
-        __m128i hi = _mm_loadu_si128((__m128i*)(p + HA - step));
-        return _mm256_inserti128_si256(_mm256_castsi128_si256(lo), hi, 0x1);
-    }
-    //}}}
-    //{{{
-    template <bool align, size_t step> SIMD_INLINE void LoadBeforeFirst (const uint8_t * p, __m256i & first, __m256i & second)
-    {
-        __m128i firstLo = LoadHalfBeforeFirst<step>(LoadHalf<align>((__m128i*)p));
-        __m128i firstHi = _mm_loadu_si128((__m128i*)(p + HA - step));
-        first = _mm256_inserti128_si256(_mm256_castsi128_si256(firstLo), firstHi, 0x1);
+      template <bool align> SIMD_INLINE __m128i LoadHalf(const __m128i * p);
+      //{{{
+      template <> SIMD_INLINE __m128i LoadHalf <false> (const __m128i * p)
+      {
+          return _mm_loadu_si128(p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m128i LoadHalf <true> (const __m128i * p)
+      {
+          return _mm_load_si128(p);
+      }
+      //}}}
+      //{{{
+      template <size_t count> SIMD_INLINE __m128i LoadHalfBeforeFirst (__m128i first)
+      {
+          return _mm_or_si128(_mm_slli_si128(first, count), _mm_and_si128(first, _mm_srli_si128(Sse41::K_INV_ZERO, HA - count)));
+      }
+      //}}}
+      //{{{
+      template <size_t count> SIMD_INLINE __m128i LoadHalfAfterLast (__m128i last)
+      {
+          return _mm_or_si128(_mm_srli_si128(last, count), _mm_and_si128(last, _mm_slli_si128(Sse41::K_INV_ZERO, HA - count)));
+      }
+      //}}}
+      //{{{
+      template <bool align> SIMD_INLINE __m256i LoadPermuted (const __m256i * p)
+      {
+          return _mm256_permute4x64_epi64(Load<align>(p), 0xD8);
+      }
+      //}}}
+      //{{{
+      template <bool align> SIMD_INLINE __m256i LoadMaskI8 (const __m256i * p, __m256i index)
+      {
+          return _mm256_cmpeq_epi8(Load<align>(p), index);
+      }
+      //}}}
 
-        __m128i secondLo = LoadHalfBeforeFirst<step>(firstLo);
-        __m128i secondHi = _mm_loadu_si128((__m128i*)(p + HA - 2 * step));
-        second = _mm256_inserti128_si256(_mm256_castsi128_si256(secondLo), secondHi, 0x1);
-    }
-    //}}}
-    //{{{
-    template <bool align, size_t step> SIMD_INLINE __m256i LoadAfterLast (const uint8_t * p)
-    {
-        __m128i lo = _mm_loadu_si128((__m128i*)(p + step));
-        __m128i hi = LoadHalfAfterLast<step>(LoadHalf<align>((__m128i*)(p + HA)));
-        return _mm256_inserti128_si256(_mm256_castsi128_si256(lo), hi, 0x1);
-    }
-    //}}}
-    //{{{
-    template <bool align, size_t step> SIMD_INLINE void LoadAfterLast (const uint8_t * p, __m256i & first, __m256i & second)
-    {
-        __m128i firstLo = _mm_loadu_si128((__m128i*)(p + step));
-        __m128i firstHi = LoadHalfAfterLast<step>(LoadHalf<align>((__m128i*)(p + HA)));
-        first = _mm256_inserti128_si256(_mm256_castsi128_si256(firstLo), firstHi, 0x1);
+      //{{{
+      SIMD_INLINE __m256i PermutedUnpackLoU8 (__m256i a, __m256i b = K_ZERO)
+      {
+          return _mm256_permute4x64_epi64(_mm256_unpacklo_epi8(a, b), 0xD8);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i PermutedUnpackHiU8 (__m256i a, __m256i b = K_ZERO)
+      {
+          return _mm256_permute4x64_epi64(_mm256_unpackhi_epi8(a, b), 0xD8);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i PermutedUnpackLoU16 (__m256i a, __m256i b = K_ZERO)
+      {
+          return _mm256_permute4x64_epi64(_mm256_unpacklo_epi16(a, b), 0xD8);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i PermutedUnpackHiU16 (__m256i a, __m256i b = K_ZERO)
+      {
+          return _mm256_permute4x64_epi64(_mm256_unpackhi_epi16(a, b), 0xD8);
+      }
+      //}}}
 
-        __m128i secondLo = _mm_loadu_si128((__m128i*)(p + 2 * step));
-        __m128i secondHi = LoadHalfAfterLast<step>(firstHi);
-        second = _mm256_inserti128_si256(_mm256_castsi128_si256(secondLo), secondHi, 0x1);
-    }
-    //}}}
+      //{{{
+      template <bool align, size_t step> SIMD_INLINE __m256i LoadBeforeFirst (const uint8_t * p)
+      {
+          __m128i lo = LoadHalfBeforeFirst<step>(LoadHalf<align>((__m128i*)p));
+          __m128i hi = _mm_loadu_si128((__m128i*)(p + HA - step));
+          return _mm256_inserti128_si256(_mm256_castsi128_si256(lo), hi, 0x1);
+      }
+      //}}}
+      //{{{
+      template <bool align, size_t step> SIMD_INLINE void LoadBeforeFirst (const uint8_t * p, __m256i & first, __m256i & second)
+      {
+          __m128i firstLo = LoadHalfBeforeFirst<step>(LoadHalf<align>((__m128i*)p));
+          __m128i firstHi = _mm_loadu_si128((__m128i*)(p + HA - step));
+          first = _mm256_inserti128_si256(_mm256_castsi128_si256(firstLo), firstHi, 0x1);
 
-    template <bool align> SIMD_INLINE __m256 Load (const float * p);
-    //{{{
-    template <> SIMD_INLINE __m256 Load <false> (const float * p)
-    {
-        return _mm256_loadu_ps(p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m256 Load <true> (const float * p)
-    {
-    #ifdef _MSC_VER
-        return _mm256_castsi256_ps(_mm256_load_si256((__m256i*)p));
-    #else
-        return _mm256_load_ps(p);
-    #endif
-    }
-    //}}}
-    }
-  //}}}
-  //{{{
-  namespace Avx512bw {
-    template <bool align> SIMD_INLINE __m512 Load(const float* p);
-    //{{{
-    template <> SIMD_INLINE __m512 Load<false>(const float* p)
-    {
-        return _mm512_loadu_ps(p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m512 Load<true>(const float* p)
-    {
-    #if defined(__clang__) && (__clang_major__ == 3) && (__clang_minor__ == 8) && (__clang_patchlevel__ == 0)
-        return _mm512_load_ps((const double*)p);
-    #else
-        return _mm512_load_ps(p);
-    #endif
-    }
-    //}}}
+          __m128i secondLo = LoadHalfBeforeFirst<step>(firstLo);
+          __m128i secondHi = _mm_loadu_si128((__m128i*)(p + HA - 2 * step));
+          second = _mm256_inserti128_si256(_mm256_castsi128_si256(secondLo), secondHi, 0x1);
+      }
+      //}}}
+      //{{{
+      template <bool align, size_t step> SIMD_INLINE __m256i LoadAfterLast (const uint8_t * p)
+      {
+          __m128i lo = _mm_loadu_si128((__m128i*)(p + step));
+          __m128i hi = LoadHalfAfterLast<step>(LoadHalf<align>((__m128i*)(p + HA)));
+          return _mm256_inserti128_si256(_mm256_castsi128_si256(lo), hi, 0x1);
+      }
+      //}}}
+      //{{{
+      template <bool align, size_t step> SIMD_INLINE void LoadAfterLast (const uint8_t * p, __m256i & first, __m256i & second)
+      {
+          __m128i firstLo = _mm_loadu_si128((__m128i*)(p + step));
+          __m128i firstHi = LoadHalfAfterLast<step>(LoadHalf<align>((__m128i*)(p + HA)));
+          first = _mm256_inserti128_si256(_mm256_castsi128_si256(firstLo), firstHi, 0x1);
 
-    //{{{
-    template <bool align, bool mask> SIMD_INLINE __m512 Load(const float* p, __mmask16 m)
-    {
-        return Load<align>(p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m512 Load<false, true>(const float* p, __mmask16 m)
-    {
-        return _mm512_maskz_loadu_ps(m, p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m512 Load<true, true>(const float* p, __mmask16 m)
-    {
-        return _mm512_maskz_load_ps(m, p);
-    }
-    //}}}
-    //{{{
-    template<bool align> SIMD_INLINE __m512 Load(const float* p0, const float* p1)
-    {
-        return _mm512_castpd_ps(_mm512_insertf64x4(_mm512_castps_pd(_mm512_castps256_ps512(Avx::Load<align>(p0))), _mm256_castps_pd(Avx::Load<align>(p1)), 1));
-    }
-    //}}}
-    //{{{
-    template<bool align> SIMD_INLINE __m512 Load(const float* p0, const float* p1, const float* p2, const float* p3)
-    {
-        return _mm512_insertf32x4(_mm512_insertf32x4(_mm512_insertf32x4(_mm512_castps128_ps512(Sse41::Load<align>(p0)), Sse41::Load<align>(p1), 1), Sse41::Load<align>(p2), 2), Sse41::Load<align>(p3), 3);
-    }
-    //}}}
+          __m128i secondLo = _mm_loadu_si128((__m128i*)(p + 2 * step));
+          __m128i secondHi = LoadHalfAfterLast<step>(firstHi);
+          second = _mm256_inserti128_si256(_mm256_castsi128_si256(secondLo), secondHi, 0x1);
+      }
+      //}}}
 
-    template <bool align> SIMD_INLINE __m512i Load(const void * p);
-    //{{{
-    template <> SIMD_INLINE __m512i Load<false>(const void * p)
-    {
-        return _mm512_loadu_si512(p);
-    }
+      template <bool align> SIMD_INLINE __m256 Load (const float * p);
+      //{{{
+      template <> SIMD_INLINE __m256 Load <false> (const float * p)
+      {
+          return _mm256_loadu_ps(p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m256 Load <true> (const float * p)
+      {
+      #ifdef _MSC_VER
+          return _mm256_castsi256_ps(_mm256_load_si256((__m256i*)p));
+      #else
+          return _mm256_load_ps(p);
+      #endif
+      }
+      //}}}
+      }
     //}}}
-    //{{{
-    template <> SIMD_INLINE __m512i Load<true>(const void * p)
-    {
-        return _mm512_load_si512(p);
-    }
-    //}}}
+  #endif
 
+  #ifdef SIMD_AVX512BW_ENABLE
     //{{{
-    template <bool align, bool mask> SIMD_INLINE __m512i Load(const uint8_t * p, __mmask64 m)
-    {
-        return Load<align>(p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m512i Load<false, true>(const uint8_t * p, __mmask64 m)
-    {
-    #if defined (SIMD_MASKZ_LOAD_ERROR)
-        return _mm512_mask_mov_epi8(K_ZERO, m, _mm512_maskz_loadu_epi8(m, p));
-    #else
-        return _mm512_maskz_loadu_epi8(m, p);
-    #endif
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m512i Load<true, true>(const uint8_t * p, __mmask64 m)
-    {
-    #if defined (SIMD_MASKZ_LOAD_ERROR)
-        return _mm512_mask_mov_epi8(K_ZERO, m, _mm512_maskz_loadu_epi8(m, p));
-    #else
-        return _mm512_maskz_loadu_epi8(m, p);
-    #endif
-    }
-    //}}}
+    namespace Avx512bw {
+      template <bool align> SIMD_INLINE __m512 Load(const float* p);
+      //{{{
+      template <> SIMD_INLINE __m512 Load<false>(const float* p)
+      {
+          return _mm512_loadu_ps(p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512 Load<true>(const float* p)
+      {
+      #if defined(__clang__) && (__clang_major__ == 3) && (__clang_minor__ == 8) && (__clang_patchlevel__ == 0)
+          return _mm512_load_ps((const double*)p);
+      #else
+          return _mm512_load_ps(p);
+      #endif
+      }
+      //}}}
 
-    //{{{
-    template <bool align, bool mask> SIMD_INLINE __m512i Load(const int8_t* p, __mmask64 m)
-    {
-        return Load<align, mask>((uint8_t*)p, m);
-    }
-    //}}}
-    //{{{
-    template <bool align, bool mask> SIMD_INLINE __m512i Load(const int16_t * p, __mmask32 m)
-    {
-        return Load<align>(p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m512i Load<false, true>(const int16_t * p, __mmask32 m)
-    {
-        return _mm512_maskz_loadu_epi16(m, p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m512i Load<true, true>(const int16_t * p, __mmask32 m)
-    {
-        return _mm512_maskz_loadu_epi16(m, p);
-    }
-    //}}}
-    //{{{
-    template <bool align, bool mask> SIMD_INLINE __m512i Load(const uint16_t * p, __mmask32 m)
-    {
-        return Load<align, mask>((int16_t*)p, m);
-    }
-    //}}}
-    //{{{
-    template <bool align, bool mask> SIMD_INLINE __m512i Load(const uint32_t * p, __mmask16 m)
-    {
-        return Load<align>(p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m512i Load<false, true>(const uint32_t * p, __mmask16 m)
-    {
-        return _mm512_maskz_loadu_epi32(m, p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m512i Load<true, true>(const uint32_t * p, __mmask16 m)
-    {
-        return _mm512_maskz_loadu_epi32(m, p);
-    }
-    //}}}
+      //{{{
+      template <bool align, bool mask> SIMD_INLINE __m512 Load(const float* p, __mmask16 m)
+      {
+          return Load<align>(p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512 Load<false, true>(const float* p, __mmask16 m)
+      {
+          return _mm512_maskz_loadu_ps(m, p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512 Load<true, true>(const float* p, __mmask16 m)
+      {
+          return _mm512_maskz_load_ps(m, p);
+      }
+      //}}}
+      //{{{
+      template<bool align> SIMD_INLINE __m512 Load(const float* p0, const float* p1)
+      {
+          return _mm512_castpd_ps(_mm512_insertf64x4(_mm512_castps_pd(_mm512_castps256_ps512(Avx::Load<align>(p0))), _mm256_castps_pd(Avx::Load<align>(p1)), 1));
+      }
+      //}}}
+      //{{{
+      template<bool align> SIMD_INLINE __m512 Load(const float* p0, const float* p1, const float* p2, const float* p3)
+      {
+          return _mm512_insertf32x4(_mm512_insertf32x4(_mm512_insertf32x4(_mm512_castps128_ps512(Sse41::Load<align>(p0)), Sse41::Load<align>(p1), 1), Sse41::Load<align>(p2), 2), Sse41::Load<align>(p3), 3);
+      }
+      //}}}
 
-    //{{{
-    template <bool align, bool mask> SIMD_INLINE __m512i Load(const int32_t * p, __mmask16 m)
-    {
-        return Load<align, mask>((uint32_t*)p, m);
-    }
-    //}}}
-    //{{{
-    template <size_t step> SIMD_INLINE __m512i LoadBeforeFirst(const uint8_t * p)
-    {
-        __mmask64 m = __mmask64(-1) << step;
-        __m512i src = Load<false, true>(p - step, m);
-        __m128i so = _mm512_extracti32x4_epi32(src, 0);
-        __m128i ss = _mm_srli_si128(so, step);
-        return _mm512_mask_blend_epi8(m, _mm512_inserti32x4(src, ss, 0), src);
-    }
-    //}}}
-    //{{{
-    template <size_t step> SIMD_INLINE __m512i LoadAfterLast(const uint8_t * p)
-    {
-        __mmask64 m = __mmask64(-1) >> step;
-        __m512i src = Load<false, true>(p + step, m);
-        __m128i so = _mm512_extracti32x4_epi32(src, 3);
-        __m128i ss = _mm_slli_si128(so, step);
-        return _mm512_mask_blend_epi8(m, _mm512_inserti32x4(src, ss, 3), src);
-    }
-    //}}}
-    //{{{
-    template <size_t step> SIMD_INLINE __m512i LoadBeforeFirst2(const uint8_t * p)
-    {
-        __m512i src = Load<false, true>(p - 2 * step, __mmask64(-1) << 2 * step);
-        return _mm512_inserti32x4(src, Sse41::LoadBeforeFirst<step>(Sse41::LoadBeforeFirst<step>(Sse41::Load<false>((__m128i*)p + 0))), 0);
-    }
-    //}}}
-    //{{{
-    template <size_t step> SIMD_INLINE __m512i LoadAfterLast2(const uint8_t * p)
-    {
-        __m512i src = Load<false, true>(p + 2 * step, __mmask64(-1) >> 2 * step);
-        return _mm512_inserti32x4(src, Sse41::LoadAfterLast<step>(Sse41::LoadAfterLast<step>(Sse41::Load<false>((__m128i*)p + 3))), 3);
-    }
-    //}}}
-    //{{{
-    template<bool align> SIMD_INLINE __m512i Load(const __m256i* p0, const __m256i* p1)
-    {
-        return _mm512_inserti32x8(_mm512_castsi256_si512(Avx2::Load<align>(p0)), Avx2::Load<align>(p1), 1);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i Load(const uint8_t * p0, const uint8_t * p1, __mmask32 mask)
-    {
-        return _mm512_inserti32x8(_mm512_castsi256_si512(_mm256_maskz_loadu_epi8(mask, p0)), _mm256_maskz_loadu_epi8(mask, p1), 1);
-    }
-    //}}}
+      template <bool align> SIMD_INLINE __m512i Load(const void * p);
+      //{{{
+      template <> SIMD_INLINE __m512i Load<false>(const void * p)
+      {
+          return _mm512_loadu_si512(p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512i Load<true>(const void * p)
+      {
+          return _mm512_load_si512(p);
+      }
+      //}}}
 
-    //{{{
-    template<bool align> SIMD_INLINE __m512i Load(const __m128i* p0, const __m128i* p1, const __m128i* p2, const __m128i* p3)
-    {
-        return _mm512_inserti32x4(_mm512_inserti32x4(_mm512_inserti32x4(_mm512_castsi128_si512(Sse41::Load<align>(p0)), Sse41::Load<align>(p1), 1), Sse41::Load<align>(p2), 2), Sse41::Load<align>(p3), 3);
+      //{{{
+      template <bool align, bool mask> SIMD_INLINE __m512i Load(const uint8_t * p, __mmask64 m)
+      {
+          return Load<align>(p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512i Load<false, true>(const uint8_t * p, __mmask64 m)
+      {
+      #if defined (SIMD_MASKZ_LOAD_ERROR)
+          return _mm512_mask_mov_epi8(K_ZERO, m, _mm512_maskz_loadu_epi8(m, p));
+      #else
+          return _mm512_maskz_loadu_epi8(m, p);
+      #endif
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512i Load<true, true>(const uint8_t * p, __mmask64 m)
+      {
+      #if defined (SIMD_MASKZ_LOAD_ERROR)
+          return _mm512_mask_mov_epi8(K_ZERO, m, _mm512_maskz_loadu_epi8(m, p));
+      #else
+          return _mm512_maskz_loadu_epi8(m, p);
+      #endif
+      }
+      //}}}
+
+      //{{{
+      template <bool align, bool mask> SIMD_INLINE __m512i Load(const int8_t* p, __mmask64 m)
+      {
+          return Load<align, mask>((uint8_t*)p, m);
+      }
+      //}}}
+      //{{{
+      template <bool align, bool mask> SIMD_INLINE __m512i Load(const int16_t * p, __mmask32 m)
+      {
+          return Load<align>(p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512i Load<false, true>(const int16_t * p, __mmask32 m)
+      {
+          return _mm512_maskz_loadu_epi16(m, p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512i Load<true, true>(const int16_t * p, __mmask32 m)
+      {
+          return _mm512_maskz_loadu_epi16(m, p);
+      }
+      //}}}
+      //{{{
+      template <bool align, bool mask> SIMD_INLINE __m512i Load(const uint16_t * p, __mmask32 m)
+      {
+          return Load<align, mask>((int16_t*)p, m);
+      }
+      //}}}
+      //{{{
+      template <bool align, bool mask> SIMD_INLINE __m512i Load(const uint32_t * p, __mmask16 m)
+      {
+          return Load<align>(p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512i Load<false, true>(const uint32_t * p, __mmask16 m)
+      {
+          return _mm512_maskz_loadu_epi32(m, p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512i Load<true, true>(const uint32_t * p, __mmask16 m)
+      {
+          return _mm512_maskz_loadu_epi32(m, p);
+      }
+      //}}}
+
+      //{{{
+      template <bool align, bool mask> SIMD_INLINE __m512i Load(const int32_t * p, __mmask16 m)
+      {
+          return Load<align, mask>((uint32_t*)p, m);
+      }
+      //}}}
+      //{{{
+      template <size_t step> SIMD_INLINE __m512i LoadBeforeFirst(const uint8_t * p)
+      {
+          __mmask64 m = __mmask64(-1) << step;
+          __m512i src = Load<false, true>(p - step, m);
+          __m128i so = _mm512_extracti32x4_epi32(src, 0);
+          __m128i ss = _mm_srli_si128(so, step);
+          return _mm512_mask_blend_epi8(m, _mm512_inserti32x4(src, ss, 0), src);
+      }
+      //}}}
+      //{{{
+      template <size_t step> SIMD_INLINE __m512i LoadAfterLast(const uint8_t * p)
+      {
+          __mmask64 m = __mmask64(-1) >> step;
+          __m512i src = Load<false, true>(p + step, m);
+          __m128i so = _mm512_extracti32x4_epi32(src, 3);
+          __m128i ss = _mm_slli_si128(so, step);
+          return _mm512_mask_blend_epi8(m, _mm512_inserti32x4(src, ss, 3), src);
+      }
+      //}}}
+      //{{{
+      template <size_t step> SIMD_INLINE __m512i LoadBeforeFirst2(const uint8_t * p)
+      {
+          __m512i src = Load<false, true>(p - 2 * step, __mmask64(-1) << 2 * step);
+          return _mm512_inserti32x4(src, Sse41::LoadBeforeFirst<step>(Sse41::LoadBeforeFirst<step>(Sse41::Load<false>((__m128i*)p + 0))), 0);
+      }
+      //}}}
+      //{{{
+      template <size_t step> SIMD_INLINE __m512i LoadAfterLast2(const uint8_t * p)
+      {
+          __m512i src = Load<false, true>(p + 2 * step, __mmask64(-1) >> 2 * step);
+          return _mm512_inserti32x4(src, Sse41::LoadAfterLast<step>(Sse41::LoadAfterLast<step>(Sse41::Load<false>((__m128i*)p + 3))), 3);
+      }
+      //}}}
+      //{{{
+      template<bool align> SIMD_INLINE __m512i Load(const __m256i* p0, const __m256i* p1)
+      {
+          return _mm512_inserti32x8(_mm512_castsi256_si512(Avx2::Load<align>(p0)), Avx2::Load<align>(p1), 1);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i Load(const uint8_t * p0, const uint8_t * p1, __mmask32 mask)
+      {
+          return _mm512_inserti32x8(_mm512_castsi256_si512(_mm256_maskz_loadu_epi8(mask, p0)), _mm256_maskz_loadu_epi8(mask, p1), 1);
+      }
+      //}}}
+
+      //{{{
+      template<bool align> SIMD_INLINE __m512i Load(const __m128i* p0, const __m128i* p1, const __m128i* p2, const __m128i* p3)
+      {
+          return _mm512_inserti32x4(_mm512_inserti32x4(_mm512_inserti32x4(_mm512_castsi128_si512(Sse41::Load<align>(p0)), Sse41::Load<align>(p1), 1), Sse41::Load<align>(p2), 2), Sse41::Load<align>(p3), 3);
+      }
+      //}}}
+      //{{{
+      template <bool align, bool mask> SIMD_INLINE __m128i Load(const uint8_t* p, __mmask16 m)
+      {
+          return Sse41::Load<align>((__m128i*)p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m128i Load<false, true>(const uint8_t* p, __mmask16 m)
+      {
+          return _mm_maskz_loadu_epi8(m, p);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m128i Load<true, true>(const uint8_t* p, __mmask16 m)
+      {
+          return _mm_maskz_loadu_epi8(m, p);
+      }
+      //}}}
     }
     //}}}
-    //{{{
-    template <bool align, bool mask> SIMD_INLINE __m128i Load(const uint8_t* p, __mmask16 m)
-    {
-        return Sse41::Load<align>((__m128i*)p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m128i Load<false, true>(const uint8_t* p, __mmask16 m)
-    {
-        return _mm_maskz_loadu_epi8(m, p);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m128i Load<true, true>(const uint8_t* p, __mmask16 m)
-    {
-        return _mm_maskz_loadu_epi8(m, p);
-    }
-    //}}}
-  }
-  //}}}
+  #endif
 
   #ifdef SIMD_NEON_ENABLE
     //{{{

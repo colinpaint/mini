@@ -26,6 +26,7 @@
 */
 //}}}
 #pragma once
+//{{{  includes, platform
 #include <stddef.h>
 #include <stdint.h>
 
@@ -39,6 +40,10 @@
   #error This platform is unsupported!
 #endif
 
+#define SIMD_CPP_2011_ENABLE
+#define SIMD_CPP_2014_ENABLE
+#define SIMD_CPP_2017_ENABLE
+//}}}
 //{{{  enums
 //{{{
 typedef enum {
@@ -376,7 +381,7 @@ SIMD_API void SimdBgrToYuv422p (const uint8_t * bgr, size_t width, size_t height
 SIMD_API void SimdBgrToYuv444p (const uint8_t * bgr, size_t width, size_t height, size_t bgrStride,
                                 uint8_t * y, size_t yStride, uint8_t * u, size_t uStride, uint8_t * v, size_t vStride);
 //}}}
-//{{{  bgra
+//{{{  bgra 
 SIMD_API void SimdBgraToBgr (const uint8_t * bgra, size_t width, size_t height, size_t bgraStride,
                              uint8_t * bgr, size_t bgrStride);
 SIMD_API void SimdBgraToGray (const uint8_t * bgra, size_t width, size_t height, size_t bgraStride,
@@ -416,7 +421,7 @@ SIMD_API void SimdBgraToYuva420p (const uint8_t * bgra, size_t bgraStride, size_
                                   uint8_t * a, size_t aStride);
 
 //}}}
-//{{{  gray
+//{{{  gray 
 SIMD_API void SimdGrayToBgr (const uint8_t *gray, size_t width, size_t height, size_t grayStride,
                              uint8_t* bgr, size_t bgrStride);
 SIMD_API void SimdGrayToBgra (const uint8_t *gray, size_t width, size_t height, size_t grayStride,
@@ -514,7 +519,7 @@ SIMD_API void SimdYuv420pToUyvy422 (const uint8_t* y, size_t yStride,
                                     size_t width, size_t height,
                                     uint8_t* uyvy, size_t uyvyStride);
 //}}}
-//{{{  uyvy
+//{{{  uyvy 
 SIMD_API void SimdUyvy422ToBgr (const uint8_t* uyvy, size_t uyvyStride, size_t width, size_t height,
                                 uint8_t* bgr, size_t bgrStride, SimdYuvType yuvType);
 SIMD_API void SimdUyvy422ToYuv420p (const uint8_t* uyvy, size_t uyvyStride, size_t width, size_t height,

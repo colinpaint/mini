@@ -62,141 +62,153 @@ namespace Simd {
     }
     //}}}
     }
-  //{{{
-  namespace Sse41
-  {
-      template <UpdateType update, bool align> SIMD_INLINE void Update(float  * p, __m128 a)
-      {
-          Store<align>(p, a);
-      }
 
-      template <> SIMD_INLINE void Update<UpdateAdd, false>(float  * p, __m128 a)
-      {
-          Store<false>(p, _mm_add_ps(Load<false>(p), a));
-      }
+  #ifdef SIMD_SSE41_ENABLE
+    //{{{
+    namespace Sse41
+    {
+        template <UpdateType update, bool align> SIMD_INLINE void Update(float  * p, __m128 a)
+        {
+            Store<align>(p, a);
+        }
 
-      template <> SIMD_INLINE void Update<UpdateAdd, true>(float  * p, __m128 a)
-      {
-          Store<true>(p, _mm_add_ps(Load<true>(p), a));
-      }
+        template <> SIMD_INLINE void Update<UpdateAdd, false>(float  * p, __m128 a)
+        {
+            Store<false>(p, _mm_add_ps(Load<false>(p), a));
+        }
 
-      //-----------------------------------------------------------------------------------------
+        template <> SIMD_INLINE void Update<UpdateAdd, true>(float  * p, __m128 a)
+        {
+            Store<true>(p, _mm_add_ps(Load<true>(p), a));
+        }
 
-      template <UpdateType update, bool align> SIMD_INLINE void Update(int32_t  * p, __m128i a)
-      {
-          Store<align>((__m128i*)p, a);
-      }
+        //-----------------------------------------------------------------------------------------
 
-      template <> SIMD_INLINE void Update<UpdateAdd, false>(int32_t  * p, __m128i a)
-      {
-          Store<false>((__m128i*)p, _mm_add_epi32(Load<false>((__m128i*)p), a));
-      }
+        template <UpdateType update, bool align> SIMD_INLINE void Update(int32_t  * p, __m128i a)
+        {
+            Store<align>((__m128i*)p, a);
+        }
 
-      template <> SIMD_INLINE void Update<UpdateAdd, true>(int32_t  * p, __m128i a)
-      {
-          Store<true>((__m128i*)p, _mm_add_epi32(Load<true>((__m128i*)p), a));
-      }
-  }
-  //}}}
-  //{{{
-  namespace Avx
-  {
-      template <UpdateType update, bool align> SIMD_INLINE void Update(float  * p, __m256 a)
-      {
-          Store<align>(p, a);
-      }
+        template <> SIMD_INLINE void Update<UpdateAdd, false>(int32_t  * p, __m128i a)
+        {
+            Store<false>((__m128i*)p, _mm_add_epi32(Load<false>((__m128i*)p), a));
+        }
 
-      template <> SIMD_INLINE void Update<UpdateAdd, false>(float  * p, __m256 a)
-      {
-          Store<false>(p, _mm256_add_ps(Load<false>(p), a));
-      }
+        template <> SIMD_INLINE void Update<UpdateAdd, true>(int32_t  * p, __m128i a)
+        {
+            Store<true>((__m128i*)p, _mm_add_epi32(Load<true>((__m128i*)p), a));
+        }
+    }
+    //}}}
+ #endif
 
-      template <> SIMD_INLINE void Update<UpdateAdd, true>(float  * p, __m256 a)
-      {
-          Store<true>(p, _mm256_add_ps(Load<true>(p), a));
-      }
-  }
-  //}}}
-  //{{{
-  namespace Avx2
-  {
-      template <UpdateType update, bool align> SIMD_INLINE void Update(int32_t  * p, __m256i a)
-      {
-          Store<align>((__m256i*)p, a);
-      }
+  #ifdef SIMD_AVX_ENABLE
+    //{{{
+    namespace Avx
+    {
+        template <UpdateType update, bool align> SIMD_INLINE void Update(float  * p, __m256 a)
+        {
+            Store<align>(p, a);
+        }
 
-      template <> SIMD_INLINE void Update<UpdateAdd, false>(int32_t  * p, __m256i a)
-      {
-          Store<false>((__m256i*)p, _mm256_add_epi32(Load<false>((__m256i*)p), a));
-      }
+        template <> SIMD_INLINE void Update<UpdateAdd, false>(float  * p, __m256 a)
+        {
+            Store<false>(p, _mm256_add_ps(Load<false>(p), a));
+        }
 
-      template <> SIMD_INLINE void Update<UpdateAdd, true>(int32_t  * p, __m256i a)
-      {
-          Store<true>((__m256i*)p, _mm256_add_epi32(Load<true>((__m256i*)p), a));
-      }
-  }
-  //}}}
-  //{{{
-  namespace Avx512bw
-  {
-      template <UpdateType update, bool align, bool mask> SIMD_INLINE void Update(float* p, __m512 a, __mmask16 m)
-      {
-          Store<align, mask>(p, a, m);
-      }
+        template <> SIMD_INLINE void Update<UpdateAdd, true>(float  * p, __m256 a)
+        {
+            Store<true>(p, _mm256_add_ps(Load<true>(p), a));
+        }
+    }
+    //}}}
+  #endif
 
-      template <> SIMD_INLINE void Update<UpdateAdd, false, false>(float* p, __m512 a, __mmask16 m)
-      {
-          Store<false, false>(p, _mm512_add_ps((Load<false, false>(p, m)), a), m);
-      }
+  #ifdef SIMD_AVX2_ENABLE
+    //{{{
+    namespace Avx2
+    {
+        template <UpdateType update, bool align> SIMD_INLINE void Update(int32_t  * p, __m256i a)
+        {
+            Store<align>((__m256i*)p, a);
+        }
 
-      template <> SIMD_INLINE void Update<UpdateAdd, false, true>(float* p, __m512 a, __mmask16 m)
-      {
-          Store<false, true>(p, _mm512_add_ps((Load<false, true>(p, m)), a), m);
-      }
+        template <> SIMD_INLINE void Update<UpdateAdd, false>(int32_t  * p, __m256i a)
+        {
+            Store<false>((__m256i*)p, _mm256_add_epi32(Load<false>((__m256i*)p), a));
+        }
 
-      template <> SIMD_INLINE void Update<UpdateAdd, true, false>(float* p, __m512 a, __mmask16 m)
-      {
-          Store<true, false>(p, _mm512_add_ps((Load<true, false>(p, m)), a), m);
-      }
+        template <> SIMD_INLINE void Update<UpdateAdd, true>(int32_t  * p, __m256i a)
+        {
+            Store<true>((__m256i*)p, _mm256_add_epi32(Load<true>((__m256i*)p), a));
+        }
+    }
+    //}}}
+  #endif
 
-      template <> SIMD_INLINE void Update<UpdateAdd, true, true>(float* p, __m512 a, __mmask16 m)
-      {
-          Store<true, true>(p, _mm512_add_ps((Load<true, true>(p, m)), a), m);
-      }
+  #ifdef SIMD_AVX512BW_ENABLE
+    //{{{
+    namespace Avx512bw
+    {
+        template <UpdateType update, bool align, bool mask> SIMD_INLINE void Update(float* p, __m512 a, __mmask16 m)
+        {
+            Store<align, mask>(p, a, m);
+        }
 
-      //-----------------------------------------------------------------------------------------
+        template <> SIMD_INLINE void Update<UpdateAdd, false, false>(float* p, __m512 a, __mmask16 m)
+        {
+            Store<false, false>(p, _mm512_add_ps((Load<false, false>(p, m)), a), m);
+        }
 
-      template <UpdateType update, bool align, bool mask> SIMD_INLINE void Update(int32_t  * p, __m512i a, __mmask16 m)
-      {
-          Store<align, mask>(p, a, m);
-      }
+        template <> SIMD_INLINE void Update<UpdateAdd, false, true>(float* p, __m512 a, __mmask16 m)
+        {
+            Store<false, true>(p, _mm512_add_ps((Load<false, true>(p, m)), a), m);
+        }
 
-      template <> SIMD_INLINE void Update<UpdateAdd, false, false>(int32_t  * p, __m512i a, __mmask16 m)
-      {
-          Store<false, false>(p, _mm512_add_epi32((Load<false, false>(p, m)), a), m);
-      }
+        template <> SIMD_INLINE void Update<UpdateAdd, true, false>(float* p, __m512 a, __mmask16 m)
+        {
+            Store<true, false>(p, _mm512_add_ps((Load<true, false>(p, m)), a), m);
+        }
 
-      template <> SIMD_INLINE void Update<UpdateAdd, false, true>(int32_t  * p, __m512i a, __mmask16 m)
-      {
-          Store<false, true>(p, _mm512_add_epi32((Load<false, true>(p, m)), a), m);
-      }
+        template <> SIMD_INLINE void Update<UpdateAdd, true, true>(float* p, __m512 a, __mmask16 m)
+        {
+            Store<true, true>(p, _mm512_add_ps((Load<true, true>(p, m)), a), m);
+        }
 
-      template <> SIMD_INLINE void Update<UpdateAdd, true, false>(int32_t  * p, __m512i a, __mmask16 m)
-      {
-          Store<true, false>(p, _mm512_add_epi32((Load<true, false>(p, m)), a), m);
-      }
+        //-----------------------------------------------------------------------------------------
 
-      template <> SIMD_INLINE void Update<UpdateAdd, true, true>(int32_t  * p, __m512i a, __mmask16 m)
-      {
-          Store<true, true>(p, _mm512_add_epi32((Load<true, true>(p, m)), a), m);
-      }
+        template <UpdateType update, bool align, bool mask> SIMD_INLINE void Update(int32_t  * p, __m512i a, __mmask16 m)
+        {
+            Store<align, mask>(p, a, m);
+        }
 
-      template <UpdateType update, bool align> SIMD_INLINE void Update(int32_t  * p, __m512i a)
-      {
-          Update<update, align, false>(p, a, __mmask16(-1));
-      }
-  }
-  //}}}
+        template <> SIMD_INLINE void Update<UpdateAdd, false, false>(int32_t  * p, __m512i a, __mmask16 m)
+        {
+            Store<false, false>(p, _mm512_add_epi32((Load<false, false>(p, m)), a), m);
+        }
+
+        template <> SIMD_INLINE void Update<UpdateAdd, false, true>(int32_t  * p, __m512i a, __mmask16 m)
+        {
+            Store<false, true>(p, _mm512_add_epi32((Load<false, true>(p, m)), a), m);
+        }
+
+        template <> SIMD_INLINE void Update<UpdateAdd, true, false>(int32_t  * p, __m512i a, __mmask16 m)
+        {
+            Store<true, false>(p, _mm512_add_epi32((Load<true, false>(p, m)), a), m);
+        }
+
+        template <> SIMD_INLINE void Update<UpdateAdd, true, true>(int32_t  * p, __m512i a, __mmask16 m)
+        {
+            Store<true, true>(p, _mm512_add_epi32((Load<true, true>(p, m)), a), m);
+        }
+
+        template <UpdateType update, bool align> SIMD_INLINE void Update(int32_t  * p, __m512i a)
+        {
+            Update<update, align, false>(p, a, __mmask16(-1));
+        }
+    }
+    //}}}
+  #endif
 
   #ifdef SIMD_NEON_ENABLE
     //{{{

@@ -194,61 +194,127 @@ namespace Simd {
     };
   //}}}
 
-  template<class T> using Holder = std::unique_ptr<T>;
+  #if defined(SIMD_CPP_2011_ENABLE)
+    template<class T> using Holder = std::unique_ptr<T>;
+  #else
+     //{{{
+     template <class T> class Holder {
 
-  //{{{
-  namespace Sse41 {
+       T* _ptr;
+
+     public:
+       //{{{
+       Holder(T* ptr)
+           : _ptr(ptr)
+       {
+       }
+       //}}}
+       //{{{
+       ~Holder()
+       {
+           if (_ptr)
+               delete _ptr;
+       }
+       //}}}
+
+       //{{{
+       T& operator * ()
+       {
+           return *_ptr;
+       }
+       //}}}
+       //{{{
+       const T& operator * () const
+       {
+           return *_ptr;
+       }
+       //}}}
+       //{{{
+       T* operator -> ()
+       {
+           return _ptr;
+       }
+       //}}}
+       //{{{
+       const T* operator -> () const
+       {
+           return _ptr;
+       }
+       //}}}
+       //{{{
+       operator bool() const
+       {
+           return _ptr != NULL;
+       }
+       //}}}
+       };
+     //}}}
+  #endif
+
+  #ifdef SIMD_SSE41_ENABLE
     //{{{
-    SIMD_INLINE bool Aligned(size_t size, size_t align = sizeof(__m128))
-    {
-        return Simd::Aligned(size, align);
-    }
+    namespace Sse41 {
+      //{{{
+      SIMD_INLINE bool Aligned(size_t size, size_t align = sizeof(__m128))
+      {
+          return Simd::Aligned(size, align);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE bool Aligned(const void* ptr, size_t align = sizeof(__m128))
+      {
+          return Simd::Aligned(ptr, align);
+      }
+      //}}}
+      }
     //}}}
+  #endif
+
+  #ifdef SIMD_AVX_ENABLE
     //{{{
-    SIMD_INLINE bool Aligned(const void* ptr, size_t align = sizeof(__m128))
-    {
-        return Simd::Aligned(ptr, align);
-    }
+    namespace Avx {
+      //{{{
+      SIMD_INLINE bool Aligned(size_t size, size_t align = sizeof(__m256))
+      {
+          return Simd::Aligned(size, align);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE bool Aligned(const void * ptr, size_t align = sizeof(__m256))
+      {
+          return Simd::Aligned(ptr, align);
+      }
+      //}}}
+      }
     //}}}
-    }
-  //}}}
-  //{{{
-  namespace Avx {
+  #endif
+
+  #ifdef SIMD_AVX2_ENABLE
     //{{{
-    SIMD_INLINE bool Aligned(size_t size, size_t align = sizeof(__m256))
-    {
-        return Simd::Aligned(size, align);
-    }
+    namespace Avx2 {
+      using Avx::Aligned;
+      }
     //}}}
+  #endif
+
+  #ifdef SIMD_AVX512BW_ENABLE
     //{{{
-    SIMD_INLINE bool Aligned(const void * ptr, size_t align = sizeof(__m256))
-    {
-        return Simd::Aligned(ptr, align);
-    }
+    namespace Avx512bw {
+      //{{{
+      SIMD_INLINE bool Aligned(size_t size, size_t align = sizeof(__m512))
+      {
+          return Simd::Aligned(size, align);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE bool Aligned(const void * ptr, size_t align = sizeof(__m512))
+      {
+          return Simd::Aligned(ptr, align);
+      }
+      //}}}
+      }
     //}}}
-    }
-  //}}}
-  //{{{
-  namespace Avx2 {
-    using Avx::Aligned;
-    }
-  //}}}
-  //{{{
-  namespace Avx512bw {
-    //{{{
-    SIMD_INLINE bool Aligned(size_t size, size_t align = sizeof(__m512))
-    {
-        return Simd::Aligned(size, align);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE bool Aligned(const void * ptr, size_t align = sizeof(__m512))
-    {
-        return Simd::Aligned(ptr, align);
-    }
-    //}}}
-    }
-  //}}}
+  #endif
 
   #ifdef SIMD_NEON_ENABLE
     //{{{

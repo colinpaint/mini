@@ -301,590 +301,598 @@ namespace Simd {
     //}}}
     }
 
-  //{{{
-  namespace Sse41 {
+  #ifdef SIMD_SSE41_ENABLE
     //{{{
-    SIMD_INLINE __m128i AdjustY16(__m128i y16)
-    {
-        return _mm_subs_epi16(y16, K16_Y_ADJUST);
+    namespace Sse41 {
+      //{{{
+      SIMD_INLINE __m128i AdjustY16(__m128i y16)
+      {
+          return _mm_subs_epi16(y16, K16_Y_ADJUST);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i AdjustUV16(__m128i uv16)
+      {
+          return _mm_subs_epi16(uv16, K16_UV_ADJUST);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i AdjustedYuvToRed32(__m128i y16_1, __m128i v16_0)
+      {
+          return _mm_srai_epi32(_mm_add_epi32(_mm_madd_epi16(y16_1, K16_YRGB_RT),
+              _mm_madd_epi16(v16_0, K16_VR_0)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i AdjustedYuvToRed16(__m128i y16, __m128i v16)
+      {
+          return SaturateI16ToU8(_mm_packs_epi32(
+              AdjustedYuvToRed32(_mm_unpacklo_epi16(y16, K16_0001), _mm_unpacklo_epi16(v16, K_ZERO)),
+              AdjustedYuvToRed32(_mm_unpackhi_epi16(y16, K16_0001), _mm_unpackhi_epi16(v16, K_ZERO))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i AdjustedYuvToGreen32(__m128i y16_1, __m128i u16_v16)
+      {
+          return _mm_srai_epi32(_mm_add_epi32(_mm_madd_epi16(y16_1, K16_YRGB_RT),
+              _mm_madd_epi16(u16_v16, K16_UG_VG)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i AdjustedYuvToGreen16(__m128i y16, __m128i u16, __m128i v16)
+      {
+          return SaturateI16ToU8(_mm_packs_epi32(
+              AdjustedYuvToGreen32(_mm_unpacklo_epi16(y16, K16_0001), _mm_unpacklo_epi16(u16, v16)),
+              AdjustedYuvToGreen32(_mm_unpackhi_epi16(y16, K16_0001), _mm_unpackhi_epi16(u16, v16))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i AdjustedYuvToBlue32(__m128i y16_1, __m128i u16_0)
+      {
+          return _mm_srai_epi32(_mm_add_epi32(_mm_madd_epi16(y16_1, K16_YRGB_RT),
+              _mm_madd_epi16(u16_0, K16_UB_0)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i AdjustedYuvToBlue16(__m128i y16, __m128i u16)
+      {
+          return SaturateI16ToU8(_mm_packs_epi32(
+              AdjustedYuvToBlue32(_mm_unpacklo_epi16(y16, K16_0001), _mm_unpacklo_epi16(u16, K_ZERO)),
+              AdjustedYuvToBlue32(_mm_unpackhi_epi16(y16, K16_0001), _mm_unpackhi_epi16(u16, K_ZERO))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i YuvToRed(__m128i y, __m128i v)
+      {
+          __m128i lo = AdjustedYuvToRed16(
+              AdjustY16(_mm_unpacklo_epi8(y, K_ZERO)),
+              AdjustUV16(_mm_unpacklo_epi8(v, K_ZERO)));
+          __m128i hi = AdjustedYuvToRed16(
+              AdjustY16(_mm_unpackhi_epi8(y, K_ZERO)),
+              AdjustUV16(_mm_unpackhi_epi8(v, K_ZERO)));
+          return _mm_packus_epi16(lo, hi);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i YuvToGreen(__m128i y, __m128i u, __m128i v)
+      {
+          __m128i lo = AdjustedYuvToGreen16(
+              AdjustY16(_mm_unpacklo_epi8(y, K_ZERO)),
+              AdjustUV16(_mm_unpacklo_epi8(u, K_ZERO)),
+              AdjustUV16(_mm_unpacklo_epi8(v, K_ZERO)));
+          __m128i hi = AdjustedYuvToGreen16(
+              AdjustY16(_mm_unpackhi_epi8(y, K_ZERO)),
+              AdjustUV16(_mm_unpackhi_epi8(u, K_ZERO)),
+              AdjustUV16(_mm_unpackhi_epi8(v, K_ZERO)));
+          return _mm_packus_epi16(lo, hi);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i YuvToBlue(__m128i y, __m128i u)
+      {
+          __m128i lo = AdjustedYuvToBlue16(
+              AdjustY16(_mm_unpacklo_epi8(y, K_ZERO)),
+              AdjustUV16(_mm_unpacklo_epi8(u, K_ZERO)));
+          __m128i hi = AdjustedYuvToBlue16(
+              AdjustY16(_mm_unpackhi_epi8(y, K_ZERO)),
+              AdjustUV16(_mm_unpackhi_epi8(u, K_ZERO)));
+          return _mm_packus_epi16(lo, hi);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i BgrToY32(__m128i b16_r16, __m128i g16_1)
+      {
+          return _mm_srai_epi32(_mm_add_epi32(_mm_madd_epi16(b16_r16, K16_BY_RY),
+              _mm_madd_epi16(g16_1, K16_GY_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i BgrToY16(__m128i b16, __m128i g16, __m128i r16)
+      {
+          return SaturateI16ToU8(_mm_add_epi16(K16_Y_ADJUST, _mm_packs_epi32(
+              BgrToY32(_mm_unpacklo_epi16(b16, r16), _mm_unpacklo_epi16(g16, K16_0001)),
+              BgrToY32(_mm_unpackhi_epi16(b16, r16), _mm_unpackhi_epi16(g16, K16_0001)))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i BgrToY8(__m128i b8, __m128i g8, __m128i r8)
+      {
+          return _mm_packus_epi16(
+              BgrToY16(_mm_unpacklo_epi8(b8, K_ZERO), _mm_unpacklo_epi8(g8, K_ZERO), _mm_unpacklo_epi8(r8, K_ZERO)),
+              BgrToY16(_mm_unpackhi_epi8(b8, K_ZERO), _mm_unpackhi_epi8(g8, K_ZERO), _mm_unpackhi_epi8(r8, K_ZERO)));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i BgrToU32(__m128i b16_r16, __m128i g16_1)
+      {
+          return _mm_srai_epi32(_mm_add_epi32(_mm_madd_epi16(b16_r16, K16_BU_RU),
+              _mm_madd_epi16(g16_1, K16_GU_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i BgrToU16(__m128i b16, __m128i g16, __m128i r16)
+      {
+          return SaturateI16ToU8(_mm_add_epi16(K16_UV_ADJUST, _mm_packs_epi32(
+              BgrToU32(_mm_unpacklo_epi16(b16, r16), _mm_unpacklo_epi16(g16, K16_0001)),
+              BgrToU32(_mm_unpackhi_epi16(b16, r16), _mm_unpackhi_epi16(g16, K16_0001)))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i BgrToU8(__m128i b8, __m128i g8, __m128i r8)
+      {
+          return _mm_packus_epi16(
+              BgrToU16(_mm_unpacklo_epi8(b8, K_ZERO), _mm_unpacklo_epi8(g8, K_ZERO), _mm_unpacklo_epi8(r8, K_ZERO)),
+              BgrToU16(_mm_unpackhi_epi8(b8, K_ZERO), _mm_unpackhi_epi8(g8, K_ZERO), _mm_unpackhi_epi8(r8, K_ZERO)));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i BgrToV32(__m128i b16_r16, __m128i g16_1)
+      {
+          return _mm_srai_epi32(_mm_add_epi32(_mm_madd_epi16(b16_r16, K16_BV_RV),
+              _mm_madd_epi16(g16_1, K16_GV_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i BgrToV16(__m128i b16, __m128i g16, __m128i r16)
+      {
+          return SaturateI16ToU8(_mm_add_epi16(K16_UV_ADJUST, _mm_packs_epi32(
+              BgrToV32(_mm_unpacklo_epi16(b16, r16), _mm_unpacklo_epi16(g16, K16_0001)),
+              BgrToV32(_mm_unpackhi_epi16(b16, r16), _mm_unpackhi_epi16(g16, K16_0001)))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i BgrToV8(__m128i b8, __m128i g8, __m128i r8)
+      {
+          return _mm_packus_epi16(
+              BgrToV16(_mm_unpacklo_epi8(b8, K_ZERO), _mm_unpacklo_epi8(g8, K_ZERO), _mm_unpacklo_epi8(r8, K_ZERO)),
+              BgrToV16(_mm_unpackhi_epi8(b8, K_ZERO), _mm_unpackhi_epi8(g8, K_ZERO), _mm_unpackhi_epi8(r8, K_ZERO)));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i BgrToBlue(__m128i bgr[3])
+      {
+          return
+              _mm_or_si128(_mm_shuffle_epi8(bgr[0], K8_SHUFFLE_BGR0_TO_BLUE),
+                  _mm_or_si128(_mm_shuffle_epi8(bgr[1], K8_SHUFFLE_BGR1_TO_BLUE),
+                      _mm_shuffle_epi8(bgr[2], K8_SHUFFLE_BGR2_TO_BLUE)));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i BgrToGreen(__m128i bgr[3])
+      {
+          return
+              _mm_or_si128(_mm_shuffle_epi8(bgr[0], K8_SHUFFLE_BGR0_TO_GREEN),
+                  _mm_or_si128(_mm_shuffle_epi8(bgr[1], K8_SHUFFLE_BGR1_TO_GREEN),
+                      _mm_shuffle_epi8(bgr[2], K8_SHUFFLE_BGR2_TO_GREEN)));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i BgrToRed(__m128i bgr[3])
+      {
+          return
+              _mm_or_si128(_mm_shuffle_epi8(bgr[0], K8_SHUFFLE_BGR0_TO_RED),
+                  _mm_or_si128(_mm_shuffle_epi8(bgr[1], K8_SHUFFLE_BGR1_TO_RED),
+                      _mm_shuffle_epi8(bgr[2], K8_SHUFFLE_BGR2_TO_RED)));
+      }
+      //}}}
     }
     //}}}
-    //{{{
-    SIMD_INLINE __m128i AdjustUV16(__m128i uv16)
-    {
-        return _mm_subs_epi16(uv16, K16_UV_ADJUST);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i AdjustedYuvToRed32(__m128i y16_1, __m128i v16_0)
-    {
-        return _mm_srai_epi32(_mm_add_epi32(_mm_madd_epi16(y16_1, K16_YRGB_RT),
-            _mm_madd_epi16(v16_0, K16_VR_0)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i AdjustedYuvToRed16(__m128i y16, __m128i v16)
-    {
-        return SaturateI16ToU8(_mm_packs_epi32(
-            AdjustedYuvToRed32(_mm_unpacklo_epi16(y16, K16_0001), _mm_unpacklo_epi16(v16, K_ZERO)),
-            AdjustedYuvToRed32(_mm_unpackhi_epi16(y16, K16_0001), _mm_unpackhi_epi16(v16, K_ZERO))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i AdjustedYuvToGreen32(__m128i y16_1, __m128i u16_v16)
-    {
-        return _mm_srai_epi32(_mm_add_epi32(_mm_madd_epi16(y16_1, K16_YRGB_RT),
-            _mm_madd_epi16(u16_v16, K16_UG_VG)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i AdjustedYuvToGreen16(__m128i y16, __m128i u16, __m128i v16)
-    {
-        return SaturateI16ToU8(_mm_packs_epi32(
-            AdjustedYuvToGreen32(_mm_unpacklo_epi16(y16, K16_0001), _mm_unpacklo_epi16(u16, v16)),
-            AdjustedYuvToGreen32(_mm_unpackhi_epi16(y16, K16_0001), _mm_unpackhi_epi16(u16, v16))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i AdjustedYuvToBlue32(__m128i y16_1, __m128i u16_0)
-    {
-        return _mm_srai_epi32(_mm_add_epi32(_mm_madd_epi16(y16_1, K16_YRGB_RT),
-            _mm_madd_epi16(u16_0, K16_UB_0)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i AdjustedYuvToBlue16(__m128i y16, __m128i u16)
-    {
-        return SaturateI16ToU8(_mm_packs_epi32(
-            AdjustedYuvToBlue32(_mm_unpacklo_epi16(y16, K16_0001), _mm_unpacklo_epi16(u16, K_ZERO)),
-            AdjustedYuvToBlue32(_mm_unpackhi_epi16(y16, K16_0001), _mm_unpackhi_epi16(u16, K_ZERO))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i YuvToRed(__m128i y, __m128i v)
-    {
-        __m128i lo = AdjustedYuvToRed16(
-            AdjustY16(_mm_unpacklo_epi8(y, K_ZERO)),
-            AdjustUV16(_mm_unpacklo_epi8(v, K_ZERO)));
-        __m128i hi = AdjustedYuvToRed16(
-            AdjustY16(_mm_unpackhi_epi8(y, K_ZERO)),
-            AdjustUV16(_mm_unpackhi_epi8(v, K_ZERO)));
-        return _mm_packus_epi16(lo, hi);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i YuvToGreen(__m128i y, __m128i u, __m128i v)
-    {
-        __m128i lo = AdjustedYuvToGreen16(
-            AdjustY16(_mm_unpacklo_epi8(y, K_ZERO)),
-            AdjustUV16(_mm_unpacklo_epi8(u, K_ZERO)),
-            AdjustUV16(_mm_unpacklo_epi8(v, K_ZERO)));
-        __m128i hi = AdjustedYuvToGreen16(
-            AdjustY16(_mm_unpackhi_epi8(y, K_ZERO)),
-            AdjustUV16(_mm_unpackhi_epi8(u, K_ZERO)),
-            AdjustUV16(_mm_unpackhi_epi8(v, K_ZERO)));
-        return _mm_packus_epi16(lo, hi);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i YuvToBlue(__m128i y, __m128i u)
-    {
-        __m128i lo = AdjustedYuvToBlue16(
-            AdjustY16(_mm_unpacklo_epi8(y, K_ZERO)),
-            AdjustUV16(_mm_unpacklo_epi8(u, K_ZERO)));
-        __m128i hi = AdjustedYuvToBlue16(
-            AdjustY16(_mm_unpackhi_epi8(y, K_ZERO)),
-            AdjustUV16(_mm_unpackhi_epi8(u, K_ZERO)));
-        return _mm_packus_epi16(lo, hi);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i BgrToY32(__m128i b16_r16, __m128i g16_1)
-    {
-        return _mm_srai_epi32(_mm_add_epi32(_mm_madd_epi16(b16_r16, K16_BY_RY),
-            _mm_madd_epi16(g16_1, K16_GY_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i BgrToY16(__m128i b16, __m128i g16, __m128i r16)
-    {
-        return SaturateI16ToU8(_mm_add_epi16(K16_Y_ADJUST, _mm_packs_epi32(
-            BgrToY32(_mm_unpacklo_epi16(b16, r16), _mm_unpacklo_epi16(g16, K16_0001)),
-            BgrToY32(_mm_unpackhi_epi16(b16, r16), _mm_unpackhi_epi16(g16, K16_0001)))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i BgrToY8(__m128i b8, __m128i g8, __m128i r8)
-    {
-        return _mm_packus_epi16(
-            BgrToY16(_mm_unpacklo_epi8(b8, K_ZERO), _mm_unpacklo_epi8(g8, K_ZERO), _mm_unpacklo_epi8(r8, K_ZERO)),
-            BgrToY16(_mm_unpackhi_epi8(b8, K_ZERO), _mm_unpackhi_epi8(g8, K_ZERO), _mm_unpackhi_epi8(r8, K_ZERO)));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i BgrToU32(__m128i b16_r16, __m128i g16_1)
-    {
-        return _mm_srai_epi32(_mm_add_epi32(_mm_madd_epi16(b16_r16, K16_BU_RU),
-            _mm_madd_epi16(g16_1, K16_GU_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i BgrToU16(__m128i b16, __m128i g16, __m128i r16)
-    {
-        return SaturateI16ToU8(_mm_add_epi16(K16_UV_ADJUST, _mm_packs_epi32(
-            BgrToU32(_mm_unpacklo_epi16(b16, r16), _mm_unpacklo_epi16(g16, K16_0001)),
-            BgrToU32(_mm_unpackhi_epi16(b16, r16), _mm_unpackhi_epi16(g16, K16_0001)))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i BgrToU8(__m128i b8, __m128i g8, __m128i r8)
-    {
-        return _mm_packus_epi16(
-            BgrToU16(_mm_unpacklo_epi8(b8, K_ZERO), _mm_unpacklo_epi8(g8, K_ZERO), _mm_unpacklo_epi8(r8, K_ZERO)),
-            BgrToU16(_mm_unpackhi_epi8(b8, K_ZERO), _mm_unpackhi_epi8(g8, K_ZERO), _mm_unpackhi_epi8(r8, K_ZERO)));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i BgrToV32(__m128i b16_r16, __m128i g16_1)
-    {
-        return _mm_srai_epi32(_mm_add_epi32(_mm_madd_epi16(b16_r16, K16_BV_RV),
-            _mm_madd_epi16(g16_1, K16_GV_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i BgrToV16(__m128i b16, __m128i g16, __m128i r16)
-    {
-        return SaturateI16ToU8(_mm_add_epi16(K16_UV_ADJUST, _mm_packs_epi32(
-            BgrToV32(_mm_unpacklo_epi16(b16, r16), _mm_unpacklo_epi16(g16, K16_0001)),
-            BgrToV32(_mm_unpackhi_epi16(b16, r16), _mm_unpackhi_epi16(g16, K16_0001)))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i BgrToV8(__m128i b8, __m128i g8, __m128i r8)
-    {
-        return _mm_packus_epi16(
-            BgrToV16(_mm_unpacklo_epi8(b8, K_ZERO), _mm_unpacklo_epi8(g8, K_ZERO), _mm_unpacklo_epi8(r8, K_ZERO)),
-            BgrToV16(_mm_unpackhi_epi8(b8, K_ZERO), _mm_unpackhi_epi8(g8, K_ZERO), _mm_unpackhi_epi8(r8, K_ZERO)));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i BgrToBlue(__m128i bgr[3])
-    {
-        return
-            _mm_or_si128(_mm_shuffle_epi8(bgr[0], K8_SHUFFLE_BGR0_TO_BLUE),
-                _mm_or_si128(_mm_shuffle_epi8(bgr[1], K8_SHUFFLE_BGR1_TO_BLUE),
-                    _mm_shuffle_epi8(bgr[2], K8_SHUFFLE_BGR2_TO_BLUE)));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i BgrToGreen(__m128i bgr[3])
-    {
-        return
-            _mm_or_si128(_mm_shuffle_epi8(bgr[0], K8_SHUFFLE_BGR0_TO_GREEN),
-                _mm_or_si128(_mm_shuffle_epi8(bgr[1], K8_SHUFFLE_BGR1_TO_GREEN),
-                    _mm_shuffle_epi8(bgr[2], K8_SHUFFLE_BGR2_TO_GREEN)));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i BgrToRed(__m128i bgr[3])
-    {
-        return
-            _mm_or_si128(_mm_shuffle_epi8(bgr[0], K8_SHUFFLE_BGR0_TO_RED),
-                _mm_or_si128(_mm_shuffle_epi8(bgr[1], K8_SHUFFLE_BGR1_TO_RED),
-                    _mm_shuffle_epi8(bgr[2], K8_SHUFFLE_BGR2_TO_RED)));
-    }
-    //}}}
-  }
-  //}}}
-  //{{{
-  namespace Avx2 {
-    //{{{
-    SIMD_INLINE __m256i AdjustY16(__m256i y16)
-    {
-        return _mm256_subs_epi16(y16, K16_Y_ADJUST);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i AdjustUV16(__m256i uv16)
-    {
-        return _mm256_subs_epi16(uv16, K16_UV_ADJUST);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i AdjustedYuvToRed32(__m256i y16_1, __m256i v16_0)
-    {
-        return _mm256_srai_epi32(_mm256_add_epi32(_mm256_madd_epi16(y16_1, K16_YRGB_RT),
-            _mm256_madd_epi16(v16_0, K16_VR_0)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i AdjustedYuvToRed16(__m256i y16, __m256i v16)
-    {
-        return SaturateI16ToU8(_mm256_packs_epi32(
-            AdjustedYuvToRed32(_mm256_unpacklo_epi16(y16, K16_0001), _mm256_unpacklo_epi16(v16, K_ZERO)),
-            AdjustedYuvToRed32(_mm256_unpackhi_epi16(y16, K16_0001), _mm256_unpackhi_epi16(v16, K_ZERO))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i AdjustedYuvToGreen32(__m256i y16_1, __m256i u16_v16)
-    {
-        return _mm256_srai_epi32(_mm256_add_epi32(_mm256_madd_epi16(y16_1, K16_YRGB_RT),
-            _mm256_madd_epi16(u16_v16, K16_UG_VG)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i AdjustedYuvToGreen16(__m256i y16, __m256i u16, __m256i v16)
-    {
-        return SaturateI16ToU8(_mm256_packs_epi32(
-            AdjustedYuvToGreen32(_mm256_unpacklo_epi16(y16, K16_0001), _mm256_unpacklo_epi16(u16, v16)),
-            AdjustedYuvToGreen32(_mm256_unpackhi_epi16(y16, K16_0001), _mm256_unpackhi_epi16(u16, v16))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i AdjustedYuvToBlue32(__m256i y16_1, __m256i u16_0)
-    {
-        return _mm256_srai_epi32(_mm256_add_epi32(_mm256_madd_epi16(y16_1, K16_YRGB_RT),
-            _mm256_madd_epi16(u16_0, K16_UB_0)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i AdjustedYuvToBlue16(__m256i y16, __m256i u16)
-    {
-        return SaturateI16ToU8(_mm256_packs_epi32(
-            AdjustedYuvToBlue32(_mm256_unpacklo_epi16(y16, K16_0001), _mm256_unpacklo_epi16(u16, K_ZERO)),
-            AdjustedYuvToBlue32(_mm256_unpackhi_epi16(y16, K16_0001), _mm256_unpackhi_epi16(u16, K_ZERO))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i YuvToRed(__m256i y, __m256i v)
-    {
-        __m256i lo = AdjustedYuvToRed16(
-            AdjustY16(_mm256_unpacklo_epi8(y, K_ZERO)),
-            AdjustUV16(_mm256_unpacklo_epi8(v, K_ZERO)));
-        __m256i hi = AdjustedYuvToRed16(
-            AdjustY16(_mm256_unpackhi_epi8(y, K_ZERO)),
-            AdjustUV16(_mm256_unpackhi_epi8(v, K_ZERO)));
-        return _mm256_packus_epi16(lo, hi);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i YuvToGreen(__m256i y, __m256i u, __m256i v)
-    {
-        __m256i lo = AdjustedYuvToGreen16(
-            AdjustY16(_mm256_unpacklo_epi8(y, K_ZERO)),
-            AdjustUV16(_mm256_unpacklo_epi8(u, K_ZERO)),
-            AdjustUV16(_mm256_unpacklo_epi8(v, K_ZERO)));
-        __m256i hi = AdjustedYuvToGreen16(
-            AdjustY16(_mm256_unpackhi_epi8(y, K_ZERO)),
-            AdjustUV16(_mm256_unpackhi_epi8(u, K_ZERO)),
-            AdjustUV16(_mm256_unpackhi_epi8(v, K_ZERO)));
-        return _mm256_packus_epi16(lo, hi);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i YuvToBlue(__m256i y, __m256i u)
-    {
-        __m256i lo = AdjustedYuvToBlue16(
-            AdjustY16(_mm256_unpacklo_epi8(y, K_ZERO)),
-            AdjustUV16(_mm256_unpacklo_epi8(u, K_ZERO)));
-        __m256i hi = AdjustedYuvToBlue16(
-            AdjustY16(_mm256_unpackhi_epi8(y, K_ZERO)),
-            AdjustUV16(_mm256_unpackhi_epi8(u, K_ZERO)));
-        return _mm256_packus_epi16(lo, hi);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i BgrToY32(__m256i b16_r16, __m256i g16_1)
-    {
-        return _mm256_srai_epi32(_mm256_add_epi32(_mm256_madd_epi16(b16_r16, K16_BY_RY),
-            _mm256_madd_epi16(g16_1, K16_GY_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i BgrToY16(__m256i b16, __m256i g16, __m256i r16)
-    {
-        return SaturateI16ToU8(_mm256_add_epi16(K16_Y_ADJUST, _mm256_packs_epi32(
-            BgrToY32(_mm256_unpacklo_epi16(b16, r16), _mm256_unpacklo_epi16(g16, K16_0001)),
-            BgrToY32(_mm256_unpackhi_epi16(b16, r16), _mm256_unpackhi_epi16(g16, K16_0001)))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i BgrToY8(__m256i b8, __m256i g8, __m256i r8)
-    {
-        return _mm256_packus_epi16(
-            BgrToY16(_mm256_unpacklo_epi8(b8, K_ZERO), _mm256_unpacklo_epi8(g8, K_ZERO), _mm256_unpacklo_epi8(r8, K_ZERO)),
-            BgrToY16(_mm256_unpackhi_epi8(b8, K_ZERO), _mm256_unpackhi_epi8(g8, K_ZERO), _mm256_unpackhi_epi8(r8, K_ZERO)));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i BgrToU32(__m256i b16_r16, __m256i g16_1)
-    {
-        return _mm256_srai_epi32(_mm256_add_epi32(_mm256_madd_epi16(b16_r16, K16_BU_RU),
-            _mm256_madd_epi16(g16_1, K16_GU_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i BgrToU16(__m256i b16, __m256i g16, __m256i r16)
-    {
-        return SaturateI16ToU8(_mm256_add_epi16(K16_UV_ADJUST, _mm256_packs_epi32(
-            BgrToU32(_mm256_unpacklo_epi16(b16, r16), _mm256_unpacklo_epi16(g16, K16_0001)),
-            BgrToU32(_mm256_unpackhi_epi16(b16, r16), _mm256_unpackhi_epi16(g16, K16_0001)))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i BgrToU8(__m256i b8, __m256i g8, __m256i r8)
-    {
-        return _mm256_packus_epi16(
-            BgrToU16(_mm256_unpacklo_epi8(b8, K_ZERO), _mm256_unpacklo_epi8(g8, K_ZERO), _mm256_unpacklo_epi8(r8, K_ZERO)),
-            BgrToU16(_mm256_unpackhi_epi8(b8, K_ZERO), _mm256_unpackhi_epi8(g8, K_ZERO), _mm256_unpackhi_epi8(r8, K_ZERO)));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i BgrToV32(__m256i b16_r16, __m256i g16_1)
-    {
-        return _mm256_srai_epi32(_mm256_add_epi32(_mm256_madd_epi16(b16_r16, K16_BV_RV),
-            _mm256_madd_epi16(g16_1, K16_GV_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i BgrToV16(__m256i b16, __m256i g16, __m256i r16)
-    {
-        return SaturateI16ToU8(_mm256_add_epi16(K16_UV_ADJUST, _mm256_packs_epi32(
-            BgrToV32(_mm256_unpacklo_epi16(b16, r16), _mm256_unpacklo_epi16(g16, K16_0001)),
-            BgrToV32(_mm256_unpackhi_epi16(b16, r16), _mm256_unpackhi_epi16(g16, K16_0001)))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i BgrToV8(__m256i b8, __m256i g8, __m256i r8)
-    {
-        return _mm256_packus_epi16(
-            BgrToV16(_mm256_unpacklo_epi8(b8, K_ZERO), _mm256_unpacklo_epi8(g8, K_ZERO), _mm256_unpacklo_epi8(r8, K_ZERO)),
-            BgrToV16(_mm256_unpackhi_epi8(b8, K_ZERO), _mm256_unpackhi_epi8(g8, K_ZERO), _mm256_unpackhi_epi8(r8, K_ZERO)));
-    }
-    //}}}
+  #endif
 
-    template <int index> __m256i GrayToBgr(__m256i gray);
+  #ifdef SIMD_AVX2_ENABLE
     //{{{
-    template<> SIMD_INLINE __m256i GrayToBgr<0>(__m256i gray)
-    {
-        return _mm256_shuffle_epi8(_mm256_permute4x64_epi64(gray, 0x44), K8_SHUFFLE_GRAY_TO_BGR0);
-    }
-    //}}}
-    //{{{
-    template<> SIMD_INLINE __m256i GrayToBgr<1>(__m256i gray)
-    {
-        return _mm256_shuffle_epi8(_mm256_permute4x64_epi64(gray, 0x99), K8_SHUFFLE_GRAY_TO_BGR1);
-    }
-    //}}}
-    //{{{
-    template<> SIMD_INLINE __m256i GrayToBgr<2>(__m256i gray)
-    {
-        return _mm256_shuffle_epi8(_mm256_permute4x64_epi64(gray, 0xEE), K8_SHUFFLE_GRAY_TO_BGR2);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i BgrToBlue(__m256i bgr[3])
-    {
-        __m256i b0 = _mm256_shuffle_epi8(bgr[0], K8_SHUFFLE_BGR0_TO_BLUE);
-        __m256i b2 = _mm256_shuffle_epi8(bgr[2], K8_SHUFFLE_BGR2_TO_BLUE);
-        return
-            _mm256_or_si256(_mm256_permute2x128_si256(b0, b2, 0x20),
-                _mm256_or_si256(_mm256_shuffle_epi8(bgr[1], K8_SHUFFLE_BGR1_TO_BLUE),
-                    _mm256_permute2x128_si256(b0, b2, 0x31)));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i BgrToGreen(__m256i bgr[3])
-    {
-        __m256i g0 = _mm256_shuffle_epi8(bgr[0], K8_SHUFFLE_BGR0_TO_GREEN);
-        __m256i g2 = _mm256_shuffle_epi8(bgr[2], K8_SHUFFLE_BGR2_TO_GREEN);
-        return
-            _mm256_or_si256(_mm256_permute2x128_si256(g0, g2, 0x20),
-                _mm256_or_si256(_mm256_shuffle_epi8(bgr[1], K8_SHUFFLE_BGR1_TO_GREEN),
-                    _mm256_permute2x128_si256(g0, g2, 0x31)));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i BgrToRed(__m256i bgr[3])
-    {
-        __m256i r0 = _mm256_shuffle_epi8(bgr[0], K8_SHUFFLE_BGR0_TO_RED);
-        __m256i r2 = _mm256_shuffle_epi8(bgr[2], K8_SHUFFLE_BGR2_TO_RED);
-        return
-            _mm256_or_si256(_mm256_permute2x128_si256(r0, r2, 0x20),
-                _mm256_or_si256(_mm256_shuffle_epi8(bgr[1], K8_SHUFFLE_BGR1_TO_RED),
-                    _mm256_permute2x128_si256(r0, r2, 0x31)));
-    }
-    //}}}
+    namespace Avx2 {
+      //{{{
+      SIMD_INLINE __m256i AdjustY16(__m256i y16)
+      {
+          return _mm256_subs_epi16(y16, K16_Y_ADJUST);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i AdjustUV16(__m256i uv16)
+      {
+          return _mm256_subs_epi16(uv16, K16_UV_ADJUST);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i AdjustedYuvToRed32(__m256i y16_1, __m256i v16_0)
+      {
+          return _mm256_srai_epi32(_mm256_add_epi32(_mm256_madd_epi16(y16_1, K16_YRGB_RT),
+              _mm256_madd_epi16(v16_0, K16_VR_0)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i AdjustedYuvToRed16(__m256i y16, __m256i v16)
+      {
+          return SaturateI16ToU8(_mm256_packs_epi32(
+              AdjustedYuvToRed32(_mm256_unpacklo_epi16(y16, K16_0001), _mm256_unpacklo_epi16(v16, K_ZERO)),
+              AdjustedYuvToRed32(_mm256_unpackhi_epi16(y16, K16_0001), _mm256_unpackhi_epi16(v16, K_ZERO))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i AdjustedYuvToGreen32(__m256i y16_1, __m256i u16_v16)
+      {
+          return _mm256_srai_epi32(_mm256_add_epi32(_mm256_madd_epi16(y16_1, K16_YRGB_RT),
+              _mm256_madd_epi16(u16_v16, K16_UG_VG)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i AdjustedYuvToGreen16(__m256i y16, __m256i u16, __m256i v16)
+      {
+          return SaturateI16ToU8(_mm256_packs_epi32(
+              AdjustedYuvToGreen32(_mm256_unpacklo_epi16(y16, K16_0001), _mm256_unpacklo_epi16(u16, v16)),
+              AdjustedYuvToGreen32(_mm256_unpackhi_epi16(y16, K16_0001), _mm256_unpackhi_epi16(u16, v16))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i AdjustedYuvToBlue32(__m256i y16_1, __m256i u16_0)
+      {
+          return _mm256_srai_epi32(_mm256_add_epi32(_mm256_madd_epi16(y16_1, K16_YRGB_RT),
+              _mm256_madd_epi16(u16_0, K16_UB_0)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i AdjustedYuvToBlue16(__m256i y16, __m256i u16)
+      {
+          return SaturateI16ToU8(_mm256_packs_epi32(
+              AdjustedYuvToBlue32(_mm256_unpacklo_epi16(y16, K16_0001), _mm256_unpacklo_epi16(u16, K_ZERO)),
+              AdjustedYuvToBlue32(_mm256_unpackhi_epi16(y16, K16_0001), _mm256_unpackhi_epi16(u16, K_ZERO))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i YuvToRed(__m256i y, __m256i v)
+      {
+          __m256i lo = AdjustedYuvToRed16(
+              AdjustY16(_mm256_unpacklo_epi8(y, K_ZERO)),
+              AdjustUV16(_mm256_unpacklo_epi8(v, K_ZERO)));
+          __m256i hi = AdjustedYuvToRed16(
+              AdjustY16(_mm256_unpackhi_epi8(y, K_ZERO)),
+              AdjustUV16(_mm256_unpackhi_epi8(v, K_ZERO)));
+          return _mm256_packus_epi16(lo, hi);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i YuvToGreen(__m256i y, __m256i u, __m256i v)
+      {
+          __m256i lo = AdjustedYuvToGreen16(
+              AdjustY16(_mm256_unpacklo_epi8(y, K_ZERO)),
+              AdjustUV16(_mm256_unpacklo_epi8(u, K_ZERO)),
+              AdjustUV16(_mm256_unpacklo_epi8(v, K_ZERO)));
+          __m256i hi = AdjustedYuvToGreen16(
+              AdjustY16(_mm256_unpackhi_epi8(y, K_ZERO)),
+              AdjustUV16(_mm256_unpackhi_epi8(u, K_ZERO)),
+              AdjustUV16(_mm256_unpackhi_epi8(v, K_ZERO)));
+          return _mm256_packus_epi16(lo, hi);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i YuvToBlue(__m256i y, __m256i u)
+      {
+          __m256i lo = AdjustedYuvToBlue16(
+              AdjustY16(_mm256_unpacklo_epi8(y, K_ZERO)),
+              AdjustUV16(_mm256_unpacklo_epi8(u, K_ZERO)));
+          __m256i hi = AdjustedYuvToBlue16(
+              AdjustY16(_mm256_unpackhi_epi8(y, K_ZERO)),
+              AdjustUV16(_mm256_unpackhi_epi8(u, K_ZERO)));
+          return _mm256_packus_epi16(lo, hi);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i BgrToY32(__m256i b16_r16, __m256i g16_1)
+      {
+          return _mm256_srai_epi32(_mm256_add_epi32(_mm256_madd_epi16(b16_r16, K16_BY_RY),
+              _mm256_madd_epi16(g16_1, K16_GY_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i BgrToY16(__m256i b16, __m256i g16, __m256i r16)
+      {
+          return SaturateI16ToU8(_mm256_add_epi16(K16_Y_ADJUST, _mm256_packs_epi32(
+              BgrToY32(_mm256_unpacklo_epi16(b16, r16), _mm256_unpacklo_epi16(g16, K16_0001)),
+              BgrToY32(_mm256_unpackhi_epi16(b16, r16), _mm256_unpackhi_epi16(g16, K16_0001)))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i BgrToY8(__m256i b8, __m256i g8, __m256i r8)
+      {
+          return _mm256_packus_epi16(
+              BgrToY16(_mm256_unpacklo_epi8(b8, K_ZERO), _mm256_unpacklo_epi8(g8, K_ZERO), _mm256_unpacklo_epi8(r8, K_ZERO)),
+              BgrToY16(_mm256_unpackhi_epi8(b8, K_ZERO), _mm256_unpackhi_epi8(g8, K_ZERO), _mm256_unpackhi_epi8(r8, K_ZERO)));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i BgrToU32(__m256i b16_r16, __m256i g16_1)
+      {
+          return _mm256_srai_epi32(_mm256_add_epi32(_mm256_madd_epi16(b16_r16, K16_BU_RU),
+              _mm256_madd_epi16(g16_1, K16_GU_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i BgrToU16(__m256i b16, __m256i g16, __m256i r16)
+      {
+          return SaturateI16ToU8(_mm256_add_epi16(K16_UV_ADJUST, _mm256_packs_epi32(
+              BgrToU32(_mm256_unpacklo_epi16(b16, r16), _mm256_unpacklo_epi16(g16, K16_0001)),
+              BgrToU32(_mm256_unpackhi_epi16(b16, r16), _mm256_unpackhi_epi16(g16, K16_0001)))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i BgrToU8(__m256i b8, __m256i g8, __m256i r8)
+      {
+          return _mm256_packus_epi16(
+              BgrToU16(_mm256_unpacklo_epi8(b8, K_ZERO), _mm256_unpacklo_epi8(g8, K_ZERO), _mm256_unpacklo_epi8(r8, K_ZERO)),
+              BgrToU16(_mm256_unpackhi_epi8(b8, K_ZERO), _mm256_unpackhi_epi8(g8, K_ZERO), _mm256_unpackhi_epi8(r8, K_ZERO)));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i BgrToV32(__m256i b16_r16, __m256i g16_1)
+      {
+          return _mm256_srai_epi32(_mm256_add_epi32(_mm256_madd_epi16(b16_r16, K16_BV_RV),
+              _mm256_madd_epi16(g16_1, K16_GV_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i BgrToV16(__m256i b16, __m256i g16, __m256i r16)
+      {
+          return SaturateI16ToU8(_mm256_add_epi16(K16_UV_ADJUST, _mm256_packs_epi32(
+              BgrToV32(_mm256_unpacklo_epi16(b16, r16), _mm256_unpacklo_epi16(g16, K16_0001)),
+              BgrToV32(_mm256_unpackhi_epi16(b16, r16), _mm256_unpackhi_epi16(g16, K16_0001)))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i BgrToV8(__m256i b8, __m256i g8, __m256i r8)
+      {
+          return _mm256_packus_epi16(
+              BgrToV16(_mm256_unpacklo_epi8(b8, K_ZERO), _mm256_unpacklo_epi8(g8, K_ZERO), _mm256_unpacklo_epi8(r8, K_ZERO)),
+              BgrToV16(_mm256_unpackhi_epi8(b8, K_ZERO), _mm256_unpackhi_epi8(g8, K_ZERO), _mm256_unpackhi_epi8(r8, K_ZERO)));
+      }
+      //}}}
 
-    template<bool tail> __m256i BgrToBgra(const __m256i & bgr, const __m256i & alpha);
-    //{{{
-    template<> SIMD_INLINE __m256i BgrToBgra<false>(const __m256i & bgr, const __m256i & alpha)
-    {
-        return _mm256_or_si256(_mm256_shuffle_epi8(_mm256_permute4x64_epi64(bgr, 0x94), K8_BGR_TO_BGRA_SHUFFLE), alpha);
-    }
-    //}}}
-    //{{{
-    template<> SIMD_INLINE __m256i BgrToBgra<true>(const __m256i & bgr, const __m256i & alpha)
-    {
-        return _mm256_or_si256(_mm256_shuffle_epi8(_mm256_permute4x64_epi64(bgr, 0xE9), K8_BGR_TO_BGRA_SHUFFLE), alpha);
-    }
-    //}}}
+      template <int index> __m256i GrayToBgr(__m256i gray);
+      //{{{
+      template<> SIMD_INLINE __m256i GrayToBgr<0>(__m256i gray)
+      {
+          return _mm256_shuffle_epi8(_mm256_permute4x64_epi64(gray, 0x44), K8_SHUFFLE_GRAY_TO_BGR0);
+      }
+      //}}}
+      //{{{
+      template<> SIMD_INLINE __m256i GrayToBgr<1>(__m256i gray)
+      {
+          return _mm256_shuffle_epi8(_mm256_permute4x64_epi64(gray, 0x99), K8_SHUFFLE_GRAY_TO_BGR1);
+      }
+      //}}}
+      //{{{
+      template<> SIMD_INLINE __m256i GrayToBgr<2>(__m256i gray)
+      {
+          return _mm256_shuffle_epi8(_mm256_permute4x64_epi64(gray, 0xEE), K8_SHUFFLE_GRAY_TO_BGR2);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i BgrToBlue(__m256i bgr[3])
+      {
+          __m256i b0 = _mm256_shuffle_epi8(bgr[0], K8_SHUFFLE_BGR0_TO_BLUE);
+          __m256i b2 = _mm256_shuffle_epi8(bgr[2], K8_SHUFFLE_BGR2_TO_BLUE);
+          return
+              _mm256_or_si256(_mm256_permute2x128_si256(b0, b2, 0x20),
+                  _mm256_or_si256(_mm256_shuffle_epi8(bgr[1], K8_SHUFFLE_BGR1_TO_BLUE),
+                      _mm256_permute2x128_si256(b0, b2, 0x31)));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i BgrToGreen(__m256i bgr[3])
+      {
+          __m256i g0 = _mm256_shuffle_epi8(bgr[0], K8_SHUFFLE_BGR0_TO_GREEN);
+          __m256i g2 = _mm256_shuffle_epi8(bgr[2], K8_SHUFFLE_BGR2_TO_GREEN);
+          return
+              _mm256_or_si256(_mm256_permute2x128_si256(g0, g2, 0x20),
+                  _mm256_or_si256(_mm256_shuffle_epi8(bgr[1], K8_SHUFFLE_BGR1_TO_GREEN),
+                      _mm256_permute2x128_si256(g0, g2, 0x31)));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i BgrToRed(__m256i bgr[3])
+      {
+          __m256i r0 = _mm256_shuffle_epi8(bgr[0], K8_SHUFFLE_BGR0_TO_RED);
+          __m256i r2 = _mm256_shuffle_epi8(bgr[2], K8_SHUFFLE_BGR2_TO_RED);
+          return
+              _mm256_or_si256(_mm256_permute2x128_si256(r0, r2, 0x20),
+                  _mm256_or_si256(_mm256_shuffle_epi8(bgr[1], K8_SHUFFLE_BGR1_TO_RED),
+                      _mm256_permute2x128_si256(r0, r2, 0x31)));
+      }
+      //}}}
 
-    template<bool tail> __m256i RgbToBgra(const __m256i & rgb, const __m256i & alpha);
-    //{{{
-    template<> SIMD_INLINE __m256i RgbToBgra<false>(const __m256i & rgb, const __m256i & alpha)
-    {
-        return _mm256_or_si256(_mm256_shuffle_epi8(_mm256_permute4x64_epi64(rgb, 0x94), K8_RGB_TO_BGRA_SHUFFLE), alpha);
-    }
-    //}}}
-    //{{{
-    template<> SIMD_INLINE __m256i RgbToBgra<true>(const __m256i & rgb, const __m256i & alpha)
-    {
-        return _mm256_or_si256(_mm256_shuffle_epi8(_mm256_permute4x64_epi64(rgb, 0xE9), K8_RGB_TO_BGRA_SHUFFLE), alpha);
-    }
-    //}}}
-  }
-  //}}}
-  //{{{
-  namespace Avx512bw {
-    //{{{
-    SIMD_INLINE __m512i AdjustY16(__m512i y16)
-    {
-        return _mm512_subs_epi16(y16, K16_Y_ADJUST);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i AdjustUV16(__m512i uv16)
-    {
-        return _mm512_subs_epi16(uv16, K16_UV_ADJUST);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i AdjustedYuvToRed32(__m512i y16_1, __m512i v16_0)
-    {
-        return _mm512_srai_epi32(_mm512_add_epi32(_mm512_madd_epi16(y16_1, K16_YRGB_RT),
-            _mm512_madd_epi16(v16_0, K16_VR_0)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i AdjustedYuvToRed16(__m512i y16, __m512i v16)
-    {
-        return SaturateI16ToU8(_mm512_packs_epi32(
-            AdjustedYuvToRed32(_mm512_unpacklo_epi16(y16, K16_0001), _mm512_unpacklo_epi16(v16, K_ZERO)),
-            AdjustedYuvToRed32(_mm512_unpackhi_epi16(y16, K16_0001), _mm512_unpackhi_epi16(v16, K_ZERO))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i AdjustedYuvToGreen32(__m512i y16_1, __m512i u16_v16)
-    {
-        return _mm512_srai_epi32(_mm512_add_epi32(_mm512_madd_epi16(y16_1, K16_YRGB_RT),
-            _mm512_madd_epi16(u16_v16, K16_UG_VG)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i AdjustedYuvToGreen16(__m512i y16, __m512i u16, __m512i v16)
-    {
-        return SaturateI16ToU8(_mm512_packs_epi32(
-            AdjustedYuvToGreen32(_mm512_unpacklo_epi16(y16, K16_0001), _mm512_unpacklo_epi16(u16, v16)),
-            AdjustedYuvToGreen32(_mm512_unpackhi_epi16(y16, K16_0001), _mm512_unpackhi_epi16(u16, v16))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i AdjustedYuvToBlue32(__m512i y16_1, __m512i u16_0)
-    {
-        return _mm512_srai_epi32(_mm512_add_epi32(_mm512_madd_epi16(y16_1, K16_YRGB_RT),
-            _mm512_madd_epi16(u16_0, K16_UB_0)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i AdjustedYuvToBlue16(__m512i y16, __m512i u16)
-    {
-        return SaturateI16ToU8(_mm512_packs_epi32(
-            AdjustedYuvToBlue32(_mm512_unpacklo_epi16(y16, K16_0001), _mm512_unpacklo_epi16(u16, K_ZERO)),
-            AdjustedYuvToBlue32(_mm512_unpackhi_epi16(y16, K16_0001), _mm512_unpackhi_epi16(u16, K_ZERO))));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i YuvToRed(__m512i y, __m512i v)
-    {
-        __m512i lo = AdjustedYuvToRed16(
-            AdjustY16(_mm512_unpacklo_epi8(y, K_ZERO)),
-            AdjustUV16(_mm512_unpacklo_epi8(v, K_ZERO)));
-        __m512i hi = AdjustedYuvToRed16(
-            AdjustY16(_mm512_unpackhi_epi8(y, K_ZERO)),
-            AdjustUV16(_mm512_unpackhi_epi8(v, K_ZERO)));
-        return _mm512_packus_epi16(lo, hi);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i YuvToGreen(__m512i y, __m512i u, __m512i v)
-    {
-        __m512i lo = AdjustedYuvToGreen16(
-            AdjustY16(_mm512_unpacklo_epi8(y, K_ZERO)),
-            AdjustUV16(_mm512_unpacklo_epi8(u, K_ZERO)),
-            AdjustUV16(_mm512_unpacklo_epi8(v, K_ZERO)));
-        __m512i hi = AdjustedYuvToGreen16(
-            AdjustY16(_mm512_unpackhi_epi8(y, K_ZERO)),
-            AdjustUV16(_mm512_unpackhi_epi8(u, K_ZERO)),
-            AdjustUV16(_mm512_unpackhi_epi8(v, K_ZERO)));
-        return _mm512_packus_epi16(lo, hi);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i YuvToBlue(__m512i y, __m512i u)
-    {
-        __m512i lo = AdjustedYuvToBlue16(
-            AdjustY16(_mm512_unpacklo_epi8(y, K_ZERO)),
-            AdjustUV16(_mm512_unpacklo_epi8(u, K_ZERO)));
-        __m512i hi = AdjustedYuvToBlue16(
-            AdjustY16(_mm512_unpackhi_epi8(y, K_ZERO)),
-            AdjustUV16(_mm512_unpackhi_epi8(u, K_ZERO)));
-        return _mm512_packus_epi16(lo, hi);
-    }
-    //}}}
+      template<bool tail> __m256i BgrToBgra(const __m256i & bgr, const __m256i & alpha);
+      //{{{
+      template<> SIMD_INLINE __m256i BgrToBgra<false>(const __m256i & bgr, const __m256i & alpha)
+      {
+          return _mm256_or_si256(_mm256_shuffle_epi8(_mm256_permute4x64_epi64(bgr, 0x94), K8_BGR_TO_BGRA_SHUFFLE), alpha);
+      }
+      //}}}
+      //{{{
+      template<> SIMD_INLINE __m256i BgrToBgra<true>(const __m256i & bgr, const __m256i & alpha)
+      {
+          return _mm256_or_si256(_mm256_shuffle_epi8(_mm256_permute4x64_epi64(bgr, 0xE9), K8_BGR_TO_BGRA_SHUFFLE), alpha);
+      }
+      //}}}
 
-    template <int index> __m512i GrayToBgr(__m512i gray);
-    //{{{
-    template<> SIMD_INLINE __m512i GrayToBgr<0>(__m512i gray)
-    {
-        return _mm512_shuffle_epi8(_mm512_shuffle_i64x2(gray, gray, 0x40), K8_SHUFFLE_GRAY_TO_BGR0);
+      template<bool tail> __m256i RgbToBgra(const __m256i & rgb, const __m256i & alpha);
+      //{{{
+      template<> SIMD_INLINE __m256i RgbToBgra<false>(const __m256i & rgb, const __m256i & alpha)
+      {
+          return _mm256_or_si256(_mm256_shuffle_epi8(_mm256_permute4x64_epi64(rgb, 0x94), K8_RGB_TO_BGRA_SHUFFLE), alpha);
+      }
+      //}}}
+      //{{{
+      template<> SIMD_INLINE __m256i RgbToBgra<true>(const __m256i & rgb, const __m256i & alpha)
+      {
+          return _mm256_or_si256(_mm256_shuffle_epi8(_mm256_permute4x64_epi64(rgb, 0xE9), K8_RGB_TO_BGRA_SHUFFLE), alpha);
+      }
+      //}}}
     }
     //}}}
+  #endif
+
+  #ifdef SIMD_AVX512BW_ENABLE
     //{{{
-    template<> SIMD_INLINE __m512i GrayToBgr<1>(__m512i gray)
-    {
-        return _mm512_shuffle_epi8(_mm512_shuffle_i64x2(gray, gray, 0xA5), K8_SHUFFLE_GRAY_TO_BGR1);
+    namespace Avx512bw {
+      //{{{
+      SIMD_INLINE __m512i AdjustY16(__m512i y16)
+      {
+          return _mm512_subs_epi16(y16, K16_Y_ADJUST);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i AdjustUV16(__m512i uv16)
+      {
+          return _mm512_subs_epi16(uv16, K16_UV_ADJUST);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i AdjustedYuvToRed32(__m512i y16_1, __m512i v16_0)
+      {
+          return _mm512_srai_epi32(_mm512_add_epi32(_mm512_madd_epi16(y16_1, K16_YRGB_RT),
+              _mm512_madd_epi16(v16_0, K16_VR_0)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i AdjustedYuvToRed16(__m512i y16, __m512i v16)
+      {
+          return SaturateI16ToU8(_mm512_packs_epi32(
+              AdjustedYuvToRed32(_mm512_unpacklo_epi16(y16, K16_0001), _mm512_unpacklo_epi16(v16, K_ZERO)),
+              AdjustedYuvToRed32(_mm512_unpackhi_epi16(y16, K16_0001), _mm512_unpackhi_epi16(v16, K_ZERO))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i AdjustedYuvToGreen32(__m512i y16_1, __m512i u16_v16)
+      {
+          return _mm512_srai_epi32(_mm512_add_epi32(_mm512_madd_epi16(y16_1, K16_YRGB_RT),
+              _mm512_madd_epi16(u16_v16, K16_UG_VG)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i AdjustedYuvToGreen16(__m512i y16, __m512i u16, __m512i v16)
+      {
+          return SaturateI16ToU8(_mm512_packs_epi32(
+              AdjustedYuvToGreen32(_mm512_unpacklo_epi16(y16, K16_0001), _mm512_unpacklo_epi16(u16, v16)),
+              AdjustedYuvToGreen32(_mm512_unpackhi_epi16(y16, K16_0001), _mm512_unpackhi_epi16(u16, v16))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i AdjustedYuvToBlue32(__m512i y16_1, __m512i u16_0)
+      {
+          return _mm512_srai_epi32(_mm512_add_epi32(_mm512_madd_epi16(y16_1, K16_YRGB_RT),
+              _mm512_madd_epi16(u16_0, K16_UB_0)), Base::YUV_TO_BGR_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i AdjustedYuvToBlue16(__m512i y16, __m512i u16)
+      {
+          return SaturateI16ToU8(_mm512_packs_epi32(
+              AdjustedYuvToBlue32(_mm512_unpacklo_epi16(y16, K16_0001), _mm512_unpacklo_epi16(u16, K_ZERO)),
+              AdjustedYuvToBlue32(_mm512_unpackhi_epi16(y16, K16_0001), _mm512_unpackhi_epi16(u16, K_ZERO))));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i YuvToRed(__m512i y, __m512i v)
+      {
+          __m512i lo = AdjustedYuvToRed16(
+              AdjustY16(_mm512_unpacklo_epi8(y, K_ZERO)),
+              AdjustUV16(_mm512_unpacklo_epi8(v, K_ZERO)));
+          __m512i hi = AdjustedYuvToRed16(
+              AdjustY16(_mm512_unpackhi_epi8(y, K_ZERO)),
+              AdjustUV16(_mm512_unpackhi_epi8(v, K_ZERO)));
+          return _mm512_packus_epi16(lo, hi);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i YuvToGreen(__m512i y, __m512i u, __m512i v)
+      {
+          __m512i lo = AdjustedYuvToGreen16(
+              AdjustY16(_mm512_unpacklo_epi8(y, K_ZERO)),
+              AdjustUV16(_mm512_unpacklo_epi8(u, K_ZERO)),
+              AdjustUV16(_mm512_unpacklo_epi8(v, K_ZERO)));
+          __m512i hi = AdjustedYuvToGreen16(
+              AdjustY16(_mm512_unpackhi_epi8(y, K_ZERO)),
+              AdjustUV16(_mm512_unpackhi_epi8(u, K_ZERO)),
+              AdjustUV16(_mm512_unpackhi_epi8(v, K_ZERO)));
+          return _mm512_packus_epi16(lo, hi);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i YuvToBlue(__m512i y, __m512i u)
+      {
+          __m512i lo = AdjustedYuvToBlue16(
+              AdjustY16(_mm512_unpacklo_epi8(y, K_ZERO)),
+              AdjustUV16(_mm512_unpacklo_epi8(u, K_ZERO)));
+          __m512i hi = AdjustedYuvToBlue16(
+              AdjustY16(_mm512_unpackhi_epi8(y, K_ZERO)),
+              AdjustUV16(_mm512_unpackhi_epi8(u, K_ZERO)));
+          return _mm512_packus_epi16(lo, hi);
+      }
+      //}}}
+
+      template <int index> __m512i GrayToBgr(__m512i gray);
+      //{{{
+      template<> SIMD_INLINE __m512i GrayToBgr<0>(__m512i gray)
+      {
+          return _mm512_shuffle_epi8(_mm512_shuffle_i64x2(gray, gray, 0x40), K8_SHUFFLE_GRAY_TO_BGR0);
+      }
+      //}}}
+      //{{{
+      template<> SIMD_INLINE __m512i GrayToBgr<1>(__m512i gray)
+      {
+          return _mm512_shuffle_epi8(_mm512_shuffle_i64x2(gray, gray, 0xA5), K8_SHUFFLE_GRAY_TO_BGR1);
+      }
+      //}}}
+      //{{{
+      template<> SIMD_INLINE __m512i GrayToBgr<2>(__m512i gray)
+      {
+          return _mm512_shuffle_epi8(_mm512_shuffle_i64x2(gray, gray, 0xFE), K8_SHUFFLE_GRAY_TO_BGR2);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i BgrToY32(__m512i b16_r16, __m512i g16_1)
+      {
+          return _mm512_srai_epi32(_mm512_add_epi32(_mm512_madd_epi16(b16_r16, K16_BY_RY),
+              _mm512_madd_epi16(g16_1, K16_GY_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i BgrToU32(__m512i b16_r16, __m512i g16_1)
+      {
+          return _mm512_srai_epi32(_mm512_add_epi32(_mm512_madd_epi16(b16_r16, K16_BU_RU),
+              _mm512_madd_epi16(g16_1, K16_GU_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i BgrToV32(__m512i b16_r16, __m512i g16_1)
+      {
+          return _mm512_srai_epi32(_mm512_add_epi32(_mm512_madd_epi16(b16_r16, K16_BV_RV),
+              _mm512_madd_epi16(g16_1, K16_GV_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
+      }
+      //}}}
     }
     //}}}
-    //{{{
-    template<> SIMD_INLINE __m512i GrayToBgr<2>(__m512i gray)
-    {
-        return _mm512_shuffle_epi8(_mm512_shuffle_i64x2(gray, gray, 0xFE), K8_SHUFFLE_GRAY_TO_BGR2);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i BgrToY32(__m512i b16_r16, __m512i g16_1)
-    {
-        return _mm512_srai_epi32(_mm512_add_epi32(_mm512_madd_epi16(b16_r16, K16_BY_RY),
-            _mm512_madd_epi16(g16_1, K16_GY_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i BgrToU32(__m512i b16_r16, __m512i g16_1)
-    {
-        return _mm512_srai_epi32(_mm512_add_epi32(_mm512_madd_epi16(b16_r16, K16_BU_RU),
-            _mm512_madd_epi16(g16_1, K16_GU_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i BgrToV32(__m512i b16_r16, __m512i g16_1)
-    {
-        return _mm512_srai_epi32(_mm512_add_epi32(_mm512_madd_epi16(b16_r16, K16_BV_RV),
-            _mm512_madd_epi16(g16_1, K16_GV_RT)), Base::BGR_TO_YUV_AVERAGING_SHIFT);
-    }
-    //}}}
-  }
-  //}}}
+  #endif
 
   #ifdef SIMD_NEON_ENABLE
     //{{{

@@ -26,136 +26,138 @@
 #include "SimdDefs.h"
 #include "SimdMemory.h"
 
-namespace Simd::Base {
-  //{{{
-  void InterleaveUv (const uint8_t * u, size_t uStride, const uint8_t * v, size_t vStride, size_t width, size_t height, uint8_t * uv, size_t uvStride)
-  {
-      for (size_t row = 0; row < height; ++row)
-      {
-          for (size_t col = 0, offset = 0; col < width; ++col, offset += 2)
-          {
-              uv[offset] = u[col];
-              uv[offset + 1] = v[col];
-          }
-          u += uStride;
-          v += vStride;
-          uv += uvStride;
-      }
-  }
-  //}}}
-  //{{{
-  void InterleaveBgr (const uint8_t * b, size_t bStride, const uint8_t * g, size_t gStride, const uint8_t * r, size_t rStride, size_t width, size_t height, uint8_t * bgr, size_t bgrStride)
-  {
-      for (size_t row = 0; row < height; ++row)
-      {
-          for (size_t col = 0, offset = 0; col < width; ++col, offset += 3)
-          {
-              bgr[offset + 0] = b[col];
-              bgr[offset + 1] = g[col];
-              bgr[offset + 2] = r[col];
-          }
-          b += bStride;
-          g += gStride;
-          r += rStride;
-          bgr += bgrStride;
-      }
-  }
-  //}}}
-  //{{{
-  void InterleaveBgra (const uint8_t * b, size_t bStride, const uint8_t * g, size_t gStride, const uint8_t * r, size_t rStride, const uint8_t * a, size_t aStride, size_t width, size_t height, uint8_t * bgra, size_t bgraStride)
-  {
-      for (size_t row = 0; row < height; ++row)
-      {
-          for (size_t col = 0, offset = 0; col < width; ++col, offset += 4)
-          {
-              bgra[offset + 0] = b[col];
-              bgra[offset + 1] = g[col];
-              bgra[offset + 2] = r[col];
-              bgra[offset + 3] = a[col];
-          }
-          b += bStride;
-          g += gStride;
-          r += rStride;
-          a += aStride;
-          bgra += bgraStride;
-      }
-  }
-  //}}}
+namespace Simd {
+  namespace Base {
+    //{{{
+    void InterleaveUv(const uint8_t * u, size_t uStride, const uint8_t * v, size_t vStride, size_t width, size_t height, uint8_t * uv, size_t uvStride)
+    {
+        for (size_t row = 0; row < height; ++row)
+        {
+            for (size_t col = 0, offset = 0; col < width; ++col, offset += 2)
+            {
+                uv[offset] = u[col];
+                uv[offset + 1] = v[col];
+            }
+            u += uStride;
+            v += vStride;
+            uv += uvStride;
+        }
+    }
+    //}}}
+    //{{{
+    void InterleaveBgr(const uint8_t * b, size_t bStride, const uint8_t * g, size_t gStride, const uint8_t * r, size_t rStride, size_t width, size_t height, uint8_t * bgr, size_t bgrStride)
+    {
+        for (size_t row = 0; row < height; ++row)
+        {
+            for (size_t col = 0, offset = 0; col < width; ++col, offset += 3)
+            {
+                bgr[offset + 0] = b[col];
+                bgr[offset + 1] = g[col];
+                bgr[offset + 2] = r[col];
+            }
+            b += bStride;
+            g += gStride;
+            r += rStride;
+            bgr += bgrStride;
+        }
+    }
+    //}}}
+    //{{{
+    void InterleaveBgra(const uint8_t * b, size_t bStride, const uint8_t * g, size_t gStride, const uint8_t * r, size_t rStride, const uint8_t * a, size_t aStride, size_t width, size_t height, uint8_t * bgra, size_t bgraStride)
+    {
+        for (size_t row = 0; row < height; ++row)
+        {
+            for (size_t col = 0, offset = 0; col < width; ++col, offset += 4)
+            {
+                bgra[offset + 0] = b[col];
+                bgra[offset + 1] = g[col];
+                bgra[offset + 2] = r[col];
+                bgra[offset + 3] = a[col];
+            }
+            b += bStride;
+            g += gStride;
+            r += rStride;
+            a += aStride;
+            bgra += bgraStride;
+        }
+    }
+    //}}}
 
-  //{{{
-  void DeinterleaveUv (const uint8_t * uv, size_t uvStride, size_t width, size_t height,
-      uint8_t * u, size_t uStride, uint8_t * v, size_t vStride)
-  {
-      for (size_t row = 0; row < height; ++row)
-      {
-          for (size_t col = 0, offset = 0; col < width; ++col, offset += 2)
-          {
-              u[col] = uv[offset];
-              v[col] = uv[offset + 1];
-          }
-          uv += uvStride;
-          u += uStride;
-          v += vStride;
-      }
-  }
-  //}}}
-  //{{{
-  void DeinterleaveBgr (const uint8_t * bgr, size_t bgrStride, size_t width, size_t height,
-      uint8_t * b, size_t bStride, uint8_t * g, size_t gStride, uint8_t * r, size_t rStride)
-  {
-      for (size_t row = 0; row < height; ++row)
-      {
-          for (size_t col = 0, offset = 0; col < width; ++col, offset += 3)
-          {
-              b[col] = bgr[offset + 0];
-              g[col] = bgr[offset + 1];
-              r[col] = bgr[offset + 2];
-          }
-          bgr += bgrStride;
-          b += bStride;
-          g += gStride;
-          r += rStride;
-      }
-  }
-  //}}}
-  //{{{
-  void DeinterleaveBgra (const uint8_t * bgra, size_t bgraStride, size_t width, size_t height,
-      uint8_t * b, size_t bStride, uint8_t * g, size_t gStride, uint8_t * r, size_t rStride, uint8_t * a, size_t aStride)
-  {
-      if (a)
-      {
-          for (size_t row = 0; row < height; ++row)
-          {
-              for (size_t col = 0, offset = 0; col < width; ++col, offset += 4)
-              {
-                  b[col] = bgra[offset + 0];
-                  g[col] = bgra[offset + 1];
-                  r[col] = bgra[offset + 2];
-                  a[col] = bgra[offset + 3];
-              }
-              bgra += bgraStride;
-              b += bStride;
-              g += gStride;
-              r += rStride;
-              a += aStride;
-          }
-      }
-      else
-      {
-          for (size_t row = 0; row < height; ++row)
-          {
-              for (size_t col = 0, offset = 0; col < width; ++col, offset += 4)
-              {
-                  b[col] = bgra[offset + 0];
-                  g[col] = bgra[offset + 1];
-                  r[col] = bgra[offset + 2];
-              }
-              bgra += bgraStride;
-              b += bStride;
-              g += gStride;
-              r += rStride;
-          }
-      }
-  }
-  //}}}
+    //{{{
+    void DeinterleaveUv(const uint8_t * uv, size_t uvStride, size_t width, size_t height,
+        uint8_t * u, size_t uStride, uint8_t * v, size_t vStride)
+    {
+        for (size_t row = 0; row < height; ++row)
+        {
+            for (size_t col = 0, offset = 0; col < width; ++col, offset += 2)
+            {
+                u[col] = uv[offset];
+                v[col] = uv[offset + 1];
+            }
+            uv += uvStride;
+            u += uStride;
+            v += vStride;
+        }
+    }
+    //}}}
+    //{{{
+    void DeinterleaveBgr(const uint8_t * bgr, size_t bgrStride, size_t width, size_t height,
+        uint8_t * b, size_t bStride, uint8_t * g, size_t gStride, uint8_t * r, size_t rStride)
+    {
+        for (size_t row = 0; row < height; ++row)
+        {
+            for (size_t col = 0, offset = 0; col < width; ++col, offset += 3)
+            {
+                b[col] = bgr[offset + 0];
+                g[col] = bgr[offset + 1];
+                r[col] = bgr[offset + 2];
+            }
+            bgr += bgrStride;
+            b += bStride;
+            g += gStride;
+            r += rStride;
+        }
+    }
+    //}}}
+    //{{{
+    void DeinterleaveBgra(const uint8_t * bgra, size_t bgraStride, size_t width, size_t height,
+        uint8_t * b, size_t bStride, uint8_t * g, size_t gStride, uint8_t * r, size_t rStride, uint8_t * a, size_t aStride)
+    {
+        if (a)
+        {
+            for (size_t row = 0; row < height; ++row)
+            {
+                for (size_t col = 0, offset = 0; col < width; ++col, offset += 4)
+                {
+                    b[col] = bgra[offset + 0];
+                    g[col] = bgra[offset + 1];
+                    r[col] = bgra[offset + 2];
+                    a[col] = bgra[offset + 3];
+                }
+                bgra += bgraStride;
+                b += bStride;
+                g += gStride;
+                r += rStride;
+                a += aStride;
+            }
+        }
+        else
+        {
+            for (size_t row = 0; row < height; ++row)
+            {
+                for (size_t col = 0, offset = 0; col < width; ++col, offset += 4)
+                {
+                    b[col] = bgra[offset + 0];
+                    g[col] = bgra[offset + 1];
+                    r[col] = bgra[offset + 2];
+                }
+                bgra += bgraStride;
+                b += bStride;
+                g += gStride;
+                r += rStride;
+            }
+        }
+    }
+    //}}}
+    }
   }

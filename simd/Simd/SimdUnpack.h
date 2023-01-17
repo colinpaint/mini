@@ -28,191 +28,199 @@
 #include "SimdConst.h"
 
 namespace Simd {
-  //{{{
-  namespace Sse41 {
-    template <int part> SIMD_INLINE __m128i UnpackI8(__m128i a);
+  #ifdef SIMD_SSE41_ENABLE
     //{{{
-    template <> SIMD_INLINE __m128i UnpackI8<0>(__m128i a)
-    {
-        return _mm_cvtepi8_epi16(a);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m128i UnpackI8<1>(__m128i a)
-    {
-        return _mm_cvtepi8_epi16(_mm_srli_si128(a, 8));
-    }
-    //}}}
+    namespace Sse41 {
+      template <int part> SIMD_INLINE __m128i UnpackI8(__m128i a);
+      //{{{
+      template <> SIMD_INLINE __m128i UnpackI8<0>(__m128i a)
+      {
+          return _mm_cvtepi8_epi16(a);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m128i UnpackI8<1>(__m128i a)
+      {
+          return _mm_cvtepi8_epi16(_mm_srli_si128(a, 8));
+      }
+      //}}}
 
-    template <int part> SIMD_INLINE __m128i UnpackI16(__m128i a);
-    //{{{
-    template <> SIMD_INLINE __m128i UnpackI16<0>(__m128i a)
-    {
-        return _mm_cvtepi16_epi32(a);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m128i UnpackI16<1>(__m128i a)
-    {
-        return _mm_cvtepi16_epi32(_mm_srli_si128(a, 8));
-    }
-    //}}}
+      template <int part> SIMD_INLINE __m128i UnpackI16(__m128i a);
+      //{{{
+      template <> SIMD_INLINE __m128i UnpackI16<0>(__m128i a)
+      {
+          return _mm_cvtepi16_epi32(a);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m128i UnpackI16<1>(__m128i a)
+      {
+          return _mm_cvtepi16_epi32(_mm_srli_si128(a, 8));
+      }
+      //}}}
 
-    template <int part> SIMD_INLINE __m128i UnpackU8(__m128i a, __m128i b = K_ZERO);
-    //{{{
-    template <> SIMD_INLINE __m128i UnpackU8<0>(__m128i a, __m128i b)
-    {
-        return _mm_unpacklo_epi8(a, b);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m128i UnpackU8<1>(__m128i a, __m128i b)
-    {
-        return _mm_unpackhi_epi8(a, b);
-    }
-    //}}}
-    //{{{
-    template<int part> SIMD_INLINE __m128i SubUnpackedU8(__m128i a, __m128i b)
-    {
-        return _mm_maddubs_epi16(UnpackU8<part>(a, b), K8_01_FF);
-    }
-    //}}}
+      template <int part> SIMD_INLINE __m128i UnpackU8(__m128i a, __m128i b = K_ZERO);
+      //{{{
+      template <> SIMD_INLINE __m128i UnpackU8<0>(__m128i a, __m128i b)
+      {
+          return _mm_unpacklo_epi8(a, b);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m128i UnpackU8<1>(__m128i a, __m128i b)
+      {
+          return _mm_unpackhi_epi8(a, b);
+      }
+      //}}}
+      //{{{
+      template<int part> SIMD_INLINE __m128i SubUnpackedU8(__m128i a, __m128i b)
+      {
+          return _mm_maddubs_epi16(UnpackU8<part>(a, b), K8_01_FF);
+      }
+      //}}}
 
-    template <int part> SIMD_INLINE __m128i UnpackU16(__m128i a, __m128i b = K_ZERO);
-    //{{{
-    template <> SIMD_INLINE __m128i UnpackU16<0>(__m128i a, __m128i b)
-    {
-        return _mm_unpacklo_epi16(a, b);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m128i UnpackU16<1>(__m128i a, __m128i b)
-    {
-        return _mm_unpackhi_epi16(a, b);
-    }
-    //}}}
+      template <int part> SIMD_INLINE __m128i UnpackU16(__m128i a, __m128i b = K_ZERO);
+      //{{{
+      template <> SIMD_INLINE __m128i UnpackU16<0>(__m128i a, __m128i b)
+      {
+          return _mm_unpacklo_epi16(a, b);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m128i UnpackU16<1>(__m128i a, __m128i b)
+      {
+          return _mm_unpackhi_epi16(a, b);
+      }
+      //}}}
 
-    template <int part> SIMD_INLINE __m128i UnpackU32(__m128i a, __m128i b = K_ZERO);
-    //{{{
-    template <> SIMD_INLINE __m128i UnpackU32<0>(__m128i a, __m128i b)
-    {
-        return _mm_unpacklo_epi32(a, b);
-    }
+      template <int part> SIMD_INLINE __m128i UnpackU32(__m128i a, __m128i b = K_ZERO);
+      //{{{
+      template <> SIMD_INLINE __m128i UnpackU32<0>(__m128i a, __m128i b)
+      {
+          return _mm_unpacklo_epi32(a, b);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m128i UnpackU32<1>(__m128i a, __m128i b)
+      {
+          return _mm_unpackhi_epi32(a, b);
+      }
+      //}}}
+      }
     //}}}
-    //{{{
-    template <> SIMD_INLINE __m128i UnpackU32<1>(__m128i a, __m128i b)
-    {
-        return _mm_unpackhi_epi32(a, b);
-    }
-    //}}}
-    }
-  //}}}
-  //{{{
-  namespace Avx2 {
-    template <int part> SIMD_INLINE __m256i UnpackU8(__m256i a, __m256i b = K_ZERO);
-    //{{{
-    template <> SIMD_INLINE __m256i UnpackU8<0>(__m256i a, __m256i b)
-    {
-        return _mm256_unpacklo_epi8(a, b);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m256i UnpackU8<1>(__m256i a, __m256i b)
-    {
-        return _mm256_unpackhi_epi8(a, b);
-    }
-    //}}}
-    //{{{
-    template<int part> SIMD_INLINE __m256i SubUnpackedU8(__m256i a, __m256i b)
-    {
-        return _mm256_maddubs_epi16(UnpackU8<part>(a, b), K8_01_FF);
-    }
-    //}}}
+  #endif
 
-    template <int part> SIMD_INLINE __m256i UnpackU16(__m256i a, __m256i b = K_ZERO);
+  #ifdef SIMD_AVX2_ENABLE
     //{{{
-    template <> SIMD_INLINE __m256i UnpackU16<0>(__m256i a, __m256i b)
-    {
-        return _mm256_unpacklo_epi16(a, b);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m256i UnpackU16<1>(__m256i a, __m256i b)
-    {
-        return _mm256_unpackhi_epi16(a, b);
-    }
-    //}}}
+    namespace Avx2 {
+      template <int part> SIMD_INLINE __m256i UnpackU8(__m256i a, __m256i b = K_ZERO);
+      //{{{
+      template <> SIMD_INLINE __m256i UnpackU8<0>(__m256i a, __m256i b)
+      {
+          return _mm256_unpacklo_epi8(a, b);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m256i UnpackU8<1>(__m256i a, __m256i b)
+      {
+          return _mm256_unpackhi_epi8(a, b);
+      }
+      //}}}
+      //{{{
+      template<int part> SIMD_INLINE __m256i SubUnpackedU8(__m256i a, __m256i b)
+      {
+          return _mm256_maddubs_epi16(UnpackU8<part>(a, b), K8_01_FF);
+      }
+      //}}}
 
-    template <int part> SIMD_INLINE __m256i UnpackU32(__m256i a, __m256i b = K_ZERO);
-    //{{{
-    template <> SIMD_INLINE __m256i UnpackU32<0>(__m256i a, __m256i b)
-    {
-        return _mm256_unpacklo_epi32(a, b);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m256i UnpackU32<1>(__m256i a, __m256i b)
-    {
-        return _mm256_unpackhi_epi32(a, b);
-    }
-    //}}}
-    }
-  //}}}
-  //{{{
-  namespace Avx512bw {
-    template <int part> SIMD_INLINE __m512i UnpackU8(__m512i a, __m512i b = K_ZERO);
-    //{{{
-    template <> SIMD_INLINE __m512i UnpackU8<0>(__m512i a, __m512i b)
-    {
-        return _mm512_unpacklo_epi8(a, b);
-    }
-    //}}}
-    //{{{
-    template <> SIMD_INLINE __m512i UnpackU8<1>(__m512i a, __m512i b)
-    {
-        return _mm512_unpackhi_epi8(a, b);
-    }
-    //}}}
+      template <int part> SIMD_INLINE __m256i UnpackU16(__m256i a, __m256i b = K_ZERO);
+      //{{{
+      template <> SIMD_INLINE __m256i UnpackU16<0>(__m256i a, __m256i b)
+      {
+          return _mm256_unpacklo_epi16(a, b);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m256i UnpackU16<1>(__m256i a, __m256i b)
+      {
+          return _mm256_unpackhi_epi16(a, b);
+      }
+      //}}}
 
-    template <int part> SIMD_INLINE __m512i UnpackU16(__m512i a, __m512i b = K_ZERO);
-    //{{{
-    template <> SIMD_INLINE __m512i UnpackU16<0>(__m512i a, __m512i b)
-    {
-        return _mm512_unpacklo_epi16(a, b);
-    }
+      template <int part> SIMD_INLINE __m256i UnpackU32(__m256i a, __m256i b = K_ZERO);
+      //{{{
+      template <> SIMD_INLINE __m256i UnpackU32<0>(__m256i a, __m256i b)
+      {
+          return _mm256_unpacklo_epi32(a, b);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m256i UnpackU32<1>(__m256i a, __m256i b)
+      {
+          return _mm256_unpackhi_epi32(a, b);
+      }
+      //}}}
+      }
     //}}}
-    //{{{
-    template <> SIMD_INLINE __m512i UnpackU16<1>(__m512i a, __m512i b)
-    {
-        return _mm512_unpackhi_epi16(a, b);
-    }
-    //}}}
+  #endif
 
-    template <int part> SIMD_INLINE __m512i UnpackU32(__m512i a, __m512i b = K_ZERO);
+  #ifdef SIMD_AVX512BW_ENABLE
     //{{{
-    template <> SIMD_INLINE __m512i UnpackU32<0>(__m512i a, __m512i b)
-    {
-        return _mm512_unpacklo_epi32(a, b);
-    }
+    namespace Avx512bw {
+      template <int part> SIMD_INLINE __m512i UnpackU8(__m512i a, __m512i b = K_ZERO);
+      //{{{
+      template <> SIMD_INLINE __m512i UnpackU8<0>(__m512i a, __m512i b)
+      {
+          return _mm512_unpacklo_epi8(a, b);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512i UnpackU8<1>(__m512i a, __m512i b)
+      {
+          return _mm512_unpackhi_epi8(a, b);
+      }
+      //}}}
+
+      template <int part> SIMD_INLINE __m512i UnpackU16(__m512i a, __m512i b = K_ZERO);
+      //{{{
+      template <> SIMD_INLINE __m512i UnpackU16<0>(__m512i a, __m512i b)
+      {
+          return _mm512_unpacklo_epi16(a, b);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512i UnpackU16<1>(__m512i a, __m512i b)
+      {
+          return _mm512_unpackhi_epi16(a, b);
+      }
+      //}}}
+
+      template <int part> SIMD_INLINE __m512i UnpackU32(__m512i a, __m512i b = K_ZERO);
+      //{{{
+      template <> SIMD_INLINE __m512i UnpackU32<0>(__m512i a, __m512i b)
+      {
+          return _mm512_unpacklo_epi32(a, b);
+      }
+      //}}}
+      //{{{
+      template <> SIMD_INLINE __m512i UnpackU32<1>(__m512i a, __m512i b)
+      {
+          return _mm512_unpackhi_epi32(a, b);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i UnpackHalfU8(__m256i a, __m256i b = Avx2::K_ZERO)
+      {
+          return _mm512_unpacklo_epi8(_mm512_castsi256_si512(a), _mm512_castsi256_si512(b));
+      }
+      //}}}
+      //{{{
+      template<int part> SIMD_INLINE __m512i SubUnpackedU8(__m512i a, __m512i b)
+      {
+          return _mm512_maddubs_epi16(UnpackU8<part>(a, b), K8_01_FF);
+      }
+      //}}}
+      }
     //}}}
-    //{{{
-    template <> SIMD_INLINE __m512i UnpackU32<1>(__m512i a, __m512i b)
-    {
-        return _mm512_unpackhi_epi32(a, b);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i UnpackHalfU8(__m256i a, __m256i b = Avx2::K_ZERO)
-    {
-        return _mm512_unpacklo_epi8(_mm512_castsi256_si512(a), _mm512_castsi256_si512(b));
-    }
-    //}}}
-    //{{{
-    template<int part> SIMD_INLINE __m512i SubUnpackedU8(__m512i a, __m512i b)
-    {
-        return _mm512_maddubs_epi16(UnpackU8<part>(a, b), K8_01_FF);
-    }
-    //}}}
-    }
-  //}}}
+  #endif
   }

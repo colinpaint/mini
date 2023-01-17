@@ -65,7 +65,7 @@
 #endif
 //}}}
 
-namespace Simd { 
+namespace Simd {
   namespace Base {
     #if defined(SIMD_X86_ENABLE) || defined(SIMD_X64_ENABLE)
       //{{{

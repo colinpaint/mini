@@ -79,125 +79,131 @@ namespace Simd {
     //}}}
     }
 
-  namespace Sse41 {
-    //{{{
-    SIMD_INLINE __m128i Divide16iBy255 (__m128i value)
-    {
-        return _mm_mulhi_epi16(_mm_add_epi16(value, K16_0001), K16_0101);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i Divide16uBy255 (__m128i value)
-    {
-        return _mm_mulhi_epu16(_mm_add_epi16(value, K16_0001), K16_0101);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i AlphaBlending16i (__m128i src, __m128i dst, __m128i alpha)
-    {
-        return Divide16uBy255(_mm_add_epi16(_mm_mullo_epi16(src, alpha), _mm_mullo_epi16(dst, _mm_sub_epi16(K16_00FF, alpha))));
-    }
-    //}}}
-    //{{{
-    template <bool align> SIMD_INLINE void AlphaBlending (const __m128i* src, __m128i* dst, __m128i alpha)
-    {
-        __m128i _src = Load<align>(src);
-        __m128i _dst = Load<align>(dst);
-        __m128i lo = AlphaBlending16i(_mm_unpacklo_epi8(_src, K_ZERO), _mm_unpacklo_epi8(_dst, K_ZERO), _mm_unpacklo_epi8(alpha, K_ZERO));
-        __m128i hi = AlphaBlending16i(_mm_unpackhi_epi8(_src, K_ZERO), _mm_unpackhi_epi8(_dst, K_ZERO), _mm_unpackhi_epi8(alpha, K_ZERO));
-        Store<align>(dst, _mm_packus_epi16(lo, hi));
-    }
-    //}}}
-    //{{{
-    template <bool align> SIMD_INLINE void AlphaBlending2x (const __m128i* src0, __m128i alpha0, const __m128i* src1, __m128i alpha1, __m128i* dst)
-    {
-        __m128i _dst = Load<align>(dst);
-        __m128i lo = _mm_unpacklo_epi8(_dst, K_ZERO);
-        __m128i hi = _mm_unpackhi_epi8(_dst, K_ZERO);
-        __m128i _src0 = Load<align>(src0);
-        lo = AlphaBlending16i(_mm_unpacklo_epi8(_src0, K_ZERO), lo, _mm_unpacklo_epi8(alpha0, K_ZERO));
-        hi = AlphaBlending16i(_mm_unpackhi_epi8(_src0, K_ZERO), hi, _mm_unpackhi_epi8(alpha0, K_ZERO));
-        __m128i _src1 = Load<align>(src1);
-        lo = AlphaBlending16i(_mm_unpacklo_epi8(_src1, K_ZERO), lo, _mm_unpacklo_epi8(alpha1, K_ZERO));
-        hi = AlphaBlending16i(_mm_unpackhi_epi8(_src1, K_ZERO), hi, _mm_unpackhi_epi8(alpha1, K_ZERO));
-        Store<align>(dst, _mm_packus_epi16(lo, hi));
-    }
-    //}}}
-    //{{{
-    template <bool align> SIMD_INLINE void AlphaFilling (__m128i* dst, __m128i channelLo, __m128i channelHi, __m128i alpha)
-    {
-        __m128i _dst = Load<align>(dst);
-        __m128i lo = AlphaBlending16i(channelLo, _mm_unpacklo_epi8(_dst, K_ZERO), _mm_unpacklo_epi8(alpha, K_ZERO));
-        __m128i hi = AlphaBlending16i(channelHi, _mm_unpackhi_epi8(_dst, K_ZERO), _mm_unpackhi_epi8(alpha, K_ZERO));
-        Store<align>(dst, _mm_packus_epi16(lo, hi));
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m128i AlphaPremultiply16i (__m128i value, __m128i alpha)
-    {
-        return Divide16uBy255(_mm_mullo_epi16(value, alpha));
-    }
-    //}}}
-    }
+  #ifdef SIMD_SSE41_ENABLE
+    namespace Sse41 {
+      //{{{
+      SIMD_INLINE __m128i Divide16iBy255 (__m128i value)
+      {
+          return _mm_mulhi_epi16(_mm_add_epi16(value, K16_0001), K16_0101);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i Divide16uBy255 (__m128i value)
+      {
+          return _mm_mulhi_epu16(_mm_add_epi16(value, K16_0001), K16_0101);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i AlphaBlending16i (__m128i src, __m128i dst, __m128i alpha)
+      {
+          return Divide16uBy255(_mm_add_epi16(_mm_mullo_epi16(src, alpha), _mm_mullo_epi16(dst, _mm_sub_epi16(K16_00FF, alpha))));
+      }
+      //}}}
+      //{{{
+      template <bool align> SIMD_INLINE void AlphaBlending (const __m128i* src, __m128i* dst, __m128i alpha)
+      {
+          __m128i _src = Load<align>(src);
+          __m128i _dst = Load<align>(dst);
+          __m128i lo = AlphaBlending16i(_mm_unpacklo_epi8(_src, K_ZERO), _mm_unpacklo_epi8(_dst, K_ZERO), _mm_unpacklo_epi8(alpha, K_ZERO));
+          __m128i hi = AlphaBlending16i(_mm_unpackhi_epi8(_src, K_ZERO), _mm_unpackhi_epi8(_dst, K_ZERO), _mm_unpackhi_epi8(alpha, K_ZERO));
+          Store<align>(dst, _mm_packus_epi16(lo, hi));
+      }
+      //}}}
+      //{{{
+      template <bool align> SIMD_INLINE void AlphaBlending2x (const __m128i* src0, __m128i alpha0, const __m128i* src1, __m128i alpha1, __m128i* dst)
+      {
+          __m128i _dst = Load<align>(dst);
+          __m128i lo = _mm_unpacklo_epi8(_dst, K_ZERO);
+          __m128i hi = _mm_unpackhi_epi8(_dst, K_ZERO);
+          __m128i _src0 = Load<align>(src0);
+          lo = AlphaBlending16i(_mm_unpacklo_epi8(_src0, K_ZERO), lo, _mm_unpacklo_epi8(alpha0, K_ZERO));
+          hi = AlphaBlending16i(_mm_unpackhi_epi8(_src0, K_ZERO), hi, _mm_unpackhi_epi8(alpha0, K_ZERO));
+          __m128i _src1 = Load<align>(src1);
+          lo = AlphaBlending16i(_mm_unpacklo_epi8(_src1, K_ZERO), lo, _mm_unpacklo_epi8(alpha1, K_ZERO));
+          hi = AlphaBlending16i(_mm_unpackhi_epi8(_src1, K_ZERO), hi, _mm_unpackhi_epi8(alpha1, K_ZERO));
+          Store<align>(dst, _mm_packus_epi16(lo, hi));
+      }
+      //}}}
+      //{{{
+      template <bool align> SIMD_INLINE void AlphaFilling (__m128i* dst, __m128i channelLo, __m128i channelHi, __m128i alpha)
+      {
+          __m128i _dst = Load<align>(dst);
+          __m128i lo = AlphaBlending16i(channelLo, _mm_unpacklo_epi8(_dst, K_ZERO), _mm_unpacklo_epi8(alpha, K_ZERO));
+          __m128i hi = AlphaBlending16i(channelHi, _mm_unpackhi_epi8(_dst, K_ZERO), _mm_unpackhi_epi8(alpha, K_ZERO));
+          Store<align>(dst, _mm_packus_epi16(lo, hi));
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m128i AlphaPremultiply16i (__m128i value, __m128i alpha)
+      {
+          return Divide16uBy255(_mm_mullo_epi16(value, alpha));
+      }
+      //}}}
+      }
+  #endif
 
-  namespace Avx2 {
-    //{{{
-    SIMD_INLINE __m256i Divide16iBy255 (__m256i value)
-    {
-        return _mm256_mulhi_epi16(_mm256_add_epi16(value, K16_0001), K16_0101);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i Divide16uBy255 (__m256i value)
-    {
-        return _mm256_mulhi_epu16(_mm256_add_epi16(value, K16_0001), K16_0101);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m256i AlphaBlending16i (__m256i src, __m256i dst, __m256i alpha)
-    {
-        return Divide16uBy255(_mm256_add_epi16(_mm256_mullo_epi16(src, alpha), _mm256_mullo_epi16(dst, _mm256_sub_epi16(K16_00FF, alpha))));
-    }
-    //}}}
-    //{{{
-    template <bool align> SIMD_INLINE void AlphaBlending (const __m256i* src, __m256i* dst, __m256i alpha)
-    {
-        __m256i _src = Load<align>(src);
-        __m256i _dst = Load<align>(dst);
-        __m256i lo = AlphaBlending16i(_mm256_unpacklo_epi8(_src, K_ZERO), _mm256_unpacklo_epi8(_dst, K_ZERO), _mm256_unpacklo_epi8(alpha, K_ZERO));
-        __m256i hi = AlphaBlending16i(_mm256_unpackhi_epi8(_src, K_ZERO), _mm256_unpackhi_epi8(_dst, K_ZERO), _mm256_unpackhi_epi8(alpha, K_ZERO));
-        Store<align>(dst, _mm256_packus_epi16(lo, hi));
-    }
-    //}}}
-    //{{{
-    template <bool align> SIMD_INLINE void AlphaBlending2x (const __m256i* src0, __m256i alpha0, const __m256i* src1, __m256i alpha1, __m256i* dst)
-    {
-        __m256i _dst = Load<align>(dst);
-        __m256i lo = _mm256_unpacklo_epi8(_dst, K_ZERO);
-        __m256i hi = _mm256_unpackhi_epi8(_dst, K_ZERO);
-        __m256i _src0 = Load<align>(src0);
-        lo = AlphaBlending16i(_mm256_unpacklo_epi8(_src0, K_ZERO), lo, _mm256_unpacklo_epi8(alpha0, K_ZERO));
-        hi = AlphaBlending16i(_mm256_unpackhi_epi8(_src0, K_ZERO), hi, _mm256_unpackhi_epi8(alpha0, K_ZERO));
-        __m256i _src1 = Load<align>(src1);
-        lo = AlphaBlending16i(_mm256_unpacklo_epi8(_src1, K_ZERO), lo, _mm256_unpacklo_epi8(alpha1, K_ZERO));
-        hi = AlphaBlending16i(_mm256_unpackhi_epi8(_src1, K_ZERO), hi, _mm256_unpackhi_epi8(alpha1, K_ZERO));
-        Store<align>(dst, _mm256_packus_epi16(lo, hi));
-    }
-    //}}}
-    }
+  #ifdef SIMD_AVX2_ENABLE
+    namespace Avx2 {
+      //{{{
+      SIMD_INLINE __m256i Divide16iBy255 (__m256i value)
+      {
+          return _mm256_mulhi_epi16(_mm256_add_epi16(value, K16_0001), K16_0101);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i Divide16uBy255 (__m256i value)
+      {
+          return _mm256_mulhi_epu16(_mm256_add_epi16(value, K16_0001), K16_0101);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m256i AlphaBlending16i (__m256i src, __m256i dst, __m256i alpha)
+      {
+          return Divide16uBy255(_mm256_add_epi16(_mm256_mullo_epi16(src, alpha), _mm256_mullo_epi16(dst, _mm256_sub_epi16(K16_00FF, alpha))));
+      }
+      //}}}
+      //{{{
+      template <bool align> SIMD_INLINE void AlphaBlending (const __m256i* src, __m256i* dst, __m256i alpha)
+      {
+          __m256i _src = Load<align>(src);
+          __m256i _dst = Load<align>(dst);
+          __m256i lo = AlphaBlending16i(_mm256_unpacklo_epi8(_src, K_ZERO), _mm256_unpacklo_epi8(_dst, K_ZERO), _mm256_unpacklo_epi8(alpha, K_ZERO));
+          __m256i hi = AlphaBlending16i(_mm256_unpackhi_epi8(_src, K_ZERO), _mm256_unpackhi_epi8(_dst, K_ZERO), _mm256_unpackhi_epi8(alpha, K_ZERO));
+          Store<align>(dst, _mm256_packus_epi16(lo, hi));
+      }
+      //}}}
+      //{{{
+      template <bool align> SIMD_INLINE void AlphaBlending2x (const __m256i* src0, __m256i alpha0, const __m256i* src1, __m256i alpha1, __m256i* dst)
+      {
+          __m256i _dst = Load<align>(dst);
+          __m256i lo = _mm256_unpacklo_epi8(_dst, K_ZERO);
+          __m256i hi = _mm256_unpackhi_epi8(_dst, K_ZERO);
+          __m256i _src0 = Load<align>(src0);
+          lo = AlphaBlending16i(_mm256_unpacklo_epi8(_src0, K_ZERO), lo, _mm256_unpacklo_epi8(alpha0, K_ZERO));
+          hi = AlphaBlending16i(_mm256_unpackhi_epi8(_src0, K_ZERO), hi, _mm256_unpackhi_epi8(alpha0, K_ZERO));
+          __m256i _src1 = Load<align>(src1);
+          lo = AlphaBlending16i(_mm256_unpacklo_epi8(_src1, K_ZERO), lo, _mm256_unpacklo_epi8(alpha1, K_ZERO));
+          hi = AlphaBlending16i(_mm256_unpackhi_epi8(_src1, K_ZERO), hi, _mm256_unpackhi_epi8(alpha1, K_ZERO));
+          Store<align>(dst, _mm256_packus_epi16(lo, hi));
+      }
+      //}}}
+      }
+  #endif
 
-  namespace Avx512bw {
-    //{{{
-    SIMD_INLINE __m512i Divide16iBy255 (__m512i value)
-    {
-        return _mm512_mulhi_epi16(_mm512_add_epi16(value, K16_0001), K16_0101);
-    }
-    //}}}
-    //{{{
-    SIMD_INLINE __m512i Divide16uBy255 (__m512i value)
-    {
-        return _mm512_mulhi_epu16(_mm512_add_epi16(value, K16_0001), K16_0101);
-    }
-    //}}}
-    }
+  #ifdef SIMD_AVX512BW_ENABLE
+    namespace Avx512bw {
+      //{{{
+      SIMD_INLINE __m512i Divide16iBy255 (__m512i value)
+      {
+          return _mm512_mulhi_epi16(_mm512_add_epi16(value, K16_0001), K16_0101);
+      }
+      //}}}
+      //{{{
+      SIMD_INLINE __m512i Divide16uBy255 (__m512i value)
+      {
+          return _mm512_mulhi_epu16(_mm512_add_epi16(value, K16_0001), K16_0101);
+      }
+      //}}}
+      }
+  #endif
   }
