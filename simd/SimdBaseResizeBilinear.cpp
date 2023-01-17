@@ -61,7 +61,7 @@ namespace Simd::Base {
     }
 
   //{{{
-  void EstimateAlphaIndex(size_t srcSize, size_t dstSize, int * indexes, int * alphas, size_t channelCount)
+  void EstimateAlphaIndex (size_t srcSize, size_t dstSize, int * indexes, int * alphas, size_t channelCount)
   {
       float scale = (float)srcSize / dstSize;
 
@@ -93,9 +93,8 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizeBilinear(
-      const uint8_t *src, size_t srcWidth, size_t srcHeight, size_t srcStride,
-      uint8_t *dst, size_t dstWidth, size_t dstHeight, size_t dstStride, size_t channelCount)
+  void ResizeBilinear (const uint8_t *src, size_t srcWidth, size_t srcHeight, size_t srcStride,
+                       uint8_t *dst, size_t dstWidth, size_t dstHeight, size_t dstStride, size_t channelCount)
   {
       assert(channelCount >= 1 && channelCount <= 4);
 

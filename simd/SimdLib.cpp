@@ -58,52 +58,26 @@ SIMD_API const char* SimdVersion() { return SIMD_VERSION; }
 
 using namespace Simd;
 //{{{
-SIMD_API size_t SimdCpuInfo (SimdCpuInfoType type)
-{
-    switch (type)
-    {
+SIMD_API size_t SimdCpuInfo (SimdCpuInfoType type) {
+
+  switch (type) {
     case SimdCpuInfoSockets: return Cpu::SOCKET_NUMBER;
     case SimdCpuInfoCores: return Cpu::CORE_NUMBER;
     case SimdCpuInfoThreads: return Cpu::THREAD_NUMBER;
     case SimdCpuInfoCacheL1: return Cpu::L1_CACHE_SIZE;
     case SimdCpuInfoCacheL2: return Cpu::L2_CACHE_SIZE;
     case SimdCpuInfoCacheL3: return Cpu::L3_CACHE_SIZE;
-
-#ifdef SIMD_SSE41_ENABLE
     case SimdCpuInfoSse41: return Sse41::Enable ? 1 : 0;
-#endif
-
-#ifdef SIMD_AVX_ENABLE
     case SimdCpuInfoAvx: return Avx::Enable ? 1 : 0;
-#endif
-
-#ifdef SIMD_AVX2_ENABLE
     case SimdCpuInfoAvx2: return Avx2::Enable ? 1 : 0;
-#endif
-
-#ifdef SIMD_AVX512BW_ENABLE
     case SimdCpuInfoAvx512bw: return Avx512bw::Enable ? 1 : 0;
-#endif
-
-#ifdef SIMD_AVX512VNNI_ENABLE
-    case SimdCpuInfoAvx512vnni: return Avx512vnni::Enable ? 1 : 0;
-#endif
-
-#ifdef SIMD_AVX512BF16_ENABLE
-    case SimdCpuInfoAvx512bf16: return Avx512bf16::Enable ? 1 : 0;
-#endif
-
-#ifdef SIMD_AMX_ENABLE
-    case SimdCpuInfoAmx: return Amx::Enable ? 1 : 0;
-#endif
-
-#ifdef SIMD_NEON_ENABLE
-    case SimdCpuInfoNeon: return Neon::Enable ? 1 : 0;
-#endif
+    #ifdef SIMD_NEON_ENABLE
+      case SimdCpuInfoNeon: return Neon::Enable ? 1 : 0;
+    #endif
     default:
-        return 0;
+      return 0;
     }
-}
+  }
 //}}}
 //{{{
 SIMD_API const char* SimdPerformanceStatistic()
@@ -163,11 +137,9 @@ SIMD_API void SimdSetThreadNumber (size_t threadNumber)
 //{{{
 SIMD_API SimdBool SimdGetFastMode()
 {
-  #ifdef SIMD_SSE41_ENABLE
     if (Sse41::Enable)
         return Sse41::GetFastMode();
     else
-  #endif
 
   #ifdef SIMD_NEON_ENABLE
     if (Neon::Enable)
@@ -181,10 +153,8 @@ SIMD_API SimdBool SimdGetFastMode()
 //{{{
 SIMD_API void SimdSetFastMode (SimdBool value) {
 
-  #ifdef SIMD_SSE41_ENABLE
     if (Sse41::Enable)
       Sse41::SetFastMode(value);
-  #endif
 
   #ifdef SIMD_NEON_ENABLE
     if (Neon::Enable)
@@ -195,10 +165,8 @@ SIMD_API void SimdSetFastMode (SimdBool value) {
 
 //{{{
 SIMD_API void SimdEmpty() {
-  #ifdef SIMD_SSE41_ENABLE
     if (Sse41::Enable)
       Sse41::Empty();
-  #endif
   }
 //}}}
 
@@ -223,23 +191,17 @@ SIMD_API void SimdFillBgr (uint8_t* dst, size_t stride, size_t width, size_t hei
 {
     SIMD_EMPTY();
 
-#ifdef SIMD_AVX512BW_ENABLE
     if (Avx512bw::Enable)
         Avx512bw::FillBgr(dst, stride, width, height, blue, green, red);
     else
-#endif
 
-#ifdef SIMD_AVX2_ENABLE
     if(Avx2::Enable && width >= Avx2::A)
         Avx2::FillBgr(dst, stride, width, height, blue, green, red);
     else
-#endif
 
-#ifdef SIMD_SSE41_ENABLE
     if(Sse41::Enable && width >= Sse41::A)
         Sse41::FillBgr(dst, stride, width, height, blue, green, red);
     else
-#endif
 
 #ifdef SIMD_NEON_ENABLE
     if (Neon::Enable && width >= Neon::A)
@@ -254,23 +216,17 @@ SIMD_API void SimdFillBgra (uint8_t* dst, size_t stride, size_t width, size_t he
 {
     SIMD_EMPTY();
 
-#ifdef SIMD_AVX512BW_ENABLE
     if (Avx512bw::Enable)
         Avx512bw::FillBgra(dst, stride, width, height, blue, green, red, alpha);
     else
-#endif
 
-#ifdef SIMD_AVX2_ENABLE
     if(Avx2::Enable && width >= Avx2::F)
         Avx2::FillBgra(dst, stride, width, height, blue, green, red, alpha);
     else
-#endif
 
-#ifdef SIMD_SSE41_ENABLE
     if(Sse41::Enable && width >= Sse41::F)
         Sse41::FillBgra(dst, stride, width, height, blue, green, red, alpha);
     else
-#endif
 
 #ifdef SIMD_NEON_ENABLE
     if (Neon::Enable && width >= Neon::F)
@@ -286,23 +242,17 @@ SIMD_API void SimdFillPixel (uint8_t* dst, size_t stride, size_t width, size_t h
 {
     SIMD_EMPTY();
 
-#ifdef SIMD_AVX512BW_ENABLE
     if (Avx512bw::Enable)
         Avx512bw::FillPixel(dst, stride, width, height, pixel, pixelSize);
     else
-#endif
 
-#ifdef SIMD_AVX2_ENABLE
     if (Avx2::Enable && width >= Avx2::A)
         Avx2::FillPixel(dst, stride, width, height, pixel, pixelSize);
     else
-#endif
 
-#ifdef SIMD_SSE41_ENABLE
     if (Sse41::Enable && width >= Sse41::A)
         Sse41::FillPixel(dst, stride, width, height, pixel, pixelSize);
     else
-#endif
 
 #ifdef SIMD_NEON_ENABLE
     if (Neon::Enable && width >= Neon::A)
@@ -330,23 +280,17 @@ SIMD_API void SimdAlphaBlending (const uint8_t *src, size_t srcStride, size_t wi
 {
     SIMD_EMPTY();
 
-#ifdef SIMD_AVX512BW_ENABLE
     if (Avx512bw::Enable)
         Avx512bw::AlphaBlending(src, srcStride, width, height, channelCount, alpha, alphaStride, dst, dstStride);
     else
-#endif
 
-#ifdef SIMD_AVX2_ENABLE
     if(Avx2::Enable && width >= Avx2::A)
         Avx2::AlphaBlending(src, srcStride, width, height, channelCount, alpha, alphaStride, dst, dstStride);
     else
-#endif
 
-#ifdef SIMD_SSE41_ENABLE
     if(Sse41::Enable && width >= Sse41::A)
         Sse41::AlphaBlending(src, srcStride, width, height, channelCount, alpha, alphaStride, dst, dstStride);
     else
-#endif
 
 #ifdef SIMD_NEON_ENABLE
     if (Neon::Enable && width >= Neon::A)
@@ -364,17 +308,13 @@ SIMD_API void SimdAlphaBlending2x (const uint8_t* src0, size_t src0Stride, const
 {
     SIMD_EMPTY();
 
-#ifdef SIMD_AVX2_ENABLE
     if (Avx2::Enable && width >= Avx2::A)
         Avx2::AlphaBlending2x(src0, src0Stride, alpha0, alpha0Stride, src1, src1Stride, alpha1, alpha1Stride, width, height, channelCount, dst, dstStride);
     else
-#endif
 
-#ifdef SIMD_SSE41_ENABLE
     if (Sse41::Enable && width >= Sse41::A)
         Sse41::AlphaBlending2x(src0, src0Stride, alpha0, alpha0Stride, src1, src1Stride, alpha1, alpha1Stride, width, height, channelCount, dst, dstStride);
     else
-#endif
 
         Base::AlphaBlending2x(src0, src0Stride, alpha0, alpha0Stride, src1, src1Stride, alpha1, alpha1Stride, width, height, channelCount, dst, dstStride);
 }
@@ -384,23 +324,17 @@ SIMD_API void SimdAlphaBlendingUniform (const uint8_t* src, size_t srcStride, si
 {
     SIMD_EMPTY();
 
-#ifdef SIMD_AVX512BW_ENABLE
     if (Avx512bw::Enable)
         Avx512bw::AlphaBlendingUniform(src, srcStride, width, height, channelCount, alpha, dst, dstStride);
     else
-#endif
 
-#ifdef SIMD_AVX2_ENABLE
     if (Avx2::Enable && width >= Avx2::A)
         Avx2::AlphaBlendingUniform(src, srcStride, width, height, channelCount, alpha, dst, dstStride);
     else
-#endif
 
-#ifdef SIMD_SSE41_ENABLE
     if (Sse41::Enable && width >= Sse41::A)
         Sse41::AlphaBlendingUniform(src, srcStride, width, height, channelCount, alpha, dst, dstStride);
     else
-#endif
 
 #ifdef SIMD_NEON_ENABLE
     if (Neon::Enable && width >= Neon::A)
@@ -416,23 +350,17 @@ SIMD_API void SimdAlphaFilling (uint8_t* dst, size_t dstStride, size_t width, si
 {
     SIMD_EMPTY();
 
-#ifdef SIMD_AVX512BW_ENABLE
     if (Avx512bw::Enable)
         Avx512bw::AlphaFilling(dst, dstStride, width, height, channel, channelCount, alpha, alphaStride);
     else
-#endif
 
-#ifdef SIMD_AVX2_ENABLE
     if (Avx2::Enable && width >= Avx2::A)
         Avx2::AlphaFilling(dst, dstStride, width, height, channel, channelCount, alpha, alphaStride);
     else
-#endif
 
-#ifdef SIMD_SSE41_ENABLE
     if (Sse41::Enable && width >= Sse41::A)
         Sse41::AlphaFilling(dst, dstStride, width, height, channel, channelCount, alpha, alphaStride);
     else
-#endif
 
 #ifdef SIMD_NEON_ENABLE
     if (Neon::Enable && width >= Neon::A)

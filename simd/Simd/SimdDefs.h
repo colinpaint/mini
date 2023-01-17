@@ -38,22 +38,6 @@
 #include <cmath>
 #include <limits>
 
-#if defined(SIMD_SSE41_DISABLE) && !defined(SIMD_AVX_DISABLE)
-  #define SIMD_AVX_DISABLE
-#endif
-
-#if defined(SIMD_AVX_DISABLE) && !defined(SIMD_AVX2_DISABLE)
-  #define SIMD_AVX2_DISABLE
-#endif
-
-#if defined(SIMD_AVX2_DISABLE) && !defined(SIMD_AVX512BW_DISABLE)
- #define SIMD_AVX512BW_DISABLE
-#endif
-
-#if defined(SIMD_AVX512BW_DISABLE) && !defined(SIMD_AVX512VNNI_DISABLE)
- #define SIMD_AVX512VNNI_DISABLE
-# endif
-
 #if !defined(SIMD_INT8_DEBUG_DISABLE)
   #define SIMD_INT8_DEBUG_ENABLE
 #endif
@@ -116,7 +100,7 @@
       #define SIMD_MASKZ_LOAD_ERROR
     #endif
     //}}}
-  #endif //defined(SIMD_X64_ENABLE) || defined(SIMD_X86_ENABLE)
+  #endif 
 
   #if defined(SIMD_ARM_ENABLE)
     #if !defined(SIMD_NEON_DISABLE) && _MSC_VER >= 1700
@@ -124,18 +108,9 @@
     #endif
   #endif
 
-  #if _MSC_VER >= 1900
-    #define SIMD_CPP_2011_ENABLE
-  #endif
-
-  #if _MSVC_LANG >= 201402L
-    #define SIMD_CPP_2014_ENABLE
-  #endif
-
-  #if _MSVC_LANG >= 201703L
-    #define SIMD_CPP_2017_ENABLE
-  #endif
-
+  #define SIMD_CPP_2011_ENABLE
+  #define SIMD_CPP_2014_ENABLE
+  #define SIMD_CPP_2017_ENABLE
   #define SIMD_FUNCTION __FUNCTION__
 
 #elif defined(__GNUC__)

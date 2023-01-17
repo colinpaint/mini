@@ -32,7 +32,7 @@
 namespace Simd::Base {
   // area
   //{{{
-  ResizerByteArea::ResizerByteArea(const ResParam& param)
+  ResizerByteArea::ResizerByteArea (const ResParam& param)
       : Resizer(param)
   {
       _ay.Resize(_param.dstH + 1);
@@ -42,7 +42,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerByteArea::EstimateParams(size_t srcSize, size_t dstSize, size_t range, int32_t* alpha, int32_t* index)
+  void ResizerByteArea::EstimateParams (size_t srcSize, size_t dstSize, size_t range, int32_t* alpha, int32_t* index)
   {
       float scale = (float)srcSize / dstSize;
 
@@ -63,7 +63,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  ResizerByteArea1x1::ResizerByteArea1x1(const ResParam & param)
+  ResizerByteArea1x1::ResizerByteArea1x1 (const ResParam & param)
       : ResizerByteArea(param)
   {
       EstimateParams(_param.srcH, _param.dstH, Base::AREA_RANGE, _ay.data, _iy.data);
@@ -73,14 +73,14 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  template<size_t N, UpdateType update> SIMD_INLINE void ResizerByteArea1x1RowUpdate(const uint8_t* src, int32_t val, int32_t* dst)
+  template<size_t N, UpdateType update> SIMD_INLINE void ResizerByteArea1x1RowUpdate (const uint8_t* src, int32_t val, int32_t* dst)
   {
       for (size_t c = 0; c < N; ++c)
           Update<update>(dst + c, src[c] * val);
   }
   //}}}
   //{{{
-  template<size_t N, UpdateType update> SIMD_INLINE void ResizerByteArea1x1RowUpdate(const uint8_t* src, size_t size, int32_t val, int32_t* dst)
+  template<size_t N, UpdateType update> SIMD_INLINE void ResizerByteArea1x1RowUpdate (const uint8_t* src, size_t size, int32_t val, int32_t* dst)
   {
       if (update == UpdateAdd && val == 0)
           return;
@@ -89,7 +89,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  template<size_t N> SIMD_INLINE void ResizerByteArea1x1RowSum(const uint8_t* src, size_t stride, size_t count, size_t size, int32_t curr, int32_t zero, int32_t next, int32_t* dst)
+  template<size_t N> SIMD_INLINE void ResizerByteArea1x1RowSum (const uint8_t* src, size_t stride, size_t count, size_t size, int32_t curr, int32_t zero, int32_t next, int32_t* dst)
   {
       if (count)
       {
@@ -104,7 +104,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  template<size_t N> void ResizerByteArea1x1::Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
+  template<size_t N> void ResizerByteArea1x1::Run (const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
   {
       size_t dstW = _param.dstW, rowSize = _param.srcW * N, rowRest = dstStride - dstW * N;
       const int32_t* iy = _iy.data, * ix = _ix.data, * ay = _ay.data, * ax = _ax.data;
@@ -123,7 +123,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerByteArea1x1::Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride)
+  void ResizerByteArea1x1::Run (const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride)
   {
       switch (_param.channels)
       {
@@ -138,7 +138,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  ResizerByteArea2x2::ResizerByteArea2x2(const ResParam& param)
+  ResizerByteArea2x2::ResizerByteArea2x2 (const ResParam& param)
       : ResizerByteArea(param)
   {
       EstimateParams(DivHi(_param.srcH, 2), _param.dstH, Base::AREA_RANGE / 2, _ay.data, _iy.data);
@@ -148,7 +148,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  template<size_t N, UpdateType update> SIMD_INLINE void ResizerByteArea2x2RowUpdate(const uint8_t* src0, const uint8_t* src1, size_t size, int32_t val, int32_t* dst)
+  template<size_t N, UpdateType update> SIMD_INLINE void ResizerByteArea2x2RowUpdate (const uint8_t* src0, const uint8_t* src1, size_t size, int32_t val, int32_t* dst)
   {
       if (update == UpdateAdd && val == 0)
           return;
@@ -161,7 +161,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  template<size_t N> SIMD_INLINE void ResizerByteArea2x2RowSum(const uint8_t* src, size_t stride, size_t count, size_t size, int32_t curr, int32_t zero, int32_t next, bool tail, int32_t* dst)
+  template<size_t N> SIMD_INLINE void ResizerByteArea2x2RowSum (const uint8_t* src, size_t stride, size_t count, size_t size, int32_t curr, int32_t zero, int32_t next, bool tail, int32_t* dst)
   {
       size_t c = 0;
       if (count)
@@ -176,7 +176,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  template<size_t N> void ResizerByteArea2x2::Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
+  template<size_t N> void ResizerByteArea2x2::Run (const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
   {
       size_t dstW = _param.dstW, rowSize = _param.srcW * N, rowRest = dstStride - dstW * N;
       const int32_t* iy = _iy.data, * ix = _ix.data, * ay = _ay.data, * ax = _ax.data;
@@ -196,7 +196,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerByteArea2x2::Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
+  void ResizerByteArea2x2::Run (const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
   {
       switch (_param.channels)
       {
@@ -212,14 +212,14 @@ namespace Simd::Base {
 
   // nearest
   //{{{
-  ResizerNearest::ResizerNearest(const ResParam& param)
+  ResizerNearest::ResizerNearest (const ResParam& param)
       : Resizer(param)
       , _pixelSize(0)
   {
   }
   //}}}
   //{{{
-  void ResizerNearest::EstimateIndex(size_t srcSize, size_t dstSize, size_t channelSize, size_t channels, int32_t* indices)
+  void ResizerNearest::EstimateIndex (size_t srcSize, size_t dstSize, size_t channelSize, size_t channels, int32_t* indices)
   {
       if (_param.method == SimdResizeMethodNearest)
       {
@@ -267,7 +267,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerNearest::Resize(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
+  void ResizerNearest::Resize (const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
   {
       for (size_t dy = 0; dy < _param.dstH; dy++)
       {
@@ -279,7 +279,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  template<size_t N> void ResizerNearest::Resize(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
+  template<size_t N> void ResizerNearest::Resize (const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
   {
       for (size_t dy = 0; dy < _param.dstH; dy++)
       {
@@ -291,7 +291,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerNearest::Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
+  void ResizerNearest::Run (const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
   {
       EstimateParams();
       switch (_pixelSize)
@@ -311,7 +311,7 @@ namespace Simd::Base {
 
   // bilinear
   //{{{
-  ResizerByteBilinear::ResizerByteBilinear(const ResParam & param)
+  ResizerByteBilinear::ResizerByteBilinear (const ResParam & param)
       : Resizer(param)
   {
       _ay.Resize(_param.dstH);
@@ -320,7 +320,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerByteBilinear::EstimateIndexAlpha(size_t srcSize, size_t dstSize, size_t channels, int32_t * indices, int32_t * alphas)
+  void ResizerByteBilinear::EstimateIndexAlpha (size_t srcSize, size_t dstSize, size_t channels, int32_t * indices, int32_t * alphas)
   {
       float scale = (float)srcSize / dstSize;
 
@@ -352,7 +352,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerByteBilinear::Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride)
+  void ResizerByteBilinear::Run (const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride)
   {
       size_t cn =  _param.channels;
       size_t rs = _param.dstW * cn;
@@ -414,7 +414,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  ResizerShortBilinear::ResizerShortBilinear(const ResParam& param)
+  ResizerShortBilinear::ResizerShortBilinear (const ResParam& param)
       : Resizer(param)
   {
       _ay.Resize(_param.dstH, false, _param.align);
@@ -429,7 +429,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerShortBilinear::EstimateIndexAlpha(size_t srcSize, size_t dstSize, size_t channels, int32_t* indices, float* alphas)
+  void ResizerShortBilinear::EstimateIndexAlpha (size_t srcSize, size_t dstSize, size_t channels, int32_t* indices, float* alphas)
   {
       float scale = (float)srcSize / dstSize;
       for (size_t i = 0; i < dstSize; ++i)
@@ -457,13 +457,13 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerShortBilinear::Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
+  void ResizerShortBilinear::Run (const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
   {
       Run((const uint16_t*)src, srcStride / sizeof(uint16_t), (uint16_t*)dst, dstStride / sizeof(uint16_t));
   }
   //}}}
   //{{{
-  template<size_t N> void ResizerShortBilinear::RunB(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride)
+  template<size_t N> void ResizerShortBilinear::RunB (const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride)
   {
       size_t rs = _param.dstW * N;
       float* pbx[2] = { _bx[0].data, _bx[1].data };
@@ -499,7 +499,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  template<size_t N> void ResizerShortBilinear::RunS(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride)
+  template<size_t N> void ResizerShortBilinear::RunS (const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride)
   {
       size_t rs = _param.dstW * N;
       for (size_t dy = 0; dy < _param.dstH; dy++, dst += dstStride)
@@ -522,7 +522,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerShortBilinear::Run(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride)
+  void ResizerShortBilinear::Run (const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride)
   {
       bool sparse = _param.dstH * 2.0 <= _param.srcH;
       switch (_param.channels)
@@ -538,7 +538,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  ResizerFloatBilinear::ResizerFloatBilinear(const ResParam & param)
+  ResizerFloatBilinear::ResizerFloatBilinear (const ResParam & param)
       : Resizer(param)
   {
       _ay.Resize(_param.dstH, false, _param.align);
@@ -553,7 +553,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerFloatBilinear::EstimateIndexAlpha(size_t srcSize, size_t dstSize, size_t channels, int32_t * indices, float * alphas)
+  void ResizerFloatBilinear::EstimateIndexAlpha (size_t srcSize, size_t dstSize, size_t channels, int32_t * indices, float * alphas)
   {
       if (_param.method == SimdResizeMethodBilinear)
       {
@@ -633,13 +633,13 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerFloatBilinear::Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride)
+  void ResizerFloatBilinear::Run (const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride)
   {
       Run((const float*)src, srcStride / sizeof(float), (float*)dst, dstStride / sizeof(float));
   }
   //}}}
   //{{{
-  void ResizerFloatBilinear::Run(const float * src, size_t srcStride, float * dst, size_t dstStride)
+  void ResizerFloatBilinear::Run (const float * src, size_t srcStride, float * dst, size_t dstStride)
   {
       size_t cn = _param.channels;
       size_t rs = _param.dstW * cn;
@@ -682,13 +682,13 @@ namespace Simd::Base {
 
   // bicubic
   //{{{
-  ResizerByteBicubic::ResizerByteBicubic(const ResParam & param)
+  ResizerByteBicubic::ResizerByteBicubic (const ResParam & param)
       : Resizer(param)
   {
   }
   //}}}
   //{{{
-  void ResizerByteBicubic::EstimateIndexAlpha(size_t sizeS, size_t sizeD, size_t N, Array32i& index, Array32i& alpha)
+  void ResizerByteBicubic::EstimateIndexAlpha (size_t sizeS, size_t sizeD, size_t N, Array32i& index, Array32i& alpha)
   {
       index.Resize(sizeD);
       alpha.Resize(sizeD * 4);
@@ -717,7 +717,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void ResizerByteBicubic::Init(bool sparse)
+  void ResizerByteBicubic::Init (bool sparse)
   {
       if (_iy.data)
           return;
@@ -735,13 +735,13 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  template<int N, int F, int L> SIMD_INLINE int32_t CubicSumX(const uint8_t* src, const int32_t* ax)
+  template<int N, int F, int L> SIMD_INLINE int32_t CubicSumX (const uint8_t* src, const int32_t* ax)
   {
       return ax[0] * src[F * N] + ax[1] * src[0 * N] + ax[2] * src[1 * N] + ax[3] * src[L * N];
   }
   //}}}
   //{{{
-  template<int N, int F, int L> SIMD_INLINE void BicubicInt(const uint8_t* src0, const uint8_t* src1,
+  template<int N, int F, int L> SIMD_INLINE void BicubicInt (const uint8_t* src0, const uint8_t* src1,
       const uint8_t* src2, const uint8_t* src3, size_t sx, const int32_t* ax, const int32_t* ay, uint8_t * dst)
   {
       for (size_t c = 0; c < N; ++c)
@@ -756,7 +756,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  template<int N> void ResizerByteBicubic::RunS(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
+  template<int N> void ResizerByteBicubic::RunS (const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
   {
       for (size_t dy = 0; dy < _param.dstH; dy++, dst += dstStride)
       {
@@ -778,14 +778,14 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  template<int N, int F, int L> SIMD_INLINE void PixelCubicSumX(const uint8_t* src, const int32_t* ax, int32_t* dst)
+  template<int N, int F, int L> SIMD_INLINE void PixelCubicSumX (const uint8_t* src, const int32_t* ax, int32_t* dst)
   {
       for (size_t c = 0; c < N; ++c)
           dst[c] = CubicSumX<N, F, L>(src + c, ax);
   }
   //}}}
   //{{{
-  template<int N> SIMD_INLINE void RowCubicSumX(const uint8_t* src, size_t nose, size_t body, size_t tail, const int32_t* ix, const int32_t* ax, int32_t* dst)
+  template<int N> SIMD_INLINE void RowCubicSumX (const uint8_t* src, size_t nose, size_t body, size_t tail, const int32_t* ix, const int32_t* ax, int32_t* dst)
   {
       size_t dx = 0;
       for (; dx < nose; dx++, ax += 4, dst += N)
@@ -797,7 +797,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  SIMD_INLINE void BicubicRowInt(const int32_t* src0, const int32_t* src1, const int32_t* src2, const int32_t* src3, size_t n, const int32_t* ay, uint8_t* dst)
+  SIMD_INLINE void BicubicRowInt (const int32_t* src0, const int32_t* src1, const int32_t* src2, const int32_t* src3, size_t n, const int32_t* ay, uint8_t* dst)
   {
       for (size_t i = 0; i < n; ++i)
       {
@@ -807,7 +807,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  template<int N> void ResizerByteBicubic::RunB(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
+  template<int N> void ResizerByteBicubic::RunB (const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride)
   {
       int32_t prev = -1;
       for (size_t dy = 0; dy < _param.dstH; dy++, dst += dstStride)
@@ -835,7 +835,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  void ResizerByteBicubic::Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride)
+  void ResizerByteBicubic::Run (const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride)
   {
       bool sparse = _param.dstH * 4.0 <= _param.srcH;
       Init(sparse);
@@ -852,7 +852,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  void * ResizerInit(size_t srcX, size_t srcY, size_t dstX, size_t dstY, size_t channels, SimdResizeChannelType type, SimdResizeMethodType method)
+  void* ResizerInit (size_t srcX, size_t srcY, size_t dstX, size_t dstY, size_t channels, SimdResizeChannelType type, SimdResizeMethodType method)
   {
       ResParam param(srcX, srcY, dstX, dstY, channels, type, method, sizeof(void*));
       if (param.IsNearest())

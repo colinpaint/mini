@@ -35,7 +35,7 @@
 namespace Simd::Avx2 {
   // fill
   //{{{
-  template <bool align> void FillBgr(uint8_t * dst, size_t stride, size_t width, size_t height, uint8_t blue, uint8_t green, uint8_t red)
+  template <bool align> void FillBgr (uint8_t * dst, size_t stride, size_t width, size_t height, uint8_t blue, uint8_t green, uint8_t red)
   {
       assert(width >= A);
       if (align)
@@ -84,7 +84,7 @@ namespace Simd::Avx2 {
   //}}}
 
   //{{{
-  template <bool align> void FillBgra(uint8_t * dst, size_t stride, size_t width, size_t height, uint8_t blue, uint8_t green, uint8_t red, uint8_t alpha)
+  template <bool align> void FillBgra (uint8_t * dst, size_t stride, size_t width, size_t height, uint8_t blue, uint8_t green, uint8_t red, uint8_t alpha)
   {
       assert(width >= F);
       if (align)
@@ -104,7 +104,7 @@ namespace Simd::Avx2 {
   }
   //}}}
   //{{{
-  void FillBgra(uint8_t * dst, size_t stride, size_t width, size_t height, uint8_t blue, uint8_t green, uint8_t red, uint8_t alpha)
+  void FillBgra (uint8_t * dst, size_t stride, size_t width, size_t height, uint8_t blue, uint8_t green, uint8_t red, uint8_t alpha)
   {
       if (Aligned(dst) && Aligned(stride))
           FillBgra<true>(dst, stride, width, height, blue, green, red, alpha);
@@ -114,7 +114,7 @@ namespace Simd::Avx2 {
   //}}}
 
   //{{{
-  template <bool align> void FillPixel(uint8_t * dst, size_t stride, size_t width, size_t height, const __m256i & pixel)
+  template <bool align> void FillPixel (uint8_t * dst, size_t stride, size_t width, size_t height, const __m256i & pixel)
   {
       assert(width >= A);
       if (align)
@@ -141,7 +141,7 @@ namespace Simd::Avx2 {
   }
   //}}}
   //{{{
-  template <bool align> void FillPixel(uint8_t * dst, size_t stride, size_t width, size_t height, const uint8_t * pixel, size_t pixelSize)
+  template <bool align> void FillPixel (uint8_t * dst, size_t stride, size_t width, size_t height, const uint8_t * pixel, size_t pixelSize)
   {
       if (pixelSize == 3)
           FillBgr<align>(dst, stride, width, height, pixel[0], pixel[1], pixel[2]);
@@ -167,7 +167,7 @@ namespace Simd::Avx2 {
   }
   //}}}
   //{{{
-  void FillPixel(uint8_t * dst, size_t stride, size_t width, size_t height, const uint8_t * pixel, size_t pixelSize)
+  void FillPixel (uint8_t * dst, size_t stride, size_t width, size_t height, const uint8_t * pixel, size_t pixelSize)
   {
       if (Aligned(dst) && Aligned(stride))
           FillPixel<true>(dst, stride, width, height, pixel, pixelSize);
@@ -230,7 +230,7 @@ namespace Simd::Avx2 {
   };
   //}}}
   //{{{
-  template <bool align, size_t channelCount> void AlphaBlending(const uint8_t *src, size_t srcStride, size_t width, size_t height,
+  template <bool align, size_t channelCount> void AlphaBlending (const uint8_t *src, size_t srcStride, size_t width, size_t height,
       const uint8_t *alpha, size_t alphaStride, uint8_t *dst, size_t dstStride)
   {
       size_t alignedWidth = AlignLo(width, A);
@@ -255,7 +255,7 @@ namespace Simd::Avx2 {
   }
   //}}}
   //{{{
-  template <bool align> void AlphaBlending(const uint8_t *src, size_t srcStride, size_t width, size_t height, size_t channelCount,
+  template <bool align> void AlphaBlending (const uint8_t *src, size_t srcStride, size_t width, size_t height, size_t channelCount,
       const uint8_t *alpha, size_t alphaStride, uint8_t *dst, size_t dstStride)
   {
       assert(width >= A);
@@ -377,7 +377,7 @@ namespace Simd::Avx2 {
   }
   //}}}
   //{{{
-  template <bool align> void AlphaBlending2x(const uint8_t* src0, size_t src0Stride, const uint8_t* alpha0, size_t alpha0Stride,
+  template <bool align> void AlphaBlending2x (const uint8_t* src0, size_t src0Stride, const uint8_t* alpha0, size_t alpha0Stride,
       const uint8_t* src1, size_t src1Stride, const uint8_t* alpha1, size_t alpha1Stride,
       size_t width, size_t height, size_t channelCount, uint8_t* dst, size_t dstStride)
   {
@@ -416,7 +416,7 @@ namespace Simd::Avx2 {
   //}}}
 
   //{{{
-  template <bool align> void AlphaBlendingUniform(const uint8_t* src, size_t srcStride, size_t width, size_t height,
+  template <bool align> void AlphaBlendingUniform (const uint8_t* src, size_t srcStride, size_t width, size_t height,
       size_t channelCount, uint8_t alpha, uint8_t* dst, size_t dstStride)
   {
       assert(width >= A);
@@ -452,7 +452,7 @@ namespace Simd::Avx2 {
   //}}}
 
   //{{{
-  template <bool align> SIMD_INLINE void AlphaFilling(__m256i * dst, __m256i channelLo, __m256i channelHi, __m256i alpha)
+  template <bool align> SIMD_INLINE void AlphaFilling (__m256i * dst, __m256i channelLo, __m256i channelHi, __m256i alpha)
   {
       __m256i _dst = Load<align>(dst);
       __m256i lo = AlphaBlending16i(channelLo, _mm256_unpacklo_epi8(_dst, K_ZERO), _mm256_unpacklo_epi8(alpha, K_ZERO));
@@ -585,10 +585,9 @@ namespace Simd::Avx2 {
   //}}}
 
   //{{{
-  SIMD_INLINE __m256i AlphaPremultiply16i (__m256i value, __m256i alpha)
-  {
-      return Divide16uBy255(_mm256_mullo_epi16(value, alpha));
-  }
+  SIMD_INLINE __m256i AlphaPremultiply16i (__m256i value, __m256i alpha) {
+    return Divide16uBy255 (_mm256_mullo_epi16 (value, alpha));
+    }
   //}}}
   template<bool argb> void AlphaPremultiply (const uint8_t* src, uint8_t* dst);
   //{{{

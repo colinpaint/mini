@@ -28,7 +28,7 @@
 
 namespace Simd::Base {
   //{{{
-  void InterleaveUv(const uint8_t * u, size_t uStride, const uint8_t * v, size_t vStride, size_t width, size_t height, uint8_t * uv, size_t uvStride)
+  void InterleaveUv (const uint8_t * u, size_t uStride, const uint8_t * v, size_t vStride, size_t width, size_t height, uint8_t * uv, size_t uvStride)
   {
       for (size_t row = 0; row < height; ++row)
       {
@@ -44,7 +44,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void InterleaveBgr(const uint8_t * b, size_t bStride, const uint8_t * g, size_t gStride, const uint8_t * r, size_t rStride, size_t width, size_t height, uint8_t * bgr, size_t bgrStride)
+  void InterleaveBgr (const uint8_t * b, size_t bStride, const uint8_t * g, size_t gStride, const uint8_t * r, size_t rStride, size_t width, size_t height, uint8_t * bgr, size_t bgrStride)
   {
       for (size_t row = 0; row < height; ++row)
       {
@@ -62,7 +62,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void InterleaveBgra(const uint8_t * b, size_t bStride, const uint8_t * g, size_t gStride, const uint8_t * r, size_t rStride, const uint8_t * a, size_t aStride, size_t width, size_t height, uint8_t * bgra, size_t bgraStride)
+  void InterleaveBgra (const uint8_t * b, size_t bStride, const uint8_t * g, size_t gStride, const uint8_t * r, size_t rStride, const uint8_t * a, size_t aStride, size_t width, size_t height, uint8_t * bgra, size_t bgraStride)
   {
       for (size_t row = 0; row < height; ++row)
       {
@@ -83,7 +83,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  void DeinterleaveUv(const uint8_t * uv, size_t uvStride, size_t width, size_t height,
+  void DeinterleaveUv (const uint8_t * uv, size_t uvStride, size_t width, size_t height,
       uint8_t * u, size_t uStride, uint8_t * v, size_t vStride)
   {
       for (size_t row = 0; row < height; ++row)
@@ -100,7 +100,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void DeinterleaveBgr(const uint8_t * bgr, size_t bgrStride, size_t width, size_t height,
+  void DeinterleaveBgr (const uint8_t * bgr, size_t bgrStride, size_t width, size_t height,
       uint8_t * b, size_t bStride, uint8_t * g, size_t gStride, uint8_t * r, size_t rStride)
   {
       for (size_t row = 0; row < height; ++row)
@@ -119,7 +119,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void DeinterleaveBgra(const uint8_t * bgra, size_t bgraStride, size_t width, size_t height,
+  void DeinterleaveBgra (const uint8_t * bgra, size_t bgraStride, size_t width, size_t height,
       uint8_t * b, size_t bStride, uint8_t * g, size_t gStride, uint8_t * r, size_t rStride, uint8_t * a, size_t aStride)
   {
       if (a)
