@@ -33,8 +33,8 @@ public:
 protected:
   cWindow& mWindow;
   std::string mName;
-  cPoint mPos;
-  cColor mColor;
+  cPoint mPos = {0,0};
+  cColor mColor = kRed;
   bool mProx = false;
   };
 //}}}
@@ -45,6 +45,31 @@ public:
   virtual ~cPaintLayer() {}
 
   virtual std::string getType() const final { return "paint"; }
+  virtual void addPoint (cPoint pos) final;
+
+  virtual bool pick (cPoint pos) final;
+  virtual void prox (cPoint pos) final;
+  virtual void proxExit () final;
+  virtual void down (cPoint pos) final;
+  virtual void move (cPoint pos, cPoint inc) final;
+  virtual void up (cPoint pos, bool mouseMoved) final;
+  virtual void wheel (int delta, cPoint pos) final;
+
+  virtual void draw() final;
+
+protected:
+  float mWidth = 1.f;
+  std::vector<cPoint> mLine;
+  cRect mExtent = {0,0,0,0};
+  };
+//}}}
+//{{{
+class cStrokeLayer : public cLayer {
+public:
+  cStrokeLayer (cWindow& window, const std::string& name, const cColor& color, cPoint pos, float width);
+  virtual ~cStrokeLayer() {}
+
+  virtual std::string getType() const final { return "stroke"; }
   virtual void addPoint (cPoint pos) final;
 
   virtual bool pick (cPoint pos) final;
@@ -108,8 +133,8 @@ public:
   virtual void draw() final;
 
 protected:
-  float mRadius;
-  float mWidth;
+  float mRadius = 0;
+  float mWidth = 0;
   };
 //}}}
 //{{{
@@ -168,7 +193,7 @@ protected:
 
 class cPaint {
 public:
-  cPaint (cWindow& window) : mWindow(window) {}
+  cPaint (cWindow& window);
   ~cPaint();
 
   cLayer* addLayer (cLayer* layer);
@@ -184,6 +209,7 @@ public:
   void draw();
 
   bool mPainting = true;
+  bool mStroking = false;
 
 private:
   cWindow& mWindow;

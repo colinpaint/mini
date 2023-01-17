@@ -21,4 +21,5 @@ public:
 private:
   cPaint& mPaint;
   cBox* mPaintBox = nullptr;
+  cBox* mStrokeBox = nullptr;
   };

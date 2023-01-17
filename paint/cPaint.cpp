@@ -100,6 +100,96 @@ void cPaintLayer::draw() {
   }
 //}}}
 
+// cStrokeLayer
+//{{{
+cStrokeLayer::cStrokeLayer (cWindow& window, const std::string& name, const cColor& color, cPoint pos, float width)
+    : cLayer(window, name, color, {0.f,0.f}), mWidth(width) {
+  addPoint (pos);
+  }
+//}}}
+//{{{
+void cStrokeLayer::addPoint (cPoint pos) {
+
+   if (mLine.empty() || ((pos - mLine.back()).magnitude() > mWidth))
+     mLine.push_back (pos);
+   }
+//}}}
+//{{{
+bool cStrokeLayer::pick (cPoint pos) {
+// !!! should be distance to line test !!!
+
+  return mExtent.inside (pos);
+  }
+//}}}
+//{{{
+void cStrokeLayer::prox (cPoint pos) {
+  (void)pos;
+  mProx = true;
+  }
+//}}}
+//{{{
+void cStrokeLayer::proxExit() {
+  mProx = false;
+  }
+//}}}
+//{{{
+void cStrokeLayer::down (cPoint pos) {
+  (void)pos;
+  mProx = false;
+  }
+//}}}
+//{{{
+void cStrokeLayer::move (cPoint pos, cPoint inc) {
+  (void)pos;
+  mPos += inc;
+  }
+//}}}
+//{{{
+void cStrokeLayer::up (cPoint pos, bool mouseMoved) {
+  (void)pos;
+  (void)mouseMoved;
+  }
+//}}}
+//{{{
+void cStrokeLayer::wheel (int delta, cPoint pos) {
+  (void)pos;
+  mWidth = mWidth * (delta > 0 ? 1.05f : 1/1.05f);
+  }
+//}}}
+//{{{
+void cStrokeLayer::draw() {
+
+  mExtent = {0,0,0,0};
+
+  if (mLine.empty())
+    return;
+
+  cPoint lastPos;
+  bool first = true;
+  for (auto& pos : mLine) {
+    if (first)
+      first = false;
+    else
+      mWindow.drawLine (mProx ? kLightBlue : mColor, mPos + lastPos, mPos+pos, mWidth);
+    lastPos = pos;
+
+    mExtent |= mPos + pos;
+    }
+
+  first = true;
+  for (auto& pos : mLine) {
+    if (first) {
+      first = false;
+      }
+    else {
+      cPoint perp = (pos - lastPos).perp() * 16.f;
+      mWindow.drawLine (kWhite, mPos + pos - perp, mPos + pos + perp, 1.f);
+      }
+    lastPos = pos;
+    }
+  }
+//}}}
+
 //{{{  cRectangleLayer
 //{{{
 bool cRectangleLayer::pick (cPoint pos) {
@@ -288,6 +378,10 @@ void cTextureLayer::draw() {
 
 // cPaint
 //{{{
+cPaint::cPaint (cWindow& window) : mWindow(window) {
+  }
+//}}}
+//{{{
  cPaint::~cPaint() {
   // deallocate layers
   }
@@ -331,6 +425,8 @@ bool cPaint::down (cPoint pos) {
 
   if (mPainting)
     mPickedLayer = addLayer (new cPaintLayer (mWindow, "paint", kYellow, pos, 4.f));
+  else if (mStroking)
+    mPickedLayer = addLayer (new cStrokeLayer (mWindow, "stroke", kGreen, pos, 4.f));
   else if (mPickedLayer)
     mPickedLayer->down (pos);
 
@@ -340,7 +436,7 @@ bool cPaint::down (cPoint pos) {
 //{{{
 bool cPaint::move (cPoint pos, cPoint inc) {
 
-  if (mPainting)
+  if (mPainting || mStroking)
     mPickedLayer->addPoint (pos);
   else if (mPickedLayer)
     mPickedLayer->move (pos, inc);
@@ -351,7 +447,7 @@ bool cPaint::move (cPoint pos, cPoint inc) {
 //{{{
 bool cPaint::up (cPoint pos, bool mouseMoved){
 
-  if (mPainting) {
+  if (mPainting || mStroking) {
     }
   else if (mPickedLayer)
     mPickedLayer->up (pos, mouseMoved);

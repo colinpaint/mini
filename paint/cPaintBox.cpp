@@ -9,7 +9,9 @@
 cPaintBox::cPaintBox (cWindow& window, float width, float height, cPaint& paint)
     : cBox("paint", window, width, height), mPaint(paint) {
 
-  mPaintBox = mWindow.add (new cToggleBox (window, 6,1, "paint", mPaint.mPainting));
+  // !!! need proper interlock !!!
+  mPaintBox = mWindow.add (new cToggleBox (window, 6,1, "paint", mPaint.mPainting, [&](bool on) { if (on) mPaint.mStroking = false; }));
+  mStrokeBox = mWindow.add (new cToggleBox (window, 6,1, "stroke", mPaint.mStroking, [&](bool on) {if (on) mPaint.mPainting = false;}), 0,1);
   }
 //}}}
 
