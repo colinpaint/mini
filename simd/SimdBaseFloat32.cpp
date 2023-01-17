@@ -26,70 +26,66 @@
 #include "SimdMath.h"
 #include "SimdMemory.h"
 
-namespace Simd
-{
-    namespace Base
-    {
-        //{{{
-        SIMD_INLINE uint8_t Float32ToUint8(float value, float lower, float upper, float boost)
-        {
-            return uint8_t((Simd::Min(Simd::Max(value, lower), upper) - lower)*boost);
-        }
-        //}}}
-        //{{{
-        void Float32ToUint8(const float * src, size_t size, const float * lower, const float * upper, uint8_t * dst)
-        {
-            float _lower = lower[0], _upper = upper[0], boost = 255.0f / (upper[0] - lower[0]);
-            size_t alignedSize = Simd::AlignLo(size, 4);
-            size_t i = 0;
-            for (; i < alignedSize; i += 4)
-            {
-                dst[i + 0] = Float32ToUint8(src[i + 0], _lower, _upper, boost);
-                dst[i + 1] = Float32ToUint8(src[i + 1], _lower, _upper, boost);
-                dst[i + 2] = Float32ToUint8(src[i + 2], _lower, _upper, boost);
-                dst[i + 3] = Float32ToUint8(src[i + 3], _lower, _upper, boost);
-            }
-            for (; i < size; ++i)
-                dst[i] = Float32ToUint8(src[i], _lower, _upper, boost);
-        }
-        //}}}
-        //{{{
-        SIMD_INLINE float Uint8ToFloat32(int value, float lower, float boost)
-        {
-            return value*boost + lower;
-        }
-        //}}}
-        //{{{
-        void Uint8ToFloat32(const uint8_t * src, size_t size, const float * lower, const float * upper, float * dst)
-        {
-            float _lower = lower[0], boost = (upper[0] - lower[0]) / 255.0f;
-            size_t alignedSize = Simd::AlignLo(size, 4);
-            size_t i = 0;
-            for (; i < alignedSize; i += 4)
-            {
-                dst[i + 0] = Uint8ToFloat32(src[i + 0], _lower, boost);
-                dst[i + 1] = Uint8ToFloat32(src[i + 1], _lower, boost);
-                dst[i + 2] = Uint8ToFloat32(src[i + 2], _lower, boost);
-                dst[i + 3] = Uint8ToFloat32(src[i + 3], _lower, boost);
-            }
-            for (; i < size; ++i)
-                dst[i] = Uint8ToFloat32(src[i], _lower, boost);
-        }
-        //}}}
-        //{{{
-        void CosineDistance32f(const float * a, const float * b, size_t size, float * distance)
-        {
-            float aa = 0, ab = 0, bb = 0;
-            for (size_t i = 0; i < size; ++i)
-            {
-                float _a = a[i];
-                float _b = b[i];
-                aa += _a * _a;
-                ab += _a * _b;
-                bb += _b * _b;
-            }
-            *distance = 1.0f - ab / ::sqrt(aa*bb);
-        }
-        //}}}
-    }
-}
+namespace Simd::Base {
+  //{{{
+  SIMD_INLINE uint8_t Float32ToUint8(float value, float lower, float upper, float boost)
+  {
+      return uint8_t((Simd::Min(Simd::Max(value, lower), upper) - lower)*boost);
+  }
+  //}}}
+  //{{{
+  void Float32ToUint8(const float * src, size_t size, const float * lower, const float * upper, uint8_t * dst)
+  {
+      float _lower = lower[0], _upper = upper[0], boost = 255.0f / (upper[0] - lower[0]);
+      size_t alignedSize = Simd::AlignLo(size, 4);
+      size_t i = 0;
+      for (; i < alignedSize; i += 4)
+      {
+          dst[i + 0] = Float32ToUint8(src[i + 0], _lower, _upper, boost);
+          dst[i + 1] = Float32ToUint8(src[i + 1], _lower, _upper, boost);
+          dst[i + 2] = Float32ToUint8(src[i + 2], _lower, _upper, boost);
+          dst[i + 3] = Float32ToUint8(src[i + 3], _lower, _upper, boost);
+      }
+      for (; i < size; ++i)
+          dst[i] = Float32ToUint8(src[i], _lower, _upper, boost);
+  }
+  //}}}
+  //{{{
+  SIMD_INLINE float Uint8ToFloat32(int value, float lower, float boost)
+  {
+      return value*boost + lower;
+  }
+  //}}}
+  //{{{
+  void Uint8ToFloat32(const uint8_t * src, size_t size, const float * lower, const float * upper, float * dst)
+  {
+      float _lower = lower[0], boost = (upper[0] - lower[0]) / 255.0f;
+      size_t alignedSize = Simd::AlignLo(size, 4);
+      size_t i = 0;
+      for (; i < alignedSize; i += 4)
+      {
+          dst[i + 0] = Uint8ToFloat32(src[i + 0], _lower, boost);
+          dst[i + 1] = Uint8ToFloat32(src[i + 1], _lower, boost);
+          dst[i + 2] = Uint8ToFloat32(src[i + 2], _lower, boost);
+          dst[i + 3] = Uint8ToFloat32(src[i + 3], _lower, boost);
+      }
+      for (; i < size; ++i)
+          dst[i] = Uint8ToFloat32(src[i], _lower, boost);
+  }
+  //}}}
+  //{{{
+  void CosineDistance32f(const float * a, const float * b, size_t size, float * distance)
+  {
+      float aa = 0, ab = 0, bb = 0;
+      for (size_t i = 0; i < size; ++i)
+      {
+          float _a = a[i];
+          float _b = b[i];
+          aa += _a * _a;
+          ab += _a * _b;
+          bb += _b * _b;
+      }
+      *distance = 1.0f - ab / ::sqrt(aa*bb);
+  }
+  //}}}
+  }
