@@ -30,472 +30,461 @@
 #include "SimdLog.h"
 
 namespace Simd {
-  #ifdef SIMD_SSE41_ENABLE
+  //{{{
+  namespace Sse41 {
+    template <bool align> SIMD_INLINE void Store(float* p, __m128 a);
     //{{{
-    namespace Sse41 {
-      template <bool align> SIMD_INLINE void Store(float* p, __m128 a);
-      //{{{
-      template <> SIMD_INLINE void Store<false>(float* p, __m128 a)
-      {
-          _mm_storeu_ps(p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<true>(float* p, __m128 a)
-      {
-          _mm_store_ps(p, a);
-      }
-      //}}}
-
-      template <int part> SIMD_INLINE void StoreHalf(float* p, __m128 a);
-      //{{{
-      template <> SIMD_INLINE void StoreHalf<0>(float* p, __m128 a)
-      {
-          _mm_storel_pi((__m64*)p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void StoreHalf<1>(float* p, __m128 a)
-      {
-          _mm_storeh_pi((__m64*)p, a);
-      }
-      //}}}
-      //{{{
-      SIMD_INLINE void Store(float* ptr, __m128 val, size_t size)
-      {
-          SIMD_ALIGNED(16) float buf[F];
-          _mm_store_ps(buf, val);
-          for (size_t i = 0; i < size; ++i)
-              ptr[i] = buf[i];
-      }
-      //}}}
-      //{{{
-      template<int step> SIMD_INLINE void Scater(float* ptr, __m128 val)
-      {
-          SIMD_ALIGNED(16) float buf[F];
-          _mm_store_ps(buf, val);
-          ptr[0 * step] = buf[0];
-          ptr[1 * step] = buf[1];
-          ptr[2 * step] = buf[2];
-          ptr[3 * step] = buf[3];
-      }
-      //}}}
-      //{{{
-      template<int step> SIMD_INLINE void Scater(float* ptr, __m128 val, size_t size)
-      {
-          SIMD_ALIGNED(16) float buf[F];
-          _mm_store_ps(buf, val);
-          for (size_t i = 0; i < size; ++i)
-              ptr[i * step] = buf[i];
-      }
-      //}}}
-
-      template <bool align> SIMD_INLINE void Store(__m128i * p, __m128i a);
-      //{{{
-      template <> SIMD_INLINE void Store<false>(__m128i * p, __m128i a)
-      {
-          _mm_storeu_si128(p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<true>(__m128i * p, __m128i a)
-      {
-          _mm_store_si128(p, a);
-      }
-      //}}}
-      //{{{
-      template <int part> SIMD_INLINE void StoreHalf(__m128i * p, __m128i a)
-      {
-          StoreHalf<part>((float*)p, _mm_castsi128_ps(a));
-      }
-      //}}}
-      //{{{
-      template <bool align> SIMD_INLINE void StoreMasked(float* p, __m128 value, __m128 mask)
-      {
-          __m128 old = Load<align>(p);
-          Store<align>(p, _mm_blendv_ps(old, value, mask));
-      }
-      //}}}
-      //{{{
-      template <bool align> SIMD_INLINE void StoreMasked(__m128i* p, __m128i value, __m128i mask)
-      {
-          __m128i old = Load<align>(p);
-          Store<align>(p, _mm_blendv_epi8(old, value, mask));
-      }
-      //}}}
-
-      //{{{
-      SIMD_INLINE void Store12(uint8_t* p, __m128i a)
-      {
-          StoreHalf<0>((__m128i*)p, a);
-          ((uint32_t*)p)[2] = _mm_extract_epi32(a, 2);
-      }
-      //}}}
-      }
+    template <> SIMD_INLINE void Store<false>(float* p, __m128 a)
+    {
+        _mm_storeu_ps(p, a);
+    }
     //}}}
-  #endif
-
-  #ifdef SIMD_AVX_ENABLE
     //{{{
-    namespace Avx {
-      template <bool align> SIMD_INLINE void Store(float * p, __m256 a);
-      //{{{
-      template <> SIMD_INLINE void Store<false>(float * p, __m256 a)
-      {
-          _mm256_storeu_ps(p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<true>(float * p, __m256 a)
-      {
-          _mm256_store_ps(p, a);
-      }
-      //}}}
-
-      //{{{
-      SIMD_INLINE void Store(float* ptr, __m256 val, size_t size)
-      {
-          SIMD_ALIGNED(32) float buf[F];
-          _mm256_store_ps(buf, val);
-          for (size_t i = 0; i < size; ++i)
-              ptr[i] = buf[i];
-      }
-      //}}}
-
-      //{{{
-      template <bool align> SIMD_INLINE void Store(float * p0, float * p1, __m256 a)
-      {
-          Sse41::Store<align>(p0, _mm256_extractf128_ps(a, 0));
-          Sse41::Store<align>(p1, _mm256_extractf128_ps(a, 1));
-      }
-      //}}}
-      //{{{
-      template <bool align> SIMD_INLINE void StoreMasked(float * p, __m256 value, __m256 mask)
-      {
-          __m256 old = Load<align>(p);
-          Store<align>(p, _mm256_blendv_ps(old, value, mask));
-      }
-      //}}}
-
-      //{{{
-      template<int step> SIMD_INLINE void Scater(float* ptr, __m256 val)
-      {
-          SIMD_ALIGNED(32) float buf[F];
-          _mm256_store_ps(buf, val);
-          ptr[0 * step] = buf[0];
-          ptr[1 * step] = buf[1];
-          ptr[2 * step] = buf[2];
-          ptr[3 * step] = buf[3];
-          ptr[4 * step] = buf[4];
-          ptr[5 * step] = buf[5];
-          ptr[6 * step] = buf[6];
-          ptr[7 * step] = buf[7];
-      }
-      //}}}
-      //{{{
-      template<int step> SIMD_INLINE void Scater(float* ptr, __m256 val, size_t size)
-      {
-          SIMD_ALIGNED(32) float buf[F];
-          _mm256_store_ps(buf, val);
-          for (size_t i = 0; i < size; ++i)
-              ptr[i * step] = buf[i];
-      }
-      //}}}
-      }
+    template <> SIMD_INLINE void Store<true>(float* p, __m128 a)
+    {
+        _mm_store_ps(p, a);
+    }
     //}}}
-  #endif
 
-  #ifdef SIMD_AVX2_ENABLE
+    template <int part> SIMD_INLINE void StoreHalf(float* p, __m128 a);
     //{{{
-    namespace Avx2 {
-      using namespace Avx;
-
-      template <bool align> SIMD_INLINE void Store(__m256i * p, __m256i a);
-      //{{{
-      template <> SIMD_INLINE void Store<false>(__m256i * p, __m256i a)
-      {
-          _mm256_storeu_si256(p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<true>(__m256i * p, __m256i a)
-      {
-          _mm256_store_si256(p, a);
-      }
-      //}}}
-      //{{{
-      template <bool align> SIMD_INLINE void Store(__m128i* p0, __m128i* p1, __m256i a)
-      {
-          Sse41::Store<align>(p0, _mm256_extractf128_si256(a, 0));
-          Sse41::Store<align>(p1, _mm256_extractf128_si256(a, 1));
-      }
-      //}}}
-      //{{{
-      template <bool align> SIMD_INLINE void StoreMasked(__m256i * p, __m256i value, __m256i mask)
-      {
-          __m256i old = Load<align>(p);
-          Store<align>(p, _mm256_blendv_epi8(old, value, mask));
-      }
-      //}}}
-
-      //{{{
-      SIMD_INLINE __m256i PackI16ToI8(__m256i lo, __m256i hi)
-      {
-          return _mm256_permute4x64_epi64(_mm256_packs_epi16(lo, hi), 0xD8);
-      }
-      //}}}
-      //{{{
-      SIMD_INLINE __m256i PackI16ToU8(__m256i lo, __m256i hi)
-      {
-          return _mm256_permute4x64_epi64(_mm256_packus_epi16(lo, hi), 0xD8);
-      }
-      //}}}
-      //{{{
-      SIMD_INLINE __m256i PackI32ToI16(__m256i lo, __m256i hi)
-      {
-          return _mm256_permute4x64_epi64(_mm256_packs_epi32(lo, hi), 0xD8);
-      }
-      //}}}
-      //{{{
-      SIMD_INLINE __m256i PackU32ToI16(__m256i lo, __m256i hi)
-      {
-          return _mm256_permute4x64_epi64(_mm256_packus_epi32(lo, hi), 0xD8);
-      }
-      //}}}
-      //{{{
-      SIMD_INLINE void Permute2x128(__m256i & lo, __m256i & hi)
-      {
-          __m256i _lo = lo;
-          lo = _mm256_permute2x128_si256(lo, hi, 0x20);
-          hi = _mm256_permute2x128_si256(_lo, hi, 0x31);
-      }
-      //}}}
-
-      //{{{
-      template <bool align> SIMD_INLINE void Store24(uint8_t * p, __m256i a)
-      {
-          Sse41::Store<align>((__m128i*)p, _mm256_extractf128_si256(a, 0));
-          Sse41::StoreHalf<0>((__m128i*)p + 1, _mm256_extractf128_si256(a, 1));
-      }
-      //}}}
-      }
+    template <> SIMD_INLINE void StoreHalf<0>(float* p, __m128 a)
+    {
+        _mm_storel_pi((__m64*)p, a);
+    }
     //}}}
-  #endif
-
-  #ifdef SIMD_AVX512BW_ENABLE
     //{{{
-    namespace Avx512bw {
-      template <bool align> SIMD_INLINE void Store(float* p, __m512 a);
-      //{{{
-      template <> SIMD_INLINE void Store<false>(float* p, __m512 a)
-      {
-          _mm512_storeu_ps(p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<true>(float* p, __m512 a)
-      {
-          _mm512_store_ps(p, a);
-      }
-      //}}}
-      //{{{
-      template <bool align, bool mask> SIMD_INLINE void Store(float* p, __m512 a, __mmask16 m)
-      {
-          return Store<align>(p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<false, true>(float* p, __m512 a, __mmask16 m)
-      {
-          return _mm512_mask_storeu_ps(p, m, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<true, true>(float* p, __m512 a, __mmask16 m)
-      {
-          return _mm512_mask_store_ps(p, m, a);
-      }
-      //}}}
-      //{{{
-      template <bool align> SIMD_INLINE void Store(float* p0, float* p1, __m512 a)
-      {
-          Avx::Store<align>(p0, _mm256_castpd_ps(_mm512_extractf64x4_pd(_mm512_castps_pd(a), 0)));
-          Avx::Store<align>(p1, _mm256_castpd_ps(_mm512_extractf64x4_pd(_mm512_castps_pd(a), 1)));
-      }
-      //}}}
-      //{{{
-      template <bool align> SIMD_INLINE void Store(float* p0, float* p1, float* p2, float* p3, __m512 a)
-      {
-          Sse41::Store<align>(p0, _mm512_extractf32x4_ps(a, 0));
-          Sse41::Store<align>(p1, _mm512_extractf32x4_ps(a, 1));
-          Sse41::Store<align>(p2, _mm512_extractf32x4_ps(a, 2));
-          Sse41::Store<align>(p3, _mm512_extractf32x4_ps(a, 3));
-      }
-      //}}}
-
-      //{{{
-      SIMD_INLINE __m128i Cvt32fTo8u(__m512 a)
-      {
-      #if 1
-          return _mm512_cvtusepi32_epi8(_mm512_max_epi32(_mm512_cvtps_epu32(a), _mm512_setzero_si512()));
-      #else
-          return _mm256_castsi256_si128(Avx2::PackI16ToU8(_mm512_cvtepi32_epi16(_mm512_cvtps_epi32(a)), _mm256_setzero_si256()));
-      #endif
-      }
-      //}}}
-
-      template <bool align> SIMD_INLINE void Store(void * p, __m512i a);
-      //{{{
-      template <> SIMD_INLINE void Store<false>(void * p, __m512i a)
-      {
-          _mm512_storeu_si512(p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<true>(void * p, __m512i a)
-      {
-          _mm512_store_si512(p, a);
-      }
-      //}}}
-
-      //{{{
-      template <bool align, bool mask> SIMD_INLINE void Store(uint8_t * p, __m512i a, __mmask64 m)
-      {
-          return Store<align>(p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<false, true>(uint8_t * p, __m512i a, __mmask64 m)
-      {
-          return _mm512_mask_storeu_epi8(p, m, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<true, true>(uint8_t * p, __m512i a, __mmask64 m)
-      {
-          return _mm512_mask_storeu_epi8(p, m, a);
-      }
-      //}}}
-
-      //{{{
-      template <bool align, bool mask> SIMD_INLINE void Store(int16_t * p, __m512i a, __mmask32 m)
-      {
-          return Store<align>(p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<false, true>(int16_t * p, __m512i a, __mmask32 m)
-      {
-          return _mm512_mask_storeu_epi16(p, m, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<true, true>(int16_t * p, __m512i a, __mmask32 m)
-      {
-          return _mm512_mask_storeu_epi16(p, m, a);
-      }
-      //}}}
-
-      //{{{
-      template <bool align, bool mask> SIMD_INLINE void Store(uint16_t * p, __m512i a, __mmask32 m)
-      {
-          return Store<align, mask>((int16_t*)p, a, m);
-      }
-      //}}}
-      //{{{
-      template <bool align, bool mask> SIMD_INLINE void Store(uint32_t * p, __m512i a, __mmask16 m)
-      {
-          return Store<align>(p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<false, true>(uint32_t * p, __m512i a, __mmask16 m)
-      {
-          return _mm512_mask_storeu_epi32(p, m, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<true, true>(uint32_t * p, __m512i a, __mmask16 m)
-      {
-          return _mm512_mask_storeu_epi32(p, m, a);
-      }
-      //}}}
-
-      //{{{
-      template <bool align, bool mask> SIMD_INLINE void Store(int32_t * p, __m512i a, __mmask16 m)
-      {
-          return Store<align, mask>((uint32_t*)p, a, m);
-      }
-      //}}}
-      //{{{
-      template <bool align, bool mask> SIMD_INLINE void Store(uint8_t* p, __m256i a, __mmask32 m)
-      {
-          return Avx2::Store<align>((__m256i*)p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<false, true>(uint8_t* p, __m256i a, __mmask32 m)
-      {
-          return _mm256_mask_storeu_epi8(p, m, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<true, true>(uint8_t* p, __m256i a, __mmask32 m)
-      {
-          return _mm256_mask_storeu_epi8(p, m, a);
-      }
-      //}}}
-
-      //{{{
-      template <bool align, bool mask> SIMD_INLINE void Store(uint8_t* p, __m128i a, __mmask16 m)
-      {
-          return Sse41::Store<align>((__m128i*)p, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<false, true>(uint8_t* p, __m128i a, __mmask16 m)
-      {
-          return _mm_mask_storeu_epi8(p, m, a);
-      }
-      //}}}
-      //{{{
-      template <> SIMD_INLINE void Store<true, true>(uint8_t* p, __m128i a, __mmask16 m)
-      {
-          return _mm_mask_storeu_epi8(p, m, a);
-      }
-      //}}}
-      //{{{
-      SIMD_INLINE __m512i PackI16ToU8(__m512i lo, __m512i hi = K_ZERO)
-      {
-          return _mm512_permutexvar_epi64(K64_PERMUTE_FOR_PACK, _mm512_packus_epi16(lo, hi));
-      }
-      //}}}
-      //{{{
-      SIMD_INLINE __m512i PackU32ToI16(__m512i lo, __m512i hi = K_ZERO)
-      {
-          return _mm512_permutexvar_epi64(K64_PERMUTE_FOR_PACK, _mm512_packus_epi32(lo, hi));
-      }
-      //}}}
-
-      //{{{
-      template <bool align> SIMD_INLINE void Store(__m256i* p0, __m256i* p1, __m512i a)
-      {
-          Avx2::Store<align>(p0, _mm512_extracti64x4_epi64(a, 0));
-          Avx2::Store<align>(p1, _mm512_extracti64x4_epi64(a, 1));
-      }
-      //}}}
-      //{{{
-      template <bool align> SIMD_INLINE void Store(__m128i* p0, __m128i* p1, __m128i* p2, __m128i* p3, __m512i a)
-      {
-          Sse41::Store<align>(p0, _mm512_extracti64x2_epi64(a, 0));
-          Sse41::Store<align>(p1, _mm512_extracti64x2_epi64(a, 1));
-          Sse41::Store<align>(p2, _mm512_extracti64x2_epi64(a, 2));
-          Sse41::Store<align>(p3, _mm512_extracti64x2_epi64(a, 3));
-      }
-      //}}}
-      }
+    template <> SIMD_INLINE void StoreHalf<1>(float* p, __m128 a)
+    {
+        _mm_storeh_pi((__m64*)p, a);
+    }
     //}}}
-  #endif
+    //{{{
+    SIMD_INLINE void Store(float* ptr, __m128 val, size_t size)
+    {
+        SIMD_ALIGNED(16) float buf[F];
+        _mm_store_ps(buf, val);
+        for (size_t i = 0; i < size; ++i)
+            ptr[i] = buf[i];
+    }
+    //}}}
+    //{{{
+    template<int step> SIMD_INLINE void Scater(float* ptr, __m128 val)
+    {
+        SIMD_ALIGNED(16) float buf[F];
+        _mm_store_ps(buf, val);
+        ptr[0 * step] = buf[0];
+        ptr[1 * step] = buf[1];
+        ptr[2 * step] = buf[2];
+        ptr[3 * step] = buf[3];
+    }
+    //}}}
+    //{{{
+    template<int step> SIMD_INLINE void Scater(float* ptr, __m128 val, size_t size)
+    {
+        SIMD_ALIGNED(16) float buf[F];
+        _mm_store_ps(buf, val);
+        for (size_t i = 0; i < size; ++i)
+            ptr[i * step] = buf[i];
+    }
+    //}}}
+
+    template <bool align> SIMD_INLINE void Store(__m128i * p, __m128i a);
+    //{{{
+    template <> SIMD_INLINE void Store<false>(__m128i * p, __m128i a)
+    {
+        _mm_storeu_si128(p, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<true>(__m128i * p, __m128i a)
+    {
+        _mm_store_si128(p, a);
+    }
+    //}}}
+    //{{{
+    template <int part> SIMD_INLINE void StoreHalf(__m128i * p, __m128i a)
+    {
+        StoreHalf<part>((float*)p, _mm_castsi128_ps(a));
+    }
+    //}}}
+    //{{{
+    template <bool align> SIMD_INLINE void StoreMasked(float* p, __m128 value, __m128 mask)
+    {
+        __m128 old = Load<align>(p);
+        Store<align>(p, _mm_blendv_ps(old, value, mask));
+    }
+    //}}}
+    //{{{
+    template <bool align> SIMD_INLINE void StoreMasked(__m128i* p, __m128i value, __m128i mask)
+    {
+        __m128i old = Load<align>(p);
+        Store<align>(p, _mm_blendv_epi8(old, value, mask));
+    }
+    //}}}
+
+    //{{{
+    SIMD_INLINE void Store12(uint8_t* p, __m128i a)
+    {
+        StoreHalf<0>((__m128i*)p, a);
+        ((uint32_t*)p)[2] = _mm_extract_epi32(a, 2);
+    }
+    //}}}
+    }
+  //}}}
+  //{{{
+  namespace Avx {
+    template <bool align> SIMD_INLINE void Store(float * p, __m256 a);
+    //{{{
+    template <> SIMD_INLINE void Store<false>(float * p, __m256 a)
+    {
+        _mm256_storeu_ps(p, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<true>(float * p, __m256 a)
+    {
+        _mm256_store_ps(p, a);
+    }
+    //}}}
+
+    //{{{
+    SIMD_INLINE void Store(float* ptr, __m256 val, size_t size)
+    {
+        SIMD_ALIGNED(32) float buf[F];
+        _mm256_store_ps(buf, val);
+        for (size_t i = 0; i < size; ++i)
+            ptr[i] = buf[i];
+    }
+    //}}}
+
+    //{{{
+    template <bool align> SIMD_INLINE void Store(float * p0, float * p1, __m256 a)
+    {
+        Sse41::Store<align>(p0, _mm256_extractf128_ps(a, 0));
+        Sse41::Store<align>(p1, _mm256_extractf128_ps(a, 1));
+    }
+    //}}}
+    //{{{
+    template <bool align> SIMD_INLINE void StoreMasked(float * p, __m256 value, __m256 mask)
+    {
+        __m256 old = Load<align>(p);
+        Store<align>(p, _mm256_blendv_ps(old, value, mask));
+    }
+    //}}}
+
+    //{{{
+    template<int step> SIMD_INLINE void Scater(float* ptr, __m256 val)
+    {
+        SIMD_ALIGNED(32) float buf[F];
+        _mm256_store_ps(buf, val);
+        ptr[0 * step] = buf[0];
+        ptr[1 * step] = buf[1];
+        ptr[2 * step] = buf[2];
+        ptr[3 * step] = buf[3];
+        ptr[4 * step] = buf[4];
+        ptr[5 * step] = buf[5];
+        ptr[6 * step] = buf[6];
+        ptr[7 * step] = buf[7];
+    }
+    //}}}
+    //{{{
+    template<int step> SIMD_INLINE void Scater(float* ptr, __m256 val, size_t size)
+    {
+        SIMD_ALIGNED(32) float buf[F];
+        _mm256_store_ps(buf, val);
+        for (size_t i = 0; i < size; ++i)
+            ptr[i * step] = buf[i];
+    }
+    //}}}
+    }
+  //}}}
+  //{{{
+  namespace Avx2 {
+    using namespace Avx;
+
+    template <bool align> SIMD_INLINE void Store(__m256i * p, __m256i a);
+    //{{{
+    template <> SIMD_INLINE void Store<false>(__m256i * p, __m256i a)
+    {
+        _mm256_storeu_si256(p, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<true>(__m256i * p, __m256i a)
+    {
+        _mm256_store_si256(p, a);
+    }
+    //}}}
+    //{{{
+    template <bool align> SIMD_INLINE void Store(__m128i* p0, __m128i* p1, __m256i a)
+    {
+        Sse41::Store<align>(p0, _mm256_extractf128_si256(a, 0));
+        Sse41::Store<align>(p1, _mm256_extractf128_si256(a, 1));
+    }
+    //}}}
+    //{{{
+    template <bool align> SIMD_INLINE void StoreMasked(__m256i * p, __m256i value, __m256i mask)
+    {
+        __m256i old = Load<align>(p);
+        Store<align>(p, _mm256_blendv_epi8(old, value, mask));
+    }
+    //}}}
+
+    //{{{
+    SIMD_INLINE __m256i PackI16ToI8(__m256i lo, __m256i hi)
+    {
+        return _mm256_permute4x64_epi64(_mm256_packs_epi16(lo, hi), 0xD8);
+    }
+    //}}}
+    //{{{
+    SIMD_INLINE __m256i PackI16ToU8(__m256i lo, __m256i hi)
+    {
+        return _mm256_permute4x64_epi64(_mm256_packus_epi16(lo, hi), 0xD8);
+    }
+    //}}}
+    //{{{
+    SIMD_INLINE __m256i PackI32ToI16(__m256i lo, __m256i hi)
+    {
+        return _mm256_permute4x64_epi64(_mm256_packs_epi32(lo, hi), 0xD8);
+    }
+    //}}}
+    //{{{
+    SIMD_INLINE __m256i PackU32ToI16(__m256i lo, __m256i hi)
+    {
+        return _mm256_permute4x64_epi64(_mm256_packus_epi32(lo, hi), 0xD8);
+    }
+    //}}}
+    //{{{
+    SIMD_INLINE void Permute2x128(__m256i & lo, __m256i & hi)
+    {
+        __m256i _lo = lo;
+        lo = _mm256_permute2x128_si256(lo, hi, 0x20);
+        hi = _mm256_permute2x128_si256(_lo, hi, 0x31);
+    }
+    //}}}
+
+    //{{{
+    template <bool align> SIMD_INLINE void Store24(uint8_t * p, __m256i a)
+    {
+        Sse41::Store<align>((__m128i*)p, _mm256_extractf128_si256(a, 0));
+        Sse41::StoreHalf<0>((__m128i*)p + 1, _mm256_extractf128_si256(a, 1));
+    }
+    //}}}
+    }
+  //}}}
+  //{{{
+  namespace Avx512bw {
+    template <bool align> SIMD_INLINE void Store(float* p, __m512 a);
+    //{{{
+    template <> SIMD_INLINE void Store<false>(float* p, __m512 a)
+    {
+        _mm512_storeu_ps(p, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<true>(float* p, __m512 a)
+    {
+        _mm512_store_ps(p, a);
+    }
+    //}}}
+    //{{{
+    template <bool align, bool mask> SIMD_INLINE void Store(float* p, __m512 a, __mmask16 m)
+    {
+        return Store<align>(p, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<false, true>(float* p, __m512 a, __mmask16 m)
+    {
+        return _mm512_mask_storeu_ps(p, m, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<true, true>(float* p, __m512 a, __mmask16 m)
+    {
+        return _mm512_mask_store_ps(p, m, a);
+    }
+    //}}}
+    //{{{
+    template <bool align> SIMD_INLINE void Store(float* p0, float* p1, __m512 a)
+    {
+        Avx::Store<align>(p0, _mm256_castpd_ps(_mm512_extractf64x4_pd(_mm512_castps_pd(a), 0)));
+        Avx::Store<align>(p1, _mm256_castpd_ps(_mm512_extractf64x4_pd(_mm512_castps_pd(a), 1)));
+    }
+    //}}}
+    //{{{
+    template <bool align> SIMD_INLINE void Store(float* p0, float* p1, float* p2, float* p3, __m512 a)
+    {
+        Sse41::Store<align>(p0, _mm512_extractf32x4_ps(a, 0));
+        Sse41::Store<align>(p1, _mm512_extractf32x4_ps(a, 1));
+        Sse41::Store<align>(p2, _mm512_extractf32x4_ps(a, 2));
+        Sse41::Store<align>(p3, _mm512_extractf32x4_ps(a, 3));
+    }
+    //}}}
+
+    //{{{
+    SIMD_INLINE __m128i Cvt32fTo8u(__m512 a)
+    {
+    #if 1
+        return _mm512_cvtusepi32_epi8(_mm512_max_epi32(_mm512_cvtps_epu32(a), _mm512_setzero_si512()));
+    #else
+        return _mm256_castsi256_si128(Avx2::PackI16ToU8(_mm512_cvtepi32_epi16(_mm512_cvtps_epi32(a)), _mm256_setzero_si256()));
+    #endif
+    }
+    //}}}
+
+    template <bool align> SIMD_INLINE void Store(void * p, __m512i a);
+    //{{{
+    template <> SIMD_INLINE void Store<false>(void * p, __m512i a)
+    {
+        _mm512_storeu_si512(p, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<true>(void * p, __m512i a)
+    {
+        _mm512_store_si512(p, a);
+    }
+    //}}}
+
+    //{{{
+    template <bool align, bool mask> SIMD_INLINE void Store(uint8_t * p, __m512i a, __mmask64 m)
+    {
+        return Store<align>(p, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<false, true>(uint8_t * p, __m512i a, __mmask64 m)
+    {
+        return _mm512_mask_storeu_epi8(p, m, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<true, true>(uint8_t * p, __m512i a, __mmask64 m)
+    {
+        return _mm512_mask_storeu_epi8(p, m, a);
+    }
+    //}}}
+
+    //{{{
+    template <bool align, bool mask> SIMD_INLINE void Store(int16_t * p, __m512i a, __mmask32 m)
+    {
+        return Store<align>(p, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<false, true>(int16_t * p, __m512i a, __mmask32 m)
+    {
+        return _mm512_mask_storeu_epi16(p, m, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<true, true>(int16_t * p, __m512i a, __mmask32 m)
+    {
+        return _mm512_mask_storeu_epi16(p, m, a);
+    }
+    //}}}
+
+    //{{{
+    template <bool align, bool mask> SIMD_INLINE void Store(uint16_t * p, __m512i a, __mmask32 m)
+    {
+        return Store<align, mask>((int16_t*)p, a, m);
+    }
+    //}}}
+    //{{{
+    template <bool align, bool mask> SIMD_INLINE void Store(uint32_t * p, __m512i a, __mmask16 m)
+    {
+        return Store<align>(p, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<false, true>(uint32_t * p, __m512i a, __mmask16 m)
+    {
+        return _mm512_mask_storeu_epi32(p, m, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<true, true>(uint32_t * p, __m512i a, __mmask16 m)
+    {
+        return _mm512_mask_storeu_epi32(p, m, a);
+    }
+    //}}}
+
+    //{{{
+    template <bool align, bool mask> SIMD_INLINE void Store(int32_t * p, __m512i a, __mmask16 m)
+    {
+        return Store<align, mask>((uint32_t*)p, a, m);
+    }
+    //}}}
+    //{{{
+    template <bool align, bool mask> SIMD_INLINE void Store(uint8_t* p, __m256i a, __mmask32 m)
+    {
+        return Avx2::Store<align>((__m256i*)p, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<false, true>(uint8_t* p, __m256i a, __mmask32 m)
+    {
+        return _mm256_mask_storeu_epi8(p, m, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<true, true>(uint8_t* p, __m256i a, __mmask32 m)
+    {
+        return _mm256_mask_storeu_epi8(p, m, a);
+    }
+    //}}}
+
+    //{{{
+    template <bool align, bool mask> SIMD_INLINE void Store(uint8_t* p, __m128i a, __mmask16 m)
+    {
+        return Sse41::Store<align>((__m128i*)p, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<false, true>(uint8_t* p, __m128i a, __mmask16 m)
+    {
+        return _mm_mask_storeu_epi8(p, m, a);
+    }
+    //}}}
+    //{{{
+    template <> SIMD_INLINE void Store<true, true>(uint8_t* p, __m128i a, __mmask16 m)
+    {
+        return _mm_mask_storeu_epi8(p, m, a);
+    }
+    //}}}
+    //{{{
+    SIMD_INLINE __m512i PackI16ToU8(__m512i lo, __m512i hi = K_ZERO)
+    {
+        return _mm512_permutexvar_epi64(K64_PERMUTE_FOR_PACK, _mm512_packus_epi16(lo, hi));
+    }
+    //}}}
+    //{{{
+    SIMD_INLINE __m512i PackU32ToI16(__m512i lo, __m512i hi = K_ZERO)
+    {
+        return _mm512_permutexvar_epi64(K64_PERMUTE_FOR_PACK, _mm512_packus_epi32(lo, hi));
+    }
+    //}}}
+
+    //{{{
+    template <bool align> SIMD_INLINE void Store(__m256i* p0, __m256i* p1, __m512i a)
+    {
+        Avx2::Store<align>(p0, _mm512_extracti64x4_epi64(a, 0));
+        Avx2::Store<align>(p1, _mm512_extracti64x4_epi64(a, 1));
+    }
+    //}}}
+    //{{{
+    template <bool align> SIMD_INLINE void Store(__m128i* p0, __m128i* p1, __m128i* p2, __m128i* p3, __m512i a)
+    {
+        Sse41::Store<align>(p0, _mm512_extracti64x2_epi64(a, 0));
+        Sse41::Store<align>(p1, _mm512_extracti64x2_epi64(a, 1));
+        Sse41::Store<align>(p2, _mm512_extracti64x2_epi64(a, 2));
+        Sse41::Store<align>(p3, _mm512_extracti64x2_epi64(a, 3));
+    }
+    //}}}
+    }
+  //}}}
 
   #ifdef SIMD_NEON_ENABLE
     //{{{

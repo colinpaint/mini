@@ -257,323 +257,312 @@ namespace Simd {
     void * ResizerInit(size_t srcX, size_t srcY, size_t dstX, size_t dstY, size_t channels, SimdResizeChannelType type, SimdResizeMethodType method);
     }
 
-  #ifdef SIMD_SSE41_ENABLE
+  //{{{
+  namespace Sse41 {
     //{{{
-    namespace Sse41 {
-      //{{{
-      class ResizerNearest : public Base::ResizerNearest
-      {
-      protected:
-          size_t _blocks, _tails;
-          struct IndexShuffle16x1
-          {
-              int32_t src, dst;
-              uint8_t shuffle[A];
-          };
-          Array<IndexShuffle16x1> _ix16x1;
-          Array128i _tail16x1;
+    class ResizerNearest : public Base::ResizerNearest
+    {
+    protected:
+        size_t _blocks, _tails;
+        struct IndexShuffle16x1
+        {
+            int32_t src, dst;
+            uint8_t shuffle[A];
+        };
+        Array<IndexShuffle16x1> _ix16x1;
+        Array128i _tail16x1;
 
-          size_t BlockCountMax(size_t align);
-          void EstimateParams();
-          void Shuffle16x1(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-          void Resize12(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      public:
-          ResizerNearest(const ResParam& param);
+        size_t BlockCountMax(size_t align);
+        void EstimateParams();
+        void Shuffle16x1(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+        void Resize12(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    public:
+        ResizerNearest(const ResParam& param);
 
-          virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      };
-      //}}}
-      //{{{
-      class ResizerByteBilinear : public Base::ResizerByteBilinear
-      {
-      protected:
-          Array8u _ax;
-          Array8u _bx[2];
-          size_t _blocks;
-          struct Idx
-          {
-              int32_t src, dst;
-              uint8_t shuffle[A];
-          };
-          Array<Idx> _ixg;
-
-          size_t BlockCountMax(size_t align);
-          void EstimateParams();
-          template<size_t N> void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-          void RunG(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-      public:
-          ResizerByteBilinear(const ResParam & param);
-
-          virtual void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-      };
-      //}}}
-      //{{{
-      class ResizerShortBilinear : public Base::ResizerShortBilinear
-      {
-      protected:
-          template<size_t N> void RunB(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
-          template<size_t N> void RunS(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
-
-          virtual void Run(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
-      public:
-          ResizerShortBilinear(const ResParam& param);
-      };
-      //}}}
-      //{{{
-      class ResizerByteBicubic : public Base::ResizerByteBicubic
-      {
-      protected:
-          Array8i _ax;
-
-          void EstimateIndexAlphaY();
-          void EstimateIndexAlphaX();
-
-          void Init(bool sparse);
-
-          template<int N> void RunS(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-          template<int N> void RunB(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      public:
-          ResizerByteBicubic(const ResParam& param);
-
-          virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      };
-      //}}}
-      //{{{
-      class ResizerByteArea1x1 : public Base::ResizerByteArea1x1
-      {
-      protected:
-          template<size_t N> void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-      public:
-          ResizerByteArea1x1(const ResParam & param);
-
-          virtual void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-      };
-      //}}}
-      //{{{
-      class ResizerByteArea2x2 : public Base::ResizerByteArea2x2
-      {
-      protected:
-          template<size_t N> void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      public:
-          ResizerByteArea2x2(const ResParam& param);
-
-          virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      };
-      //}}}
-      void * ResizerInit(size_t srcX, size_t srcY, size_t dstX, size_t dstY, size_t channels, SimdResizeChannelType type, SimdResizeMethodType method);
-      }
+        virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    };
     //}}}
-  #endif
-
-  #ifdef SIMD_AVX_ENABLE
     //{{{
-    namespace Avx {
-      //{{{
-      class ResizerFloatBilinear : public Base::ResizerFloatBilinear
-      {
-          virtual void Run(const float * src, size_t srcStride, float * dst, size_t dstStride);
-      public:
-          ResizerFloatBilinear(const ResParam & param);
-      };
-      //}}}
-      void * ResizerInit(size_t srcX, size_t srcY, size_t dstX, size_t dstY, size_t channels, SimdResizeChannelType type, SimdResizeMethodType method);
-      }
-    //}}}
-  #endif
+    class ResizerByteBilinear : public Base::ResizerByteBilinear
+    {
+    protected:
+        Array8u _ax;
+        Array8u _bx[2];
+        size_t _blocks;
+        struct Idx
+        {
+            int32_t src, dst;
+            uint8_t shuffle[A];
+        };
+        Array<Idx> _ixg;
 
-  #ifdef SIMD_AVX2_ENABLE
+        size_t BlockCountMax(size_t align);
+        void EstimateParams();
+        template<size_t N> void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+        void RunG(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+    public:
+        ResizerByteBilinear(const ResParam & param);
+
+        virtual void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+    };
+    //}}}
     //{{{
-    namespace Avx2 {
-      //{{{
-      class ResizerNearest : public Sse41::ResizerNearest
-      {
-      protected:
-          void EstimateParams();
-          void Gather2(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-          void Gather3(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-          void Gather4(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-          void Gather8(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      public:
-          ResizerNearest(const ResParam& param);
+    class ResizerShortBilinear : public Base::ResizerShortBilinear
+    {
+    protected:
+        template<size_t N> void RunB(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
+        template<size_t N> void RunS(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
 
-          virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      };
-      //}}}
-      //{{{
-      class ResizerByteBilinear : public Sse41::ResizerByteBilinear
-      {
-      protected:
-          struct Idx
-          {
-              int32_t src, dst;
-              uint8_t shuffle[A];
-          };
-          Array<Idx> _ixg;
-
-          void EstimateParams();
-          template<size_t N> void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-          void RunG(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-      public:
-          ResizerByteBilinear(const ResParam & param);
-
-          virtual void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-      };
-      //}}}
-      //{{{
-      class ResizerShortBilinear : public Sse41::ResizerShortBilinear
-      {
-      protected:
-          template<size_t N> void RunB(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
-          template<size_t N> void RunS(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
-
-          virtual void Run(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
-      public:
-          ResizerShortBilinear(const ResParam& param);
-      };
-      //}}}
-      //{{{
-      class ResizerFloatBilinear : public Base::ResizerFloatBilinear
-      {
-          virtual void Run(const float * src, size_t srcStride, float * dst, size_t dstStride);
-      public:
-          ResizerFloatBilinear(const ResParam & param);
-      };
-      //}}}
-      //{{{
-      class ResizerByteBicubic : public Sse41::ResizerByteBicubic
-      {
-      protected:
-          template<int N> void RunS(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-          template<int N> void RunB(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      public:
-          ResizerByteBicubic(const ResParam& param);
-
-          virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      };
-      //}}}
-      //{{{
-      class ResizerByteArea1x1 : public Sse41::ResizerByteArea1x1
-      {
-      protected:
-          template<size_t N> void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      public:
-          ResizerByteArea1x1(const ResParam& param);
-
-          virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      };
-      //}}}
-      //{{{
-      class ResizerByteArea2x2 : public Sse41::ResizerByteArea2x2
-      {
-      protected:
-          template<size_t N> void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      public:
-          ResizerByteArea2x2(const ResParam& param);
-
-          virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      };
-      //}}}
-      void * ResizerInit(size_t srcX, size_t srcY, size_t dstX, size_t dstY, size_t channels, SimdResizeChannelType type, SimdResizeMethodType method);
-      }
+        virtual void Run(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
+    public:
+        ResizerShortBilinear(const ResParam& param);
+    };
     //}}}
-  #endif
-
-  #ifdef SIMD_AVX512BW_ENABLE
     //{{{
-    namespace Avx512bw {
-      //{{{
-      class ResizerNearest : public Avx2::ResizerNearest
-      {
-      protected:
-          struct IndexShuffle32x2
-          {
-              int32_t src, dst;
-              uint16_t shuffle[HA];
-          };
-          Array<IndexShuffle32x2> _ix32x2;
-          Array<__mmask32> _tail32x2;
+    class ResizerByteBicubic : public Base::ResizerByteBicubic
+    {
+    protected:
+        Array8i _ax;
 
-          void EstimateParams();
-          void Shuffle32x2(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-          void Gather4(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-          void Gather8(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      public:
-          ResizerNearest(const ResParam& param);
+        void EstimateIndexAlphaY();
+        void EstimateIndexAlphaX();
 
-          static bool Preferable(const ResParam& param);
+        void Init(bool sparse);
 
-          virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      };
-      //}}}
-      //{{{
-      class ResizerByteBilinear : public Avx2::ResizerByteBilinear
-      {
-      protected:
-          template<size_t N> void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-          void RunG(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-      public:
-          ResizerByteBilinear(const ResParam & param);
+        template<int N> void RunS(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+        template<int N> void RunB(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    public:
+        ResizerByteBicubic(const ResParam& param);
 
-          virtual void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-      };
-      //}}}
-      //{{{
-      class ResizerShortBilinear : public Avx2::ResizerShortBilinear
-      {
-      protected:
-          template<size_t N> void RunB(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
-          template<size_t N> void RunS(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
-
-          virtual void Run(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
-      public:
-          ResizerShortBilinear(const ResParam& param);
-      };
-
-      class ResizerFloatBilinear : public Base::ResizerFloatBilinear
-      {
-          virtual void Run(const float * src, size_t srcStride, float * dst, size_t dstStride);
-      public:
-          ResizerFloatBilinear(const ResParam & param);
-      };
-      //}}}
-      //{{{
-      class ResizerByteBicubic : public Avx2::ResizerByteBicubic
-      {
-      protected:
-          template<int N> void RunS(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-          template<int N> void RunB(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      public:
-          ResizerByteBicubic(const ResParam& param);
-
-          virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      };
-      //}}}
-      //{{{
-      class ResizerByteArea1x1 : public Avx2::ResizerByteArea1x1
-      {
-      protected:
-          template<size_t N> void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-      public:
-          ResizerByteArea1x1(const ResParam & param);
-
-          virtual void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
-      };
-      //}}}
-      //{{{
-      class ResizerByteArea2x2 : public Avx2::ResizerByteArea2x2
-      {
-      protected:
-          template<size_t N> void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      public:
-          ResizerByteArea2x2(const ResParam& param);
-
-          virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
-      };
-      //}}}
-      void * ResizerInit(size_t srcX, size_t srcY, size_t dstX, size_t dstY, size_t channels, SimdResizeChannelType type, SimdResizeMethodType method);
-      }
+        virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    };
     //}}}
-  #endif
+    //{{{
+    class ResizerByteArea1x1 : public Base::ResizerByteArea1x1
+    {
+    protected:
+        template<size_t N> void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+    public:
+        ResizerByteArea1x1(const ResParam & param);
+
+        virtual void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+    };
+    //}}}
+    //{{{
+    class ResizerByteArea2x2 : public Base::ResizerByteArea2x2
+    {
+    protected:
+        template<size_t N> void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    public:
+        ResizerByteArea2x2(const ResParam& param);
+
+        virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    };
+    //}}}
+    void * ResizerInit(size_t srcX, size_t srcY, size_t dstX, size_t dstY, size_t channels, SimdResizeChannelType type, SimdResizeMethodType method);
+    }
+  //}}}
+  //{{{
+  namespace Avx {
+    //{{{
+    class ResizerFloatBilinear : public Base::ResizerFloatBilinear
+    {
+        virtual void Run(const float * src, size_t srcStride, float * dst, size_t dstStride);
+    public:
+        ResizerFloatBilinear(const ResParam & param);
+    };
+    //}}}
+    void * ResizerInit(size_t srcX, size_t srcY, size_t dstX, size_t dstY, size_t channels, SimdResizeChannelType type, SimdResizeMethodType method);
+    }
+  //}}}
+  //{{{
+  namespace Avx2 {
+    //{{{
+    class ResizerNearest : public Sse41::ResizerNearest
+    {
+    protected:
+        void EstimateParams();
+        void Gather2(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+        void Gather3(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+        void Gather4(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+        void Gather8(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    public:
+        ResizerNearest(const ResParam& param);
+
+        virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    };
+    //}}}
+    //{{{
+    class ResizerByteBilinear : public Sse41::ResizerByteBilinear
+    {
+    protected:
+        struct Idx
+        {
+            int32_t src, dst;
+            uint8_t shuffle[A];
+        };
+        Array<Idx> _ixg;
+
+        void EstimateParams();
+        template<size_t N> void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+        void RunG(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+    public:
+        ResizerByteBilinear(const ResParam & param);
+
+        virtual void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+    };
+    //}}}
+    //{{{
+    class ResizerShortBilinear : public Sse41::ResizerShortBilinear
+    {
+    protected:
+        template<size_t N> void RunB(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
+        template<size_t N> void RunS(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
+
+        virtual void Run(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
+    public:
+        ResizerShortBilinear(const ResParam& param);
+    };
+    //}}}
+    //{{{
+    class ResizerFloatBilinear : public Base::ResizerFloatBilinear
+    {
+        virtual void Run(const float * src, size_t srcStride, float * dst, size_t dstStride);
+    public:
+        ResizerFloatBilinear(const ResParam & param);
+    };
+    //}}}
+    //{{{
+    class ResizerByteBicubic : public Sse41::ResizerByteBicubic
+    {
+    protected:
+        template<int N> void RunS(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+        template<int N> void RunB(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    public:
+        ResizerByteBicubic(const ResParam& param);
+
+        virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    };
+    //}}}
+    //{{{
+    class ResizerByteArea1x1 : public Sse41::ResizerByteArea1x1
+    {
+    protected:
+        template<size_t N> void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    public:
+        ResizerByteArea1x1(const ResParam& param);
+
+        virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    };
+    //}}}
+    //{{{
+    class ResizerByteArea2x2 : public Sse41::ResizerByteArea2x2
+    {
+    protected:
+        template<size_t N> void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    public:
+        ResizerByteArea2x2(const ResParam& param);
+
+        virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    };
+    //}}}
+    void * ResizerInit(size_t srcX, size_t srcY, size_t dstX, size_t dstY, size_t channels, SimdResizeChannelType type, SimdResizeMethodType method);
+    }
+  //}}}
+  //{{{
+  namespace Avx512bw {
+    //{{{
+    class ResizerNearest : public Avx2::ResizerNearest
+    {
+    protected:
+        struct IndexShuffle32x2
+        {
+            int32_t src, dst;
+            uint16_t shuffle[HA];
+        };
+        Array<IndexShuffle32x2> _ix32x2;
+        Array<__mmask32> _tail32x2;
+
+        void EstimateParams();
+        void Shuffle32x2(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+        void Gather4(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+        void Gather8(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    public:
+        ResizerNearest(const ResParam& param);
+
+        static bool Preferable(const ResParam& param);
+
+        virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    };
+    //}}}
+    //{{{
+    class ResizerByteBilinear : public Avx2::ResizerByteBilinear
+    {
+    protected:
+        template<size_t N> void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+        void RunG(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+    public:
+        ResizerByteBilinear(const ResParam & param);
+
+        virtual void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+    };
+    //}}}
+    //{{{
+    class ResizerShortBilinear : public Avx2::ResizerShortBilinear
+    {
+    protected:
+        template<size_t N> void RunB(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
+        template<size_t N> void RunS(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
+
+        virtual void Run(const uint16_t* src, size_t srcStride, uint16_t* dst, size_t dstStride);
+    public:
+        ResizerShortBilinear(const ResParam& param);
+    };
+
+    class ResizerFloatBilinear : public Base::ResizerFloatBilinear
+    {
+        virtual void Run(const float * src, size_t srcStride, float * dst, size_t dstStride);
+    public:
+        ResizerFloatBilinear(const ResParam & param);
+    };
+    //}}}
+    //{{{
+    class ResizerByteBicubic : public Avx2::ResizerByteBicubic
+    {
+    protected:
+        template<int N> void RunS(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+        template<int N> void RunB(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    public:
+        ResizerByteBicubic(const ResParam& param);
+
+        virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    };
+    //}}}
+    //{{{
+    class ResizerByteArea1x1 : public Avx2::ResizerByteArea1x1
+    {
+    protected:
+        template<size_t N> void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+    public:
+        ResizerByteArea1x1(const ResParam & param);
+
+        virtual void Run(const uint8_t * src, size_t srcStride, uint8_t * dst, size_t dstStride);
+    };
+    //}}}
+    //{{{
+    class ResizerByteArea2x2 : public Avx2::ResizerByteArea2x2
+    {
+    protected:
+        template<size_t N> void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    public:
+        ResizerByteArea2x2(const ResParam& param);
+
+        virtual void Run(const uint8_t* src, size_t srcStride, uint8_t* dst, size_t dstStride);
+    };
+    //}}}
+    void * ResizerInit(size_t srcX, size_t srcY, size_t dstX, size_t dstY, size_t channels, SimdResizeChannelType type, SimdResizeMethodType method);
+    }
+  //}}}
 
   #ifdef SIMD_NEON_ENABLE
     //{{{

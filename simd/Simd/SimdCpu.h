@@ -135,39 +135,33 @@ namespace Simd {
     //}}}
     }
 
-  #ifdef SIMD_SSE41_ENABLE
+  //{{{
+  namespace Sse41 {
+    const unsigned int SCR_FTZ = 1 << 15;
+    const unsigned int SCR_DAZ = 1 << 6;
+
     //{{{
-    namespace Sse41 {
-      const unsigned int SCR_FTZ = 1 << 15;
-      const unsigned int SCR_DAZ = 1 << 6;
-
-      //{{{
-      SIMD_INLINE SimdBool GetFastMode()
-      {
-          return _mm_getcsr() & (SCR_FTZ | SCR_DAZ) ? SimdTrue : SimdFalse;
-      }
-      //}}}
-      //{{{
-      SIMD_INLINE void SetFastMode(SimdBool value)
-      {
-          if (value)
-              _mm_setcsr(_mm_getcsr() | (SCR_FTZ | SCR_DAZ));
-          else
-              _mm_setcsr(_mm_getcsr() & ~(SCR_FTZ | SCR_DAZ));
-      }
-      //}}}
-      }
+    SIMD_INLINE SimdBool GetFastMode()
+    {
+        return _mm_getcsr() & (SCR_FTZ | SCR_DAZ) ? SimdTrue : SimdFalse;
+    }
     //}}}
-  #endif
-
-  #ifdef SIMD_AVX2_ENABLE
     //{{{
-    namespace Avx2 {
-      extern const bool SlowGather;
-      }
+    SIMD_INLINE void SetFastMode(SimdBool value)
+    {
+        if (value)
+            _mm_setcsr(_mm_getcsr() | (SCR_FTZ | SCR_DAZ));
+        else
+            _mm_setcsr(_mm_getcsr() & ~(SCR_FTZ | SCR_DAZ));
+    }
     //}}}
-  #endif
-
+    }
+  //}}}
+  //{{{
+  namespace Avx2 {
+    extern const bool SlowGather;
+    }
+  //}}}
   #ifdef SIMD_NEON_ENABLE
     //{{{
     namespace Neon {

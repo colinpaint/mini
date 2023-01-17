@@ -29,145 +29,134 @@
 namespace Simd {
   const size_t STREAM_SIZE_MIN = 0x00100000;
 
-  #ifdef SIMD_SSE41_ENABLE
-    //{{{
-    namespace Sse41
-    {
-        template <bool align, bool stream> SIMD_INLINE void Stream(float* p, __m128 a);
+  //{{{
+  namespace Sse41
+  {
+      template <bool align, bool stream> SIMD_INLINE void Stream(float* p, __m128 a);
 
-        template <> SIMD_INLINE void Stream<false, false>(float* p, __m128 a)
-        {
-            _mm_storeu_ps(p, a);
-        }
+      template <> SIMD_INLINE void Stream<false, false>(float* p, __m128 a)
+      {
+          _mm_storeu_ps(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<false, true>(float* p, __m128 a)
-        {
-            _mm_storeu_ps(p, a);
-        }
+      template <> SIMD_INLINE void Stream<false, true>(float* p, __m128 a)
+      {
+          _mm_storeu_ps(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<true, false>(float* p, __m128 a)
-        {
-            _mm_store_ps(p, a);
-        }
+      template <> SIMD_INLINE void Stream<true, false>(float* p, __m128 a)
+      {
+          _mm_store_ps(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<true, true>(float* p, __m128 a)
-        {
-            _mm_stream_ps(p, a);
-        }
+      template <> SIMD_INLINE void Stream<true, true>(float* p, __m128 a)
+      {
+          _mm_stream_ps(p, a);
+      }
 
-        template <bool align, bool stream> SIMD_INLINE void Stream(__m128i  * p, __m128i a);
+      template <bool align, bool stream> SIMD_INLINE void Stream(__m128i  * p, __m128i a);
 
-        template <> SIMD_INLINE void Stream<false, false>(__m128i   * p, __m128i a)
-        {
-            _mm_storeu_si128(p, a);
-        }
+      template <> SIMD_INLINE void Stream<false, false>(__m128i   * p, __m128i a)
+      {
+          _mm_storeu_si128(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<false, true>(__m128i   * p, __m128i a)
-        {
-            _mm_storeu_si128(p, a);
-        }
+      template <> SIMD_INLINE void Stream<false, true>(__m128i   * p, __m128i a)
+      {
+          _mm_storeu_si128(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<true, false>(__m128i   * p, __m128i a)
-        {
-            _mm_store_si128(p, a);
-        }
+      template <> SIMD_INLINE void Stream<true, false>(__m128i   * p, __m128i a)
+      {
+          _mm_store_si128(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<true, true>(__m128i   * p, __m128i a)
-        {
-            _mm_stream_si128(p, a);
-        }
-    }
-    //}}}
-  #endif
+      template <> SIMD_INLINE void Stream<true, true>(__m128i   * p, __m128i a)
+      {
+          _mm_stream_si128(p, a);
+      }
+  }
+  //}}}
+  //{{{
+  namespace Avx
+  {
+      template <bool align, bool stream> SIMD_INLINE void Stream(float  * p, __m256 a);
 
-  #ifdef SIMD_AVX_ENABLE
-    //{{{
-    namespace Avx
-    {
-        template <bool align, bool stream> SIMD_INLINE void Stream(float  * p, __m256 a);
+      template <> SIMD_INLINE void Stream<false, false>(float  * p, __m256 a)
+      {
+          _mm256_storeu_ps(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<false, false>(float  * p, __m256 a)
-        {
-            _mm256_storeu_ps(p, a);
-        }
+      template <> SIMD_INLINE void Stream<false, true>(float  * p, __m256 a)
+      {
+          _mm256_storeu_ps(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<false, true>(float  * p, __m256 a)
-        {
-            _mm256_storeu_ps(p, a);
-        }
+      template <> SIMD_INLINE void Stream<true, false>(float  * p, __m256 a)
+      {
+          _mm256_store_ps(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<true, false>(float  * p, __m256 a)
-        {
-            _mm256_store_ps(p, a);
-        }
+      template <> SIMD_INLINE void Stream<true, true>(float  * p, __m256 a)
+      {
+          _mm256_stream_ps(p, a);
+      }
+  }
+  //}}}
+  //{{{
+  namespace Avx2
+  {
+      template <bool align, bool stream> SIMD_INLINE void Stream(__m256i  * p, __m256i a);
 
-        template <> SIMD_INLINE void Stream<true, true>(float  * p, __m256 a)
-        {
-            _mm256_stream_ps(p, a);
-        }
-    }
-    //}}}
-  #endif
+      template <> SIMD_INLINE void Stream<false, false>(__m256i  * p, __m256i a)
+      {
+          _mm256_storeu_si256(p, a);
+      }
 
-  #ifdef SIMD_AVX2_ENABLE
-    //{{{
-    namespace Avx2
-    {
-        template <bool align, bool stream> SIMD_INLINE void Stream(__m256i  * p, __m256i a);
+      template <> SIMD_INLINE void Stream<false, true>(__m256i  * p, __m256i a)
+      {
+          _mm256_storeu_si256(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<false, false>(__m256i  * p, __m256i a)
-        {
-            _mm256_storeu_si256(p, a);
-        }
+      template <> SIMD_INLINE void Stream<true, false>(__m256i  * p, __m256i a)
+      {
+          _mm256_store_si256(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<false, true>(__m256i  * p, __m256i a)
-        {
-            _mm256_storeu_si256(p, a);
-        }
+      template <> SIMD_INLINE void Stream<true, true>(__m256i  * p, __m256i a)
+      {
+          _mm256_stream_si256(p, a);
+      }
+  }
+  //}}}
+  //{{{
+  namespace Avx512bw
+  {
+      template <bool align, bool stream> SIMD_INLINE void Stream(float  * p, __m512 a);
 
-        template <> SIMD_INLINE void Stream<true, false>(__m256i  * p, __m256i a)
-        {
-            _mm256_store_si256(p, a);
-        }
+      template <> SIMD_INLINE void Stream<false, false>(float  * p, __m512 a)
+      {
+          _mm512_storeu_ps(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<true, true>(__m256i  * p, __m256i a)
-        {
-            _mm256_stream_si256(p, a);
-        }
-    }
-    //}}}
-  #endif
+      template <> SIMD_INLINE void Stream<false, true>(float  * p, __m512 a)
+      {
+          _mm512_storeu_ps(p, a);
+      }
 
-  #ifdef SIMD_AVX512BW_ENABLE
-    //{{{
-    namespace Avx512bw
-    {
-        template <bool align, bool stream> SIMD_INLINE void Stream(float  * p, __m512 a);
+      template <> SIMD_INLINE void Stream<true, false>(float  * p, __m512 a)
+      {
+          _mm512_store_ps(p, a);
+      }
 
-        template <> SIMD_INLINE void Stream<false, false>(float  * p, __m512 a)
-        {
-            _mm512_storeu_ps(p, a);
-        }
-
-        template <> SIMD_INLINE void Stream<false, true>(float  * p, __m512 a)
-        {
-            _mm512_storeu_ps(p, a);
-        }
-
-        template <> SIMD_INLINE void Stream<true, false>(float  * p, __m512 a)
-        {
-            _mm512_store_ps(p, a);
-        }
-
-        template <> SIMD_INLINE void Stream<true, true>(float  * p, __m512 a)
-        {
-        #if defined(__clang__)
-            _mm512_store_ps(p, a);
-        #else
-            _mm512_stream_ps(p, a);
-        #endif
-        }
-    }
-    //}}}
-  #endif
+      template <> SIMD_INLINE void Stream<true, true>(float  * p, __m512 a)
+      {
+      #if defined(__clang__)
+          _mm512_store_ps(p, a);
+      #else
+          _mm512_stream_ps(p, a);
+      #endif
+      }
+  }
+  //}}}
   }

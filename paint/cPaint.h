@@ -23,6 +23,7 @@ public:
   virtual bool pick (cPoint pos) = 0;
   virtual void prox (cPoint pos) = 0;
   virtual void proxExit () = 0;
+  virtual void proxLift() = 0;
   virtual void down (cPoint pos) = 0;
   virtual void move (cPoint pos, cPoint inc) = 0;
   virtual void up (cPoint pos, bool mouseMoved) = 0;
@@ -50,6 +51,7 @@ public:
   virtual bool pick (cPoint pos) final;
   virtual void prox (cPoint pos) final;
   virtual void proxExit () final;
+  virtual void proxLift () final;
   virtual void down (cPoint pos) final;
   virtual void move (cPoint pos, cPoint inc) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
@@ -75,6 +77,7 @@ public:
   virtual bool pick (cPoint pos) final;
   virtual void prox (cPoint pos) final;
   virtual void proxExit () final;
+  virtual void proxLift () final;
   virtual void down (cPoint pos) final;
   virtual void move (cPoint pos, cPoint inc) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
@@ -101,6 +104,7 @@ public:
   virtual bool pick (cPoint pos) final;
   virtual void prox (cPoint pos) final;
   virtual void proxExit () final;
+  virtual void proxLift () final;
   virtual void down (cPoint pos) final;
   virtual void move (cPoint pos, cPoint inc) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
@@ -125,6 +129,7 @@ public:
   virtual bool pick (cPoint pos) final;
   virtual void prox (cPoint pos) final;
   virtual void proxExit () final;
+  virtual void proxLift () final;
   virtual void down (cPoint pos) final;
   virtual void move (cPoint pos, cPoint inc) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
@@ -150,6 +155,7 @@ public:
   virtual bool pick (cPoint pos) final;
   virtual void prox (cPoint pos) final;
   virtual void proxExit () final;
+  virtual void proxLift () final;
   virtual void down (cPoint pos) final;
   virtual void move (cPoint pos, cPoint inc) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
@@ -176,6 +182,7 @@ public:
   virtual bool pick (cPoint pos) final;
   virtual void prox (cPoint pos) final;
   virtual void proxExit () final;
+  virtual void proxLift () final;
   virtual void down (cPoint pos) final;
   virtual void move (cPoint pos, cPoint inc) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
@@ -201,6 +208,7 @@ public:
   bool pick (cPoint pos);
   bool prox (cPoint pos);
   bool proxExit();
+  bool proxLift();
   bool down (cPoint pos);
   bool move (cPoint pos, cPoint inc);
   bool up (cPoint pos, bool mouseMoved);

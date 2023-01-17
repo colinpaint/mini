@@ -43,6 +43,11 @@ void cPaintLayer::proxExit() {
   }
 //}}}
 //{{{
+void cPaintLayer::proxLift() {
+  mProx = false;
+  }
+//}}}
+//{{{
 void cPaintLayer::down (cPoint pos) {
   (void)pos;
   mProx = false;
@@ -133,6 +138,11 @@ void cStrokeLayer::proxExit() {
   }
 //}}}
 //{{{
+void cStrokeLayer::proxLift() {
+  mProx = false;
+  }
+//}}}
+//{{{
 void cStrokeLayer::down (cPoint pos) {
   (void)pos;
   mProx = false;
@@ -197,6 +207,7 @@ bool cRectangleLayer::pick (cPoint pos) {
   return r.inside (pos);
   }
 //}}}
+
 //{{{
 void cRectangleLayer::prox (cPoint pos) {
   (void)pos;
@@ -206,6 +217,12 @@ void cRectangleLayer::prox (cPoint pos) {
 void cRectangleLayer::proxExit() {
   }
 //}}}
+//{{{
+void cRectangleLayer::proxLift() {
+  mProx = false;
+  }
+//}}}
+
 //{{{
 void cRectangleLayer::down (cPoint pos) {
   (void)pos;
@@ -223,6 +240,7 @@ void cRectangleLayer::up (cPoint pos, bool mouseMoved) {
   (void)mouseMoved;
   }
 //}}}
+
 //{{{
 void cRectangleLayer::wheel (int delta, cPoint pos) {
   (void)pos;
@@ -242,6 +260,7 @@ bool cEllipseLayer::pick (cPoint pos) {
   return (mPos - pos).magnitude() < mRadius;
   }
 //}}}
+
 //{{{
 void cEllipseLayer::prox (cPoint pos) {
   (void)pos;
@@ -251,6 +270,12 @@ void cEllipseLayer::prox (cPoint pos) {
 void cEllipseLayer::proxExit() {
   }
 //}}}
+//{{{
+void cEllipseLayer::proxLift() {
+  mProx = false;
+  }
+//}}}
+
 //{{{
 void cEllipseLayer::down (cPoint pos) {
   (void)pos;
@@ -268,6 +293,7 @@ void cEllipseLayer::up (cPoint pos, bool mouseMoved) {
   (void)mouseMoved;
   }
 //}}}
+
 //{{{
 void cEllipseLayer::wheel (int delta, cPoint pos) {
   (void)pos;
@@ -288,6 +314,7 @@ bool cTextLayer::pick (cPoint pos) {
   return r.inside(pos);
 }
 //}}}
+
 //{{{
 void cTextLayer::prox (cPoint pos) {
   (void)pos;
@@ -297,6 +324,12 @@ void cTextLayer::prox (cPoint pos) {
 void cTextLayer::proxExit() {
   }
 //}}}
+//{{{
+void cTextLayer::proxLift() {
+  mProx = false;
+  }
+//}}}
+
 //{{{
 void cTextLayer::down (cPoint pos) {
   (void)pos;
@@ -314,6 +347,7 @@ void cTextLayer::up (cPoint pos, bool mouseMoved) {
   (void)mouseMoved;
   }
 //}}}
+
 //{{{
 void cTextLayer::wheel (int delta, cPoint pos) {
   (void)delta;
@@ -344,6 +378,12 @@ void cTextureLayer::proxExit() {
   }
 //}}}
 //{{{
+void cTextureLayer::proxLift() {
+  mProx = false;
+  }
+//}}}
+
+//{{{
 void cTextureLayer::down (cPoint pos) {
   (void)pos;
   }
@@ -360,6 +400,7 @@ void cTextureLayer::up (cPoint pos, bool mouseMoved) {
   (void)mouseMoved;
   }
 //}}}
+
 //{{{
 void cTextureLayer::wheel (int delta, cPoint pos) {
   (void)pos;
@@ -417,6 +458,13 @@ bool cPaint::prox (cPoint pos) {
 bool cPaint::proxExit() {
   if (mPickedLayer)
     mPickedLayer->proxExit();
+  return true;
+  }
+//}}}
+//{{{
+bool cPaint::proxLift() {
+  if (mPickedLayer)
+    mPickedLayer->proxLift();
   return true;
   }
 //}}}

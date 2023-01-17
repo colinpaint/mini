@@ -36,44 +36,33 @@ namespace Simd {
     //}}}
   #endif
 
-  #ifdef SIMD_AVX_ENABLE
-    //{{{
-    namespace Avx {
-        bool GetEnable();
-        const bool Enable = GetEnable();
-    }
-    //}}}
-  #endif
-
-  #ifdef SIMD_AVX2_ENABLE
-    //{{{
-    namespace Avx2 {
-        bool GetEnable();
-        const bool Enable = GetEnable();
-        bool GetSlowGather();
-        const bool SlowGather = GetSlowGather();
-    }
-    //}}}
-  #endif
-
-  #ifdef SIMD_AVX512BW_ENABLE
-    //{{{
-    namespace Avx512bw {
-        bool GetEnable();
-        const bool Enable = GetEnable();
-    }
-    //}}}
-  #endif
-
-  #ifdef SIMD_NEON_ENABLE
-    //{{{
-    namespace Neon
-    {
-        bool GetEnable();
-        const bool Enable = GetEnable();
-    }
-    //}}}
-  #endif
+  //{{{
+  namespace Avx {
+      bool GetEnable();
+      const bool Enable = GetEnable();
+  }
+  //}}}
+  //{{{
+  namespace Avx2 {
+      bool GetEnable();
+      const bool Enable = GetEnable();
+      bool GetSlowGather();
+      const bool SlowGather = GetSlowGather();
+  }
+  //}}}
+  //{{{
+  namespace Avx512bw {
+      bool GetEnable();
+      const bool Enable = GetEnable();
+  }
+  //}}}
+  //{{{
+  namespace Neon
+  {
+      bool GetEnable();
+      const bool Enable = GetEnable();
+  }
+  //}}}
   }
 
 #define SIMD_BASE_FUNC(func) Simd::Base::func

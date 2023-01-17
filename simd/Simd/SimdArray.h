@@ -127,30 +127,22 @@ namespace Simd {
     #pragma GCC diagnostic ignored "-Wignored-attributes"
   #endif
 
-  #ifdef SIMD_SSE41_ENABLE
-    //{{{
-    namespace Sse41 {
-      typedef Array<__m128> Array128f;
-      typedef Array<__m128i> Array128i;
-      }
-    //}}}
-  #endif
-
-  #ifdef SIMD_AVX_ENABLE
-    //{{{
-    namespace Avx {
-      typedef Array<__m256> Array256f;
-      }
-    //}}}
-  #endif
-
-  #ifdef SIMD_AVX512BW_ENABLE
-    //{{{
-    namespace Avx512bw {
-      typedef Array<__m512> Array512f;
-      }
-    //}}}
-  #endif
+  //{{{
+  namespace Sse41 {
+    typedef Array<__m128> Array128f;
+    typedef Array<__m128i> Array128i;
+    }
+  //}}}
+  //{{{
+  namespace Avx {
+    typedef Array<__m256> Array256f;
+    }
+  //}}}
+  //{{{
+  namespace Avx512bw {
+    typedef Array<__m512> Array512f;
+    }
+  //}}}
 
   #ifdef SIMD_NEON_ENABLE
     //{{{
