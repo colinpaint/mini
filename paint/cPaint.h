@@ -1,9 +1,6 @@
 // cPaint.h
 #pragma once
-#include <cstdint>
-#include <string>
 #include <deque>
-
 #include "../common/basicTypes.h"
 #include "../gui/cWindow.h"
 

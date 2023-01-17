@@ -1,9 +1,8 @@
 // cPaintBox.cpp
-#include "../common/basicTypes.h"
-#include "../gui/cWindow.h"
-#include "../gui/basicBoxes.h"
-
 #include "cPaintBox.h"
+
+#include "../gui/basicBoxes.h"
+#include "cPaint.h"
 
 //{{{
 cPaintBox::cPaintBox (cWindow& window, float width, float height, cPaint& paint)
@@ -28,6 +27,7 @@ bool cPaintBox::pick (bool inClient, cPoint pos, bool& change) {
   return mRect.inside (pos);
   }
 //}}}
+
 //{{{
 bool cPaintBox::prox (bool inClient, cPoint pos) {
   (void) inClient;
@@ -41,6 +41,13 @@ bool cPaintBox::proxExit() {
   return true;
   }
 //}}}
+//{{{
+bool cPaintBox::proxLift() {
+  mPaint.proxLift();
+  return true;
+  }
+//}}}
+
 //{{{
 bool cPaintBox::down (bool right, cPoint pos) {
   (void) right;

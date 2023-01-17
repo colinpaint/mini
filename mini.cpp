@@ -18,6 +18,7 @@
 #include "gui/cLogBox.h"
 
 #include "paint/cPaintBox.h"
+#include "paint/cPaint.h"
 
 #include "song/cSongLoaderBox.h"
 
