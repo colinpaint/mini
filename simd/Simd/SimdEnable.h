@@ -56,13 +56,15 @@ namespace Simd {
       const bool Enable = GetEnable();
   }
   //}}}
-  //{{{
-  namespace Neon
-  {
-      bool GetEnable();
-      const bool Enable = GetEnable();
-  }
-  //}}}
+  #ifdef SIMD_NEON_ENABLE
+    //{{{
+    namespace Neon
+    {
+        bool GetEnable();
+        const bool Enable = GetEnable();
+    }
+    //}}}
+  #endif
   }
 
 #define SIMD_BASE_FUNC(func) Simd::Base::func
