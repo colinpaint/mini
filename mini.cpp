@@ -37,10 +37,10 @@ class cMiniWindow : public cWindow {
 public:
   //{{{
   void run (const string& title, const string& fileRoot, const string& tiledMapApiKey,
-            chrono::milliseconds tickMs, bool fullScreen) {
+            milliseconds tickMs, bool fullScreen) {
 
-    if (!createWindow (title, fullScreen ? kWidth : kWidthWindow,
-                              fullScreen ? kHeight: kHeightWindow, tickMs, fullScreen)) {
+    if (!createWindow (title, fullScreen ? kWidth : kWidthWindow, fullScreen ? kHeight: kHeightWindow, 
+                       tickMs, fullScreen)) {
       //{{{  error, return
       cLog::log (LOGERROR, fmt::format ("failed to open miniFB window {}x{}", kWidth, kHeight));
       return;
@@ -192,6 +192,7 @@ protected:
 private:
   cPaint* mPaint = nullptr;
   cTiledMap* mTiledMap = nullptr;
+
   cSongLoader* mSongLoader = nullptr;
   cSongLoaderBox* mSongLoaderBox = nullptr;
   vector <cBox*> mRadioBoxes;
