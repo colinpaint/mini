@@ -12,8 +12,8 @@ using namespace chrono;
 
 // cPaintLayer
 //{{{
-cPaintLayer::cPaintLayer (cWindow& window, const std::string& name, const cColor& color, cPoint pos, float width)
-    : cLayer(window, name, color, {0.f,0.f}), mWidth(width) {
+cPaintLayer::cPaintLayer (const std::string& name, const cColor& color, cPoint pos, float width)
+    : cLayer(name, color, {0.f,0.f}), mWidth(width) {
   addPoint (pos);
   }
 //}}}
@@ -72,7 +72,7 @@ void cPaintLayer::wheel (int delta, cPoint pos) {
   }
 //}}}
 //{{{
-void cPaintLayer::draw() {
+void cPaintLayer::draw (cWindow& window) {
 
   mExtent = {0,0,0,0};
 
@@ -85,7 +85,7 @@ void cPaintLayer::draw() {
     if (first)
       first = false;
     else
-      mWindow.drawLine (mProx ? kLightBlue : mColor, mPos + lastPos, mPos+pos, mWidth);
+      window.drawLine (mProx ? kLightBlue : mColor, mPos + lastPos, mPos+pos, mWidth);
     lastPos = pos;
 
     mExtent |= mPos + pos;
@@ -98,7 +98,7 @@ void cPaintLayer::draw() {
       }
     else {
       cPoint perp = (pos - lastPos).perp() * 16.f;
-      mWindow.drawLine (kWhite, mPos + pos - perp, mPos + pos + perp, 1.f);
+      window.drawLine (kWhite, mPos + pos - perp, mPos + pos + perp, 1.f);
       }
     lastPos = pos;
     }
@@ -107,8 +107,8 @@ void cPaintLayer::draw() {
 
 // cStrokeLayer
 //{{{
-cStrokeLayer::cStrokeLayer (cWindow& window, const std::string& name, const cColor& color, cPoint pos, float width)
-    : cLayer(window, name, color, {0.f,0.f}), mWidth(width) {
+cStrokeLayer::cStrokeLayer (const std::string& name, const cColor& color, cPoint pos, float width)
+    : cLayer(name, color, {0.f,0.f}), mWidth(width) {
   addPoint (pos);
   }
 //}}}
@@ -167,7 +167,7 @@ void cStrokeLayer::wheel (int delta, cPoint pos) {
   }
 //}}}
 //{{{
-void cStrokeLayer::draw() {
+void cStrokeLayer::draw (cWindow& window) {
 
   mExtent = {0,0,0,0};
 
@@ -180,7 +180,7 @@ void cStrokeLayer::draw() {
     if (first)
       first = false;
     else
-      mWindow.drawLine (mProx ? kLightBlue : mColor, mPos + lastPos, mPos+pos, mWidth);
+      window.drawLine (mProx ? kLightBlue : mColor, mPos + lastPos, mPos+pos, mWidth);
     lastPos = pos;
 
     mExtent |= mPos + pos;
@@ -193,7 +193,7 @@ void cStrokeLayer::draw() {
       }
     else {
       cPoint perp = (pos - lastPos).perp() * 16.f;
-      mWindow.drawLine (kWhite, mPos + pos - perp, mPos + pos + perp, 1.f);
+      window.drawLine (kWhite, mPos + pos - perp, mPos + pos + perp, 1.f);
       }
     lastPos = pos;
     }
@@ -249,8 +249,8 @@ void cRectangleLayer::wheel (int delta, cPoint pos) {
 //}}}
 
 //{{{
-void cRectangleLayer::draw() {
-  mWindow.drawRectangle (mColor, {mPos, mPos + mLength});
+void cRectangleLayer::draw (cWindow& window) {
+  window.drawRectangle (mColor, {mPos, mPos + mLength});
   }
 //}}}
 //}}}
@@ -302,8 +302,8 @@ void cEllipseLayer::wheel (int delta, cPoint pos) {
 //}}}
 
 //{{{
-void cEllipseLayer::draw() {
-  mWindow.drawEllipse (mColor, mPos, mRadius, mWidth);
+void cEllipseLayer::draw (cWindow& window) {
+  window.drawEllipse (mColor, mPos, mRadius, mWidth);
   }
 //}}}
 //}}}
@@ -356,8 +356,8 @@ void cTextLayer::wheel (int delta, cPoint pos) {
 //}}}
 
 //{{{
-void cTextLayer::draw() {
-  mLength = mWindow.drawText (mColor, cRect (mPos, mWindow.getSize()), mText);
+void cTextLayer::draw (cWindow& window) {
+  mLength = window.drawText (mColor, cRect (mPos, window.getSize()), mText);
   }
 //}}}
 //}}}
@@ -409,9 +409,9 @@ void cTextureLayer::wheel (int delta, cPoint pos) {
 //}}}
 
 //{{{
-void cTextureLayer::draw() {
+void cTextureLayer::draw (cWindow& window) {
 
-  mWindow.blitAffine (mTexture, mWindow.getSize(), mSize, mAngle, mPos.x, mPos.y);
+  window.blitAffine (mTexture, window.getSize(), mSize, mAngle, mPos.x, mPos.y);
   mExtent = {mPos - ((mTexture.getSize() / 2.f) * mSize), mPos + ((mTexture.getSize() /2.f) * mSize)};
   }
 //}}}
@@ -472,9 +472,9 @@ bool cPaint::proxLift() {
 bool cPaint::down (cPoint pos) {
 
   if (mPainting)
-    mPickedLayer = addLayer (new cPaintLayer (mWindow, "paint", kYellow, pos, 4.f));
+    mPickedLayer = addLayer (new cPaintLayer ("paint", kYellow, pos, 4.f));
   else if (mStroking)
-    mPickedLayer = addLayer (new cStrokeLayer (mWindow, "stroke", kGreen, pos, 4.f));
+    mPickedLayer = addLayer (new cStrokeLayer ("stroke", kGreen, pos, 4.f));
   else if (mPickedLayer)
     mPickedLayer->down (pos);
 
@@ -515,6 +515,6 @@ bool cPaint::wheel (int delta, cPoint pos) {
 //{{{
 void cPaint::draw() {
   for (auto layer : mLayers)
-    layer->draw();
+    layer->draw (mWindow);
   }
 //}}}
