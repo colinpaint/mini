@@ -10,7 +10,7 @@ set (CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "limited configs" FO
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
   set (BUILD_MSVC_COMPILE_OPTIONS "/arch:AVX" CACHE STRING "msvc compile options")
   option (WINMAIN_ENTRY "winMain entry" OFF)
-#elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
+elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
   set (BUILD_LINUX_COMPILE_OPTIONS "-Ofast" CACHE STRING "gcc compile options")
 endif()
 #
@@ -31,7 +31,7 @@ project (mini VERSION 1.0.0)
   add_executable (${PROJECT_NAME} mini.cpp)
   target_include_directories (${PROJECT_NAME} PRIVATE paint songGui tiledMapGui)
   target_link_libraries (${PROJECT_NAME} PRIVATE paint songGui tiledMapGui)
-  #if (WINMAIN_ENTRY)
+  if (WINMAIN_ENTRY)
     target_compile_definitions (${PROJECT_NAME} PRIVATE WINMAIN_ENTRY)
     target_link_options (${PROJECT_NAME} PRIVATE /SUBSYSTEM:WINDOWS)
-  #endif
+  endif()
