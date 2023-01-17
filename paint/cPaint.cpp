@@ -10,14 +10,13 @@ using namespace std;
 using namespace chrono;
 //}}}
 
-//{{{  cPaintLayer
+// cPaintLayer
 //{{{
-cPaintLayer::cPaintLayer (const std::string& name, const cColor& color, cPoint pos, float width)
-    : cLayer(name, color, {0.f,0.f}), mWidth(width) {
+cPaintLayer::cPaintLayer (cWindow& window, const std::string& name, const cColor& color, cPoint pos, float width)
+    : cLayer(window, name, color, {0.f,0.f}), mWidth(width) {
   addPoint (pos);
   }
 //}}}
-
 //{{{
 void cPaintLayer::addPoint (cPoint pos) {
 
@@ -25,24 +24,28 @@ void cPaintLayer::addPoint (cPoint pos) {
      mLine.push_back (pos);
    }
 //}}}
-
 //{{{
 bool cPaintLayer::pick (cPoint pos) {
+// !!! should be distance to line test !!!
+
   return mExtent.inside (pos);
   }
 //}}}
 //{{{
 void cPaintLayer::prox (cPoint pos) {
   (void)pos;
+  mProx = true;
   }
 //}}}
 //{{{
 void cPaintLayer::proxExit() {
+  mProx = false;
   }
 //}}}
 //{{{
 void cPaintLayer::down (cPoint pos) {
   (void)pos;
+  mProx = false;
   }
 //}}}
 //{{{
@@ -63,9 +66,8 @@ void cPaintLayer::wheel (int delta, cPoint pos) {
   mWidth = mWidth * (delta > 0 ? 1.05f : 1/1.05f);
   }
 //}}}
-
 //{{{
-void cPaintLayer::draw (cWindow& window) {
+void cPaintLayer::draw() {
 
   mExtent = {0,0,0,0};
 
@@ -78,7 +80,7 @@ void cPaintLayer::draw (cWindow& window) {
     if (first)
       first = false;
     else
-      window.drawLine (mColor, mPos + lastPos, mPos+pos, mWidth);
+      mWindow.drawLine (mProx ? kLightBlue : mColor, mPos + lastPos, mPos+pos, mWidth);
     lastPos = pos;
 
     mExtent |= mPos + pos;
@@ -91,13 +93,13 @@ void cPaintLayer::draw (cWindow& window) {
       }
     else {
       cPoint perp = (pos - lastPos).perp() * 16.f;
-      window.drawLine (kWhite, pos - perp, pos + perp, 1.f);
+      mWindow.drawLine (kWhite, mPos + pos - perp, mPos + pos + perp, 1.f);
       }
     lastPos = pos;
     }
   }
 //}}}
-//}}}
+
 //{{{  cRectangleLayer
 //{{{
 bool cRectangleLayer::pick (cPoint pos) {
@@ -139,8 +141,8 @@ void cRectangleLayer::wheel (int delta, cPoint pos) {
 //}}}
 
 //{{{
-void cRectangleLayer::draw (cWindow& window) {
-  window.drawRectangle (mColor, {mPos, mPos + mLength});
+void cRectangleLayer::draw() {
+  mWindow.drawRectangle (mColor, {mPos, mPos + mLength});
   }
 //}}}
 //}}}
@@ -184,8 +186,8 @@ void cEllipseLayer::wheel (int delta, cPoint pos) {
 //}}}
 
 //{{{
-void cEllipseLayer::draw (cWindow& window) {
-  window.drawEllipse (mColor, mPos, mRadius, mWidth);
+void cEllipseLayer::draw() {
+  mWindow.drawEllipse (mColor, mPos, mRadius, mWidth);
   }
 //}}}
 //}}}
@@ -230,8 +232,8 @@ void cTextLayer::wheel (int delta, cPoint pos) {
 //}}}
 
 //{{{
-void cTextLayer::draw (cWindow& window) {
-  mLength = window.drawText (mColor, cRect (mPos, window.getSize()), mText);
+void cTextLayer::draw() {
+  mLength = mWindow.drawText (mColor, cRect (mPos, mWindow.getSize()), mText);
   }
 //}}}
 //}}}
@@ -276,9 +278,9 @@ void cTextureLayer::wheel (int delta, cPoint pos) {
 //}}}
 
 //{{{
-void cTextureLayer::draw (cWindow& window) {
+void cTextureLayer::draw() {
 
-  window.blitAffine (mTexture, window.getSize(), mSize, mAngle, mPos.x, mPos.y);
+  mWindow.blitAffine (mTexture, mWindow.getSize(), mSize, mAngle, mPos.x, mPos.y);
   mExtent = {mPos - ((mTexture.getSize() / 2.f) * mSize), mPos + ((mTexture.getSize() /2.f) * mSize)};
   }
 //}}}
@@ -290,14 +292,12 @@ void cTextureLayer::draw (cWindow& window) {
   // deallocate layers
   }
 //}}}
-
 //{{{
 cLayer* cPaint::addLayer (cLayer* layer) {
   mLayers.push_back (layer);
   return layer;
   }
 //}}}
-
 //{{{
 bool cPaint::pick (cPoint pos) {
 
@@ -326,12 +326,11 @@ bool cPaint::proxExit() {
   return true;
   }
 //}}}
-
 //{{{
 bool cPaint::down (cPoint pos) {
 
   if (mPainting)
-    mPickedLayer = addLayer (new cPaintLayer ("paint", kYellow, pos, 4.f));
+    mPickedLayer = addLayer (new cPaintLayer (mWindow, "paint", kYellow, pos, 4.f));
   else if (mPickedLayer)
     mPickedLayer->down (pos);
 
@@ -360,7 +359,6 @@ bool cPaint::up (cPoint pos, bool mouseMoved){
   return true;
   }
 //}}}
-
 //{{{
 bool cPaint::wheel (int delta, cPoint pos) {
 
@@ -370,10 +368,9 @@ bool cPaint::wheel (int delta, cPoint pos) {
   return true;
   }
 //}}}
-
 //{{{
-void cPaint::draw (cWindow& window) {
+void cPaint::draw() {
   for (auto layer : mLayers)
-    layer->draw (window);
+    layer->draw();
   }
 //}}}

@@ -10,7 +10,8 @@
 //{{{
 class cLayer {
 public:
-  cLayer (const std::string& name, const cColor& color, cPoint pos) : mName(name), mPos(pos), mColor(color) {}
+  cLayer (cWindow& window, const std::string& name, const cColor& color, cPoint pos)
+    : mWindow(window), mName(name), mPos(pos), mColor(color) {}
   virtual ~cLayer() {}
 
   std::string getName() const { return mName; }
@@ -27,18 +28,20 @@ public:
   virtual void up (cPoint pos, bool mouseMoved) = 0;
   virtual void wheel (int delta, cPoint pos) = 0;
 
-  virtual void draw (cWindow& window) = 0;
+  virtual void draw() = 0;
 
 protected:
+  cWindow& mWindow;
   std::string mName;
   cPoint mPos;
   cColor mColor;
+  bool mProx = false;
   };
 //}}}
 //{{{
 class cPaintLayer : public cLayer {
 public:
-  cPaintLayer (const std::string& name, const cColor& color, cPoint pos, float width);
+  cPaintLayer (cWindow& window, const std::string& name, const cColor& color, cPoint pos, float width);
   virtual ~cPaintLayer() {}
 
   virtual std::string getType() const final { return "paint"; }
@@ -52,7 +55,7 @@ public:
   virtual void up (cPoint pos, bool mouseMoved) final;
   virtual void wheel (int delta, cPoint pos) final;
 
-  virtual void draw (cWindow& window) final;
+  virtual void draw() final;
 
 protected:
   float mWidth = 1.f;
@@ -63,8 +66,8 @@ protected:
 //{{{
 class cRectangleLayer : public cLayer {
 public:
-  cRectangleLayer(const std::string& name, const cColor& color, cPoint pos, cPoint length)
-    : cLayer(name, color, pos), mLength(length) {}
+  cRectangleLayer(cWindow& window, const std::string& name, const cColor& color, cPoint pos, cPoint length)
+    : cLayer(window, name, color, pos), mLength(length) {}
   virtual ~cRectangleLayer() {}
 
   virtual std::string getType() const final { return "rectangle"; }
@@ -78,7 +81,7 @@ public:
   virtual void up (cPoint pos, bool mouseMoved) final;
   virtual void wheel (int delta, cPoint pos) final;
 
-  virtual void draw (cWindow& window) final;
+  virtual void draw() final;
 
 protected:
   cPoint mLength;
@@ -87,8 +90,8 @@ protected:
 //{{{
 class cEllipseLayer : public cLayer {
 public:
-  cEllipseLayer (const std::string& name, const cColor& color, cPoint pos, float radius, float width = 0.f)
-    : cLayer(name, color, pos), mRadius(radius), mWidth(width) {}
+  cEllipseLayer (cWindow& window, const std::string& name, const cColor& color, cPoint pos, float radius, float width = 0.f)
+    : cLayer(window, name, color, pos), mRadius(radius), mWidth(width) {}
   virtual ~cEllipseLayer() {}
 
   virtual std::string getType() const final { return "circle"; }
@@ -102,7 +105,7 @@ public:
   virtual void up (cPoint pos, bool mouseMoved) final;
   virtual void wheel (int delta, cPoint pos) final;
 
-  virtual void draw (cWindow& window) final;
+  virtual void draw() final;
 
 protected:
   float mRadius;
@@ -112,8 +115,8 @@ protected:
 //{{{
 class cTextLayer : public cLayer {
 public:
-  cTextLayer (const std::string& name, const cColor& color, cPoint pos, const std::string text)
-    : cLayer(name, color, pos), mText(text) {}
+  cTextLayer (cWindow& window, const std::string& name, const cColor& color, cPoint pos, const std::string text)
+    : cLayer(window, name, color, pos), mText(text) {}
   virtual ~cTextLayer() {}
 
   virtual std::string getType() const final { return "text"; }
@@ -127,7 +130,7 @@ public:
   virtual void up (cPoint pos, bool mouseMoved) final;
   virtual void wheel (int delta, cPoint pos) final;
 
-  virtual void draw (cWindow& window) final;
+  virtual void draw() final;
 
 protected:
   std::string mText;
@@ -137,8 +140,9 @@ protected:
 //{{{
 class cTextureLayer : public cLayer {
 public:
-  cTextureLayer (const std::string& name, cTexture texture, cPoint pos, float size, const cColor& color = kBlack)
-    : cLayer(name, color,pos), mTexture(texture), mSize(size), mAngle(0) {}
+  cTextureLayer (cWindow& window, const std::string& name, cTexture texture,
+                 cPoint pos, float size, const cColor& color = kBlack)
+    : cLayer(window, name, color,pos), mTexture(texture), mSize(size), mAngle(0) {}
   virtual ~cTextureLayer() {}
 
   virtual std::string getType() const final { return "texture"; }
@@ -152,7 +156,7 @@ public:
   virtual void up (cPoint pos, bool mouseMoved) final;
   virtual void wheel (int delta, cPoint pos) final;
 
-  virtual void draw (cWindow& window) final;
+  virtual void draw() final;
 
 protected:
   cTexture mTexture;
@@ -164,6 +168,7 @@ protected:
 
 class cPaint {
 public:
+  cPaint (cWindow& window) : mWindow(window) {}
   ~cPaint();
 
   cLayer* addLayer (cLayer* layer);
@@ -176,11 +181,12 @@ public:
   bool up (cPoint pos, bool mouseMoved);
   bool wheel (int delta, cPoint pos);
 
-  void draw (cWindow& window);
+  void draw();
 
   bool mPainting = true;
 
 private:
+  cWindow& mWindow;
   std::deque <cLayer*> mLayers;
   cLayer* mPickedLayer = nullptr;
   };

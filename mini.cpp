@@ -49,15 +49,15 @@ public:
     cLog::log (LOGINFO, fmt::format ("opened window {}x{}", kWidthWindow, kHeightWindow));
 
     //{{{  create paint, gui
-    mPaint = new cPaint();
-    mPaint->addLayer (new cTextureLayer ("burger", cTexture::createLoad(fileRoot),
+    mPaint = new cPaint (*this);
+    mPaint->addLayer (new cTextureLayer (*this, "burger", cTexture::createLoad(fileRoot),
                                          {getWidth()/2.f, getHeight()/2.f}, 0.5f));
-    mPaint->addLayer (new cRectangleLayer ("text background", kDarkBlue, {100.f, 100.f}, {100.f,100.f}));
-    mPaint->addLayer (new cTextLayer (" text line 1", kWhite, {150.f, 150.f}, "line 1 of text"));
-    mPaint->addLayer (new cTextLayer ("text line 2", kOrange, {150.f, 170.f}, "some more text"));
-    mPaint->addLayer (new cTextLayer ("text line 3", kGreenYellow, {150.f, 190.f}, "last line of text"));
-    mPaint->addLayer (new cEllipseLayer ("solid circle", kGreen, {200.f, 200.f}, 100.f));
-    mPaint->addLayer (new cEllipseLayer ("outline circle", kYellow, {300.f, 300.f}, 100.f, 4.f));
+    mPaint->addLayer (new cRectangleLayer (*this, "text background", kDarkBlue, {100.f, 100.f}, {100.f,100.f}));
+    mPaint->addLayer (new cTextLayer (*this, " text line 1", kWhite, {150.f, 150.f}, "line 1 of text"));
+    mPaint->addLayer (new cTextLayer (*this, "text line 2", kOrange, {150.f, 170.f}, "some more text"));
+    mPaint->addLayer (new cTextLayer (*this, "text line 3", kGreenYellow, {150.f, 190.f}, "last line of text"));
+    mPaint->addLayer (new cEllipseLayer (*this, "solid circle", kGreen, {200.f, 200.f}, 100.f));
+    mPaint->addLayer (new cEllipseLayer (*this, "outline circle", kYellow, {300.f, 300.f}, 100.f, 4.f));
     addBackground (new cPaintBox (*this, 0,0, *mPaint));
     //}}}
 

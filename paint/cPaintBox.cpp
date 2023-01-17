@@ -29,12 +29,13 @@ bool cPaintBox::pick (bool inClient, cPoint pos, bool& change) {
 //{{{
 bool cPaintBox::prox (bool inClient, cPoint pos) {
   (void) inClient;
-  (void) pos;
+  mPaint.prox (pos);
   return true;
   }
 //}}}
 //{{{
 bool cPaintBox::proxExit() {
+  mPaint.proxExit();
   return true;
   }
 //}}}
@@ -74,7 +75,7 @@ bool cPaintBox::wheel (int delta, cPoint pos) {
 //{{{
 void cPaintBox::draw() {
 
-  mPaint.draw (mWindow);
+  mPaint.draw();
 
   //cPoint pos = getTL() + mPos;
 
