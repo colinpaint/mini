@@ -178,7 +178,7 @@ public:
 
   void draw (cWindow& window);
 
-  bool mPainting = false;
+  bool mPainting = true;
 
 private:
   std::deque <cLayer*> mLayers;
