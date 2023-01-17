@@ -31,9 +31,7 @@ project (mini VERSION 1.0.0)
   add_executable (${PROJECT_NAME} mini.cpp)
   target_include_directories (${PROJECT_NAME} PRIVATE paint songGui tiledMapGui)
   target_link_libraries (${PROJECT_NAME} PRIVATE paint songGui tiledMapGui)
-  if (WINMAIN_ENTRY)
+  #if (WINMAIN_ENTRY)
     target_compile_definitions (${PROJECT_NAME} PRIVATE WINMAIN_ENTRY)
     target_link_options (${PROJECT_NAME} PRIVATE /SUBSYSTEM:WINDOWS)
-  #else
-    target_link_options (${PROJECT_NAME} PRIVATE /SUBSYSTEM:CONSOLE)
-  endif()
+  #endif

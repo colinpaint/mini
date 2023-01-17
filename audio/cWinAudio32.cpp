@@ -1,12 +1,10 @@
-// cWInAudio32.cpp
-#ifdef __WIN32
-
+// cWinAudio32.cpp
 //{{{  includes
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 
 #include "cWinAudio32.h"
 
-#include <cstdint>
+#include "../common/basicTypes.h"
 #include "../common/cLog.h"
 
 #pragma comment(lib,"Xaudio2.lib")
@@ -60,7 +58,7 @@ void cAudio::play (int srcChannels, void* srcSamples, int srcNumSamples, float p
 
   if (srcChannels != mSrcChannels) {
     //{{{  recreate sourceVoice with new num of channels
-    cLog::log (LOGNOTICE, fmt::format ("audPlay - srcChannels:{} changedTo:{}" + mSrcChannels, srcChannels));
+    cLog::log (LOGNOTICE, fmt::format ("audPlay - srcChannels:{} changedTo:{}", mSrcChannels, srcChannels));
     close();
 
     open (srcChannels, mSrcSampleRate);
@@ -141,7 +139,7 @@ void cAudio::play (int srcChannels, void* srcSamples, int srcNumSamples, float p
             }
             //}}}
           }
-        cLog::log (LOGNOTICE,fmt::format ("6 to 2 mixdown changed to {}", mMixDown));
+        cLog::log (LOGNOTICE, fmt::format ("6 to 2 mixdown changed to {}", (int)mMixDown));
         }
         //}}}
       else if (mDstChannels == 4) {
@@ -288,7 +286,7 @@ void cAudio::play (int srcChannels, void* srcSamples, int srcNumSamples, float p
             }
             //}}}
           }
-        cLog::log (LOGNOTICE, fmt::format ("6 to 6 mixdown changed to {} ", mMixDown));
+        cLog::log (LOGNOTICE, fmt::format ("6 to 6 mixdown changed to {} ", (int)mMixDown));
         }
         //}}}
       }
@@ -300,7 +298,7 @@ void cAudio::play (int srcChannels, void* srcSamples, int srcNumSamples, float p
                                   1.f, 0.f,  // dst L
                                   0.f, 1.f}; // dst R
         mSourceVoice->SetOutputMatrix (mMasteringVoice, mSrcChannels, mDstChannels, kLevelMatrix, XAUDIO2_COMMIT_NOW);
-        cLog::log (LOGNOTICE, fmt::format ("2 to 2 mixdown changed to {} nothing changed", mMixDown));
+        cLog::log (LOGNOTICE, fmt::format ("2 to 2 mixdown changed to {} nothing changed", (int)mMixDown));
         }
         //}}}
       else if (mDstChannels == 4) {
@@ -323,7 +321,7 @@ void cAudio::play (int srcChannels, void* srcSamples, int srcNumSamples, float p
                                    1.f, 0.f,  // dst BL
                                    0.f, 1.f}; // dst BR
         mSourceVoice->SetOutputMatrix (mMasteringVoice, mSrcChannels, mDstChannels, kLevelMatrix, XAUDIO2_COMMIT_NOW);
-        cLog::log (LOGNOTICE, fmt::format( "2 to 6 mixdown changed to {} nothing changed", mMixDown));
+        cLog::log (LOGNOTICE, fmt::format( "2 to 6 mixdown changed to {} nothing changed", (int)mMixDown));
         }
         //}}}
       }
@@ -407,4 +405,3 @@ void cAudio::close() {
     }
   }
 //}}}
-#endif

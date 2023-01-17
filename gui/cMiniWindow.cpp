@@ -33,7 +33,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   (void)tickMs;
   (void)fullScreen;
 
-  #ifdef __WIN32
+  #ifdef _WIN32
     TIME_ZONE_INFORMATION timeZoneInfo;
     if (GetTimeZoneInformation (&timeZoneInfo) == TIME_ZONE_ID_DAYLIGHT)
       mDayLightSeconds = -timeZoneInfo.DaylightBias * 60;

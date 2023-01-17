@@ -1,7 +1,6 @@
 // cDrawTexture.h
 #pragma once
 #include "cTexture.h"
-#include <string>
 
 class cDrawAA;
 class cDrawTexture : public cTexture {

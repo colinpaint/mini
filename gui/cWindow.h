@@ -3,9 +3,7 @@
 //{{{  includes
 #include "cDrawTexture.h"
 
-#include <string>
 #include <chrono>
-#include <functional>
 #include <thread>
 #include <deque>
 
