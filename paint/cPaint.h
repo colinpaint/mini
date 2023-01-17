@@ -21,12 +21,15 @@ public:
   virtual void addPoint (cPoint pos) = 0;
 
   virtual bool pick (cPoint pos) = 0;
+
   virtual void prox (cPoint pos) = 0;
   virtual void proxExit () = 0;
   virtual void proxLift() = 0;
+
   virtual void down (cPoint pos) = 0;
   virtual void move (cPoint pos, cPoint inc) = 0;
   virtual void up (cPoint pos, bool mouseMoved) = 0;
+
   virtual void wheel (int delta, cPoint pos) = 0;
 
   virtual void draw (cWindow& window) = 0;
@@ -48,12 +51,15 @@ public:
   virtual void addPoint (cPoint pos) final;
 
   virtual bool pick (cPoint pos) final;
+
   virtual void prox (cPoint pos) final;
   virtual void proxExit () final;
   virtual void proxLift () final;
+
   virtual void down (cPoint pos) final;
   virtual void move (cPoint pos, cPoint inc) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
+
   virtual void wheel (int delta, cPoint pos) final;
 
   virtual void draw (cWindow& window) final;
@@ -74,12 +80,15 @@ public:
   virtual void addPoint (cPoint pos) final;
 
   virtual bool pick (cPoint pos) final;
+
   virtual void prox (cPoint pos) final;
   virtual void proxExit () final;
   virtual void proxLift () final;
+
   virtual void down (cPoint pos) final;
   virtual void move (cPoint pos, cPoint inc) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
+
   virtual void wheel (int delta, cPoint pos) final;
 
   virtual void draw (cWindow& window) final;
@@ -101,12 +110,15 @@ public:
   virtual void addPoint (cPoint pos) final { (void)pos; }
 
   virtual bool pick (cPoint pos) final;
+
   virtual void prox (cPoint pos) final;
   virtual void proxExit () final;
   virtual void proxLift () final;
+
   virtual void down (cPoint pos) final;
   virtual void move (cPoint pos, cPoint inc) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
+
   virtual void wheel (int delta, cPoint pos) final;
 
   virtual void draw (cWindow& window) final;
@@ -126,12 +138,15 @@ public:
   virtual void addPoint (cPoint pos) final { (void)pos; }
 
   virtual bool pick (cPoint pos) final;
+
   virtual void prox (cPoint pos) final;
   virtual void proxExit () final;
   virtual void proxLift () final;
+
   virtual void down (cPoint pos) final;
   virtual void move (cPoint pos, cPoint inc) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
+
   virtual void wheel (int delta, cPoint pos) final;
 
   virtual void draw (cWindow& window) final;
@@ -152,12 +167,15 @@ public:
   virtual void addPoint (cPoint pos) final { (void)pos; }
 
   virtual bool pick (cPoint pos) final;
+
   virtual void prox (cPoint pos) final;
   virtual void proxExit () final;
   virtual void proxLift () final;
+
   virtual void down (cPoint pos) final;
   virtual void move (cPoint pos, cPoint inc) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
+
   virtual void wheel (int delta, cPoint pos) final;
 
   virtual void draw (cWindow& window) final;
@@ -179,12 +197,15 @@ public:
   virtual void addPoint (cPoint pos) final { (void)pos; }
 
   virtual bool pick (cPoint pos) final;
+
   virtual void prox (cPoint pos) final;
   virtual void proxExit () final;
   virtual void proxLift () final;
+
   virtual void down (cPoint pos) final;
   virtual void move (cPoint pos, cPoint inc) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
+
   virtual void wheel (int delta, cPoint pos) final;
 
   virtual void draw (cWindow& window) final;
@@ -205,12 +226,15 @@ public:
   cLayer* addLayer (cLayer* layer);
 
   bool pick (cPoint pos);
+
   bool prox (cPoint pos);
   bool proxExit();
   bool proxLift();
+
   bool down (cPoint pos);
   bool move (cPoint pos, cPoint inc);
   bool up (cPoint pos, bool mouseMoved);
+
   bool wheel (int delta, cPoint pos);
 
   void draw();
