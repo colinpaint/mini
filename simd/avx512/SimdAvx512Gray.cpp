@@ -27,10 +27,10 @@
 #include "SimdMemory.h"
 #include "SimdConversion.h"
 
-namespace Simd { 
+namespace Simd {
   #ifdef SIMD_AVX512BW_ENABLE
     namespace Avx512bw {
-
+      //{{{
       template <bool align, bool mask> SIMD_INLINE void GrayToBgra(const uint8_t * gray, const __m512i & alpha, uint8_t * bgra, const __mmask64 tails[5])
       {
           __m512i gray0 = _mm512_permutexvar_epi32(K32_PERMUTE_FOR_TWO_UNPACK, (Load<align, mask>(gray + 0, tails[0])));
@@ -43,7 +43,8 @@ namespace Simd {
           Store<align, mask>(bgra + 2 * A, _mm512_unpacklo_epi16(bg1, ra1), tails[3]);
           Store<align, mask>(bgra + 3 * A, _mm512_unpackhi_epi16(bg1, ra1), tails[4]);
       }
-
+      //}}}
+      //{{{
       template <bool align> SIMD_INLINE void GrayToBgra2(const uint8_t * gray, const __m512i & alpha, uint8_t * bgra)
       {
           __m512i gray0 = _mm512_permutexvar_epi32(K32_PERMUTE_FOR_TWO_UNPACK, Load<align>(gray + 0));
@@ -66,7 +67,8 @@ namespace Simd {
           Store<align>(bgra + 6 * A, _mm512_unpacklo_epi16(bg3, ra3));
           Store<align>(bgra + 7 * A, _mm512_unpackhi_epi16(bg3, ra3));
       }
-
+      //}}}
+      //{{{
       template <bool align> void GrayToBgra(const uint8_t *gray, size_t width, size_t height, size_t grayStride, uint8_t *bgra, size_t bgraStride, uint8_t alpha)
       {
           if (align)
@@ -92,7 +94,8 @@ namespace Simd {
               bgra += bgraStride;
           }
       }
-
+      //}}}
+      //{{{
       void GrayToBgra(const uint8_t *gray, size_t width, size_t height, size_t grayStride, uint8_t *bgra, size_t bgraStride, uint8_t alpha)
       {
           if (Aligned(bgra) && Aligned(gray) && Aligned(bgraStride) && Aligned(grayStride))
@@ -100,20 +103,24 @@ namespace Simd {
           else
               GrayToBgra<false>(gray, width, height, grayStride, bgra, bgraStride, alpha);
       }
+      //}}}
 
+      //{{{
       template <bool align, bool mask> SIMD_INLINE void Int16ToGray(const int16_t * src, uint8_t * dst, __mmask64 tail = -1)
       {
           __m512i src0 = Load<align, mask>(src + 00, __mmask32(tail >> 00));
           __m512i src1 = Load<align, mask>(src + HA, __mmask32(tail >> 32));
           Store<align, mask>(dst, _mm512_permutexvar_epi64(K64_PERMUTE_FOR_PACK, _mm512_packus_epi16(src0, src1)), tail);
       }
-
+      //}}}
+      //{{{
       template <bool align> SIMD_INLINE void Int16ToGray2(const int16_t * src, uint8_t * dst)
       {
           Store<align>(dst + 0 * A, _mm512_permutexvar_epi64(K64_PERMUTE_FOR_PACK, _mm512_packus_epi16(Load<align>(src + 0 * HA), Load<align>(src + 1 * HA))));
           Store<align>(dst + 1 * A, _mm512_permutexvar_epi64(K64_PERMUTE_FOR_PACK, _mm512_packus_epi16(Load<align>(src + 2 * HA), Load<align>(src + 3 * HA))));
       }
-
+      //}}}
+      //{{{
       template <bool align> void Int16ToGray(const int16_t * src, size_t width, size_t height, size_t srcStride, uint8_t * dst, size_t dstStride)
       {
           if (align)
@@ -135,7 +142,8 @@ namespace Simd {
               dst += dstStride;
           }
       }
-
+      //}}}
+      //{{{
       void Int16ToGray(const uint8_t * src, size_t width, size_t height, size_t srcStride, uint8_t * dst, size_t dstStride)
       {
           if (Aligned(src) && Aligned(srcStride) && Aligned(dst) && Aligned(dstStride))
@@ -143,7 +151,9 @@ namespace Simd {
           else
               Int16ToGray<false>((const int16_t *)src, width, height, srcStride / sizeof(int16_t), dst, dstStride);
       }
+      //}}}
 
+      //{{{
       template <bool align, bool mask> SIMD_INLINE void GrayToBgr(const uint8_t * gray, uint8_t * bgr, const __mmask64 tails[4])
       {
           const __m512i gray0 = Load<align, mask>(gray + 0 * A, tails[0]);
@@ -151,7 +161,8 @@ namespace Simd {
           Store<align, mask>(bgr + 1 * A, GrayToBgr<1>(gray0), tails[2]);
           Store<align, mask>(bgr + 2 * A, GrayToBgr<2>(gray0), tails[3]);
       }
-
+      //}}}
+      //{{{
       template <bool align> SIMD_INLINE void GrayToBgr2(const uint8_t * gray, uint8_t * bgr)
       {
           const __m512i gray0 = Load<align>(gray + 0 * A);
@@ -163,7 +174,8 @@ namespace Simd {
           Store<align>(bgr + 4 * A, GrayToBgr<1>(gray1));
           Store<align>(bgr + 5 * A, GrayToBgr<2>(gray1));
       }
-
+      //}}}
+      //{{{
       template <bool align> void GrayToBgr(const uint8_t * gray, size_t width, size_t height, size_t grayStride, uint8_t *bgr, size_t bgrStride)
       {
           if (align)
@@ -189,7 +201,8 @@ namespace Simd {
               bgr += bgrStride;
           }
       }
-
+      //}}}
+      //{{{
       void GrayToBgr(const uint8_t *gray, size_t width, size_t height, size_t grayStride, uint8_t *bgr, size_t bgrStride)
       {
           if (Aligned(bgr) && Aligned(gray) && Aligned(bgrStride) && Aligned(grayStride))
@@ -197,6 +210,7 @@ namespace Simd {
           else
               GrayToBgr<false>(gray, width, height, grayStride, bgr, bgrStride);
       }
-    }
+      //}}}
+      }
   #endif
   }

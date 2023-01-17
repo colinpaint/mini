@@ -26,16 +26,12 @@
 #pragma once
 #include "SimdDefs.h"
 
-namespace Simd {
-  #ifdef SIMD_AVX_ENABLE
-    namespace Avx {
-      void Fill32f(float * dst, size_t size, const float * value);
+namespace Simd::Avx {
+  void Fill32f(float * dst, size_t size, const float * value);
 
-      void CosineDistance32f(const float * a, const float * b, size_t size, float * distance);
-      void SquaredDifferenceSum32f(const float * a, const float * b, size_t size, float * sum);
-      void SquaredDifferenceKahanSum32f(const float * a, const float * b, size_t size, float * sum);
+  void CosineDistance32f(const float * a, const float * b, size_t size, float * distance);
+  void SquaredDifferenceSum32f(const float * a, const float * b, size_t size, float * sum);
+  void SquaredDifferenceKahanSum32f(const float * a, const float * b, size_t size, float * sum);
 
-      void SvmSumLinear(const float * x, const float * svs, const float * weights, size_t length, size_t count, float * sum);
-    }
-  #endif
+  void SvmSumLinear(const float * x, const float * svs, const float * weights, size_t length, size_t count, float * sum);
   }
