@@ -1,8 +1,5 @@
 // mini.cpp
 //{{{  includes
-#include <cstdint>
-#include <string>
-
 #ifdef WINMAIN_ENTRY
   #define NOMINMAX
   #include <windows.h>

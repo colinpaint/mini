@@ -186,6 +186,8 @@ public:
         mRect.bottom = mWindow.getSize().y + mLayoutHeight + mLayoutY;
       }
     //}}}
+    virtual void resize() { layout(); }
+
     //{{{
     virtual bool pick (bool inClient, cPoint pos, bool& change) {
 
@@ -199,13 +201,17 @@ public:
       }
     //}}}
     virtual bool keyDown (int key) { (void)key; return false; }
+
     virtual bool prox (bool inClient, cPoint pos) { (void)inClient; (void)pos; return false; }
     virtual bool proxExit() { return true; }
+    virtual bool proxLift() { return true; }
+
     virtual bool down (bool right, cPoint pos)  { (void)right; (void)pos; return true; }
     virtual bool move (bool right, cPoint pos, cPoint inc)  { (void)right; (void)pos; (void)inc; return false; }
     virtual bool up (bool right, bool mouseMoved, cPoint pos) { (void)right; (void)mouseMoved; (void)pos; return true; }
+
     virtual bool wheel (int delta, cPoint pos)  { (void)delta; (void)pos; return true; }
-    virtual void resize() { layout(); }
+
     virtual void draw() = 0;
 
   protected:
