@@ -65,6 +65,21 @@ protected:
   float mWidth = 1.f;
   std::vector<cPoint> mLine;
   cRect mExtent = {0,0,0,0};
+
+  uint8_t* mShape = nullptr;
+  int32_t mSubPixels = 4;
+  float mRadius = 0;
+  int32_t mShapeRadius = 0;
+  int32_t mShapeSize = 0;
+  float mSubPixelResolution = 0.f;
+  float mCreatedShapeRadius = 0.f;
+  cPoint mPrevPos =  {0,0};
+
+private:
+  uint8_t getPaintShape (float i, float j, float radius);
+  void setRadius (float radius);
+  void stamp (cWindow& window, const cColor& color, cPoint pos);
+  void paint (cWindow& window, const cColor& color, cPoint pos, bool first);
   };
 //}}}
 //{{{

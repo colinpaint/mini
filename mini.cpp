@@ -196,7 +196,7 @@ private:
   vector <cBox*> mRadioBoxes;
   };
 
-//{{{  main
+// main
 #ifdef WINMAIN_ENTRY
   //{{{
   int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
@@ -224,7 +224,6 @@ private:
       params.push_back (args[i]);
   //}}}
 #endif
-
   // command line options
   eLogLevel logLevel = LOGINFO;
   bool fullScreen = false;
@@ -254,7 +253,5 @@ private:
 
   cMiniWindow window;
   window.run ("mini", fileRoot, tiledMapApiKey, 1s, fullScreen);
-
   return 0;
   }
-//}}}
