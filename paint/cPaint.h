@@ -1,5 +1,6 @@
 // cPaint.h
 #pragma once
+#include <array>
 #include <deque>
 #include "../common/basicTypes.h"
 #include "../gui/cWindow.h"
@@ -62,11 +63,13 @@ public:
   virtual void draw (cWindow& window) final;
 
 protected:
+  static inline constexpr int kMaxSubPixel = 4;
+
   float mWidth = 1.f;
   std::vector<cPoint> mLine;
   cRect mExtent = {0,0,0,0};
 
-  uint8_t* mShape = nullptr;
+  std::array <cAlphaTexture, kMaxSubPixel * kMaxSubPixel> mBrushShapes;
   int32_t mSubPixels = 4;
   float mRadius = 0;
   int32_t mShapeRadius = 0;
@@ -76,7 +79,7 @@ protected:
   cPoint mPrevPos =  {0,0};
 
 private:
-  uint8_t getPaintShape (float i, float j, float radius);
+  uint8_t getPaintShape (float i, float j, float radius, float pressure);
   void setRadius (float radius);
   void stamp (cWindow& window, const cColor& color, cPoint pos);
   void paint (cWindow& window, const cColor& color, cPoint pos, bool first);

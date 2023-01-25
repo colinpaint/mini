@@ -274,33 +274,40 @@ SIMD_API void SimdFillPixel (uint8_t* dst, size_t stride, size_t width, size_t h
 SIMD_API void SimdFill32f (float * dst, size_t size, const float* value);
 
 // alphaBlending
-SIMD_API void SimdAlphaBlending (const uint8_t * src, size_t srcStride, size_t width, size_t height,
-                                 size_t channelCount, const uint8_t* alpha, size_t alphaStride,
+SIMD_API void SimdAlphaBlending (const uint8_t* src, size_t srcStride,
+                                 size_t width, size_t height, size_t channelCount,
+                                 const uint8_t* alpha, size_t alphaStride,
                                  uint8_t* dst, size_t dstStride);
 SIMD_API void SimdAlphaBlending2x (const uint8_t* src0, size_t src0Stride,
                                    const uint8_t* alpha0, size_t alpha0Stride,
                                    const uint8_t* src1, size_t src1Stride,
                                    const uint8_t* alpha1, size_t alpha1Stride,
-                                   size_t width, size_t height, size_t channelCount, uint8_t* dst, size_t dstStride);
-SIMD_API void SimdAlphaBlendingUniform (const uint8_t* src, size_t srcStride, size_t width, size_t height,
-                                        size_t channelCount, uint8_t alpha,
+                                   size_t width, size_t height, size_t channelCount, 
+                                   uint8_t* dst, size_t dstStride);
+SIMD_API void SimdAlphaBlendingUniform (const uint8_t* src, size_t srcStride, 
+                                        size_t width, size_t height, size_t channelCount, 
+                                        uint8_t alpha,
                                         uint8_t* dst, size_t dstStride);
-SIMD_API void SimdAlphaFilling (uint8_t* dst, size_t dstStride, size_t width, size_t height,
+SIMD_API void SimdAlphaFilling (uint8_t* dst, size_t dstStride, 
+                                size_t width, size_t height,
                                 const uint8_t* channel, size_t channelCount,
                                 const uint8_t* alpha, size_t alphaStride);
-SIMD_API void SimdAlphaPremultiply (const uint8_t* src, size_t srcStride, size_t width, size_t height,
+SIMD_API void SimdAlphaPremultiply (const uint8_t* src, size_t srcStride, 
+                                    size_t width, size_t height,
                                     uint8_t* dst, size_t dstStride,
                                     SimdBool argb);
-SIMD_API void SimdAlphaUnpremultiply (const uint8_t* src, size_t srcStride, size_t width, size_t height,
+SIMD_API void SimdAlphaUnpremultiply (const uint8_t* src, size_t srcStride, 
+                                      size_t width, size_t height,
                                       uint8_t* dst, size_t dstStride,
                                       SimdBool argb);
-
 // copy
 SIMD_API void SimdCopy (const uint8_t* src, size_t srcStride, size_t width, size_t height, size_t pixelSize,
                         uint8_t* dst, size_t dstStride);
 SIMD_API void SimdCopyFrame (const uint8_t* src, size_t srcStride, size_t width, size_t height, size_t pixelSize,
                              size_t frameLeft, size_t frameTop, size_t frameRight, size_t frameBottom,
                              uint8_t* dst, size_t dstStride);
+
+// float <--> uint8_t
 SIMD_API void SimdFloat32ToUint8 (const float* src, size_t size, const float* lower, const float* upper, uint8_t* dst);
 SIMD_API void SimdUint8ToFloat32 (const uint8_t* src, size_t size, const float* lower, const float* upper, float* dst);
 
@@ -381,7 +388,7 @@ SIMD_API void SimdBgrToYuv422p (const uint8_t * bgr, size_t width, size_t height
 SIMD_API void SimdBgrToYuv444p (const uint8_t * bgr, size_t width, size_t height, size_t bgrStride,
                                 uint8_t * y, size_t yStride, uint8_t * u, size_t uStride, uint8_t * v, size_t vStride);
 //}}}
-//{{{  bgra 
+//{{{  bgra
 SIMD_API void SimdBgraToBgr (const uint8_t * bgra, size_t width, size_t height, size_t bgraStride,
                              uint8_t * bgr, size_t bgrStride);
 SIMD_API void SimdBgraToGray (const uint8_t * bgra, size_t width, size_t height, size_t bgraStride,
@@ -421,7 +428,7 @@ SIMD_API void SimdBgraToYuva420p (const uint8_t * bgra, size_t bgraStride, size_
                                   uint8_t * a, size_t aStride);
 
 //}}}
-//{{{  gray 
+//{{{  gray
 SIMD_API void SimdGrayToBgr (const uint8_t *gray, size_t width, size_t height, size_t grayStride,
                              uint8_t* bgr, size_t bgrStride);
 SIMD_API void SimdGrayToBgra (const uint8_t *gray, size_t width, size_t height, size_t grayStride,
@@ -519,7 +526,7 @@ SIMD_API void SimdYuv420pToUyvy422 (const uint8_t* y, size_t yStride,
                                     size_t width, size_t height,
                                     uint8_t* uyvy, size_t uyvyStride);
 //}}}
-//{{{  uyvy 
+//{{{  uyvy
 SIMD_API void SimdUyvy422ToBgr (const uint8_t* uyvy, size_t uyvyStride, size_t width, size_t height,
                                 uint8_t* bgr, size_t bgrStride, SimdYuvType yuvType);
 SIMD_API void SimdUyvy422ToYuv420p (const uint8_t* uyvy, size_t uyvyStride, size_t width, size_t height,

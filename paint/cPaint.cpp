@@ -91,9 +91,10 @@ void cPaintLayer::draw (cWindow& window) {
   }
 //}}}
 
+// private
 //{{{
-uint8_t cPaintLayer::getPaintShape (float i, float j, float radius) {
-  return static_cast<uint8_t>(255.f * (1.f - clamp (sqrtf((i*i) + (j*j)) - radius, 0.f, 1.f)));
+uint8_t cPaintLayer::getPaintShape (float i, float j, float radius, float pressure) {
+  return static_cast<uint8_t>(pressure * (1.f - clamp (sqrtf((i*i) + (j*j)) - radius, 0.f, 1.f)));
   }
 //}}}
 //{{{
@@ -106,89 +107,34 @@ void cPaintLayer::setRadius (float radius) {
   mSubPixels = 4;
   mSubPixelResolution = 1.f / mSubPixels;
 
-  free (mShape);
-  mShape = static_cast<uint8_t*>(malloc (mSubPixels * mSubPixels  * mShapeSize * mShapeSize));
-
-  auto shape = mShape;
-  for (int ySub = 0; ySub < mSubPixels; ySub++)
-    for (int xSub = 0; xSub < mSubPixels; xSub++)
+  for (int ySub = 0; ySub < mSubPixels; ySub++) {
+    for (int xSub = 0; xSub < mSubPixels; xSub++) {
+      mBrushShapes [(ySub * mSubPixels) + xSub].release();
+      mBrushShapes [(ySub * mSubPixels) + xSub].createPixels (mShapeSize, mShapeSize);
+      uint8_t* shape = mBrushShapes [(ySub * mSubPixels) + xSub].getPixels();
       for (int j = -mShapeRadius; j <= mShapeRadius; j++)
         for (int i = -mShapeRadius; i <= mShapeRadius; i++)
-          *shape++ = getPaintShape (i - (xSub * mSubPixelResolution), j - (ySub * mSubPixelResolution), mRadius);
+          *shape++ = getPaintShape (i - (xSub * mSubPixelResolution), j - (ySub * mSubPixelResolution), mRadius, 128.f);
+      }
+    }
   }
 //}}}
 //{{{
 void cPaintLayer::stamp (cWindow& window, const cColor& color, cPoint pos) {
-// stamp brushShape into image, clipped by width,height to pos, update mPrevPos
+// stamp brushShape into image
 
-  int32_t width = window.getWidth();
-  int32_t height = window.getHeight();
-
-  // x
+  // !!!! does this behave correctly as we go negative !!!
   int32_t xInt = static_cast<int32_t>(pos.x);
-  int32_t leftClipShape = -min(0, xInt - mShapeRadius);
-  int32_t rightClipShape = max(0, xInt + mShapeRadius + 1 - width);
-  int32_t xFirst = xInt - mShapeRadius + leftClipShape;
-  float xSubPixelFrac = pos.x - xInt;
+  float xSubPixel = pos.x - xInt;
+  int32_t xSubIndex = static_cast<int>(xSubPixel / mSubPixelResolution);
 
-  // y
   int32_t yInt = static_cast<int32_t>(pos.y);
-  int32_t topClipShape = -min(0, yInt - mShapeRadius);
-  int32_t botClipShape = max(0, yInt + mShapeRadius + 1 - height);
-  int32_t yFirst = yInt - mShapeRadius + topClipShape;
-  float ySubPixelFrac = pos.y - yInt;
-
-  // point to first image pix
-  uint8_t* frame = (uint8_t*)window.getPixels (xFirst, yFirst);
-  int32_t frameRowInc = (width - mShapeSize + leftClipShape + rightClipShape) * 4;
-
-  int32_t xSub = static_cast<int>(xSubPixelFrac / mSubPixelResolution);
-  int32_t ySub = static_cast<int>(ySubPixelFrac / mSubPixelResolution);
+  float ySubPixel = pos.y - yInt;
+  int32_t ySubIndex = static_cast<int>(ySubPixel / mSubPixelResolution);
 
   // point to first clipped shape pix
-  uint8_t* shape = mShape;
-  shape += ((ySub * mSubPixels) + xSub) * mShapeSize * mShapeSize;
-  shape += (topClipShape * mShapeSize) + leftClipShape;
-
-  int shapeRowInc = rightClipShape + leftClipShape;
-
-  cTexture::uPixel colorPixel (color);
-  for (int32_t j = -mShapeRadius + topClipShape; j <= mShapeRadius - botClipShape; j++) {
-    for (int32_t i = -mShapeRadius + leftClipShape; i <= mShapeRadius - rightClipShape; i++) {
-      uint16_t foreground = *shape++;
-      if (foreground > 0) {
-        // stamp some foreground
-        //foreground = (foreground * colorPixel.rgba.a) / 255;
-        uint8_t pressure = 128;
-        foreground = (foreground * pressure) / 255;
-        if (foreground >= 255) {
-          // all foreground
-          *frame++ = colorPixel.rgba.r;
-          *frame++ = colorPixel.rgba.g;
-          *frame++ = colorPixel.rgba.b;
-          *frame++ = colorPixel.rgba.a;
-          }
-        else {
-          // blend foreground into background
-          uint16_t background = 255 - foreground;
-          uint16_t r = (colorPixel.rgba.r * foreground) + (*frame * background);
-          *frame++ = (uint8_t)(r / 255);
-          uint16_t g = (colorPixel.rgba.g * foreground) + (*frame * background);
-          *frame++ = (uint8_t)(g / 255);
-          uint16_t b = (colorPixel.rgba.b * foreground) + (*frame * background);
-          *frame++ = (uint8_t)(b / 255);
-          uint16_t a = (colorPixel.rgba.a * foreground) + (*frame * background);
-          *frame++ = (uint8_t)(a / 255);
-          }
-        }
-      else
-        frame += 4;
-      }
-
-    // onto next row
-    frame += frameRowInc;
-    shape += shapeRowInc;
-    }
+  window.stamp (color, mBrushShapes [(ySubIndex * mSubPixels) + xSubIndex],
+                cPoint(xInt, yInt) - cPoint (mShapeRadius, mShapeRadius));
 
   mPrevPos = pos;
   }
@@ -196,8 +142,11 @@ void cPaintLayer::stamp (cWindow& window, const cColor& color, cPoint pos) {
 //{{{
 void cPaintLayer::paint (cWindow& window, const cColor& color, cPoint pos, bool first) {
 
+  cColor color1 = color;
+  color1.a = 0.5f;
+
   if (first)
-    stamp (window, color, pos);
+    stamp (window, color1, pos);
   else {
     // draw stamps from mPrevPos to pos
     cPoint diff = pos - mPrevPos;
@@ -209,7 +158,7 @@ void cPaintLayer::paint (cWindow& window, const cColor& color, cPoint pos, bool 
 
       unsigned numStamps = static_cast<unsigned>(length / overlap);
       for (unsigned i = 0; i < numStamps; i++)
-        stamp (window, color, mPrevPos + inc);
+        stamp (window, color1, mPrevPos + inc);
       }
     }
   }
@@ -588,7 +537,7 @@ bool cPaint::proxLift() {
 bool cPaint::down (cPoint pos) {
 
   if (mPainting)
-    mPickedLayer = addLayer (new cPaintLayer ("paint", kYellow, pos, 12.f));
+    mPickedLayer = addLayer (new cPaintLayer ("paint", kYellow, pos, 16.f));
   else if (mStroking)
     mPickedLayer = addLayer (new cStrokeLayer ("stroke", kGreen, pos, 4.f));
   else if (mPickedLayer)

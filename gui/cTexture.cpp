@@ -178,7 +178,7 @@ void cAlphaTexture::createPixels (int32_t width, int32_t height) {
 
   mWidth = width;
   mHeight = height;
-  mPixels = (uint8_t*)allocate (width * height * sizeof(uint8_t));
+  mPixels = allocate (width * height * sizeof(uint8_t));
   }
 //}}}
 //{{{
@@ -285,7 +285,7 @@ void cTexture::createPixels (int32_t width, int32_t height) {
 
   mWidth = width;
   mHeight = height;
-  mPixels = (uPixel*)allocate (width * height * sizeof(uPixel));
+  mPixels = allocate (width * height * sizeof(uPixel));
   }
 //}}}
 //{{{
