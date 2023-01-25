@@ -60,7 +60,7 @@ namespace Simd::Base {
     //}}}
     }
   //{{{
-  void EstimateAlphaIndex(size_t srcSize, size_t dstSize, int * indexes, int * alphas, size_t channelCount)
+  void EstimateAlphaIndex (size_t srcSize, size_t dstSize, int * indexes, int * alphas, size_t channelCount)
   {
       float scale = (float)srcSize / dstSize;
 

@@ -28,7 +28,7 @@
 
 namespace Simd::Base {
   //{{{
-  SIMD_INLINE void GrayToBgr(const uint8_t & gray, uint8_t * bgr)
+  SIMD_INLINE void GrayToBgr (const uint8_t & gray, uint8_t * bgr)
   {
       bgr[0] = gray;
       bgr[1] = gray;
@@ -36,7 +36,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void GrayToBgr(const uint8_t * gray, size_t width, size_t height, size_t grayStride, uint8_t * bgr, size_t bgrStride)
+  void GrayToBgr (const uint8_t * gray, size_t width, size_t height, size_t grayStride, uint8_t * bgr, size_t bgrStride)
   {
       for (size_t row = 0; row < height; ++row)
       {
@@ -49,7 +49,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  SIMD_INLINE uint32_t GrayToBgra(uint32_t gray, uint32_t alpha)
+  SIMD_INLINE uint32_t GrayToBgra (uint32_t gray, uint32_t alpha)
   {
   #ifdef SIMD_BIG_ENDIAN
       return alpha | (gray << 8) | (gray << 16) | (gray << 24);
@@ -59,7 +59,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void GrayToBgra(const uint8_t *gray, size_t width, size_t height, size_t grayStride, uint8_t *bgra, size_t bgraStride, uint8_t alpha)
+  void GrayToBgra (const uint8_t *gray, size_t width, size_t height, size_t grayStride, uint8_t *bgra, size_t bgraStride, uint8_t alpha)
   {
       for (size_t row = 0; row < height; ++row)
       {
@@ -72,7 +72,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  static void Int16ToGray(const int16_t * src, size_t width, size_t height, size_t srcStride, uint8_t * dst, size_t dstStride)
+  static void Int16ToGray (const int16_t * src, size_t width, size_t height, size_t srcStride, uint8_t * dst, size_t dstStride)
   {
       for (size_t row = 0; row < height; ++row)
       {
@@ -84,7 +84,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void Int16ToGray(const uint8_t * src, size_t width, size_t height, size_t srcStride, uint8_t * dst, size_t dstStride)
+  void Int16ToGray (const uint8_t * src, size_t width, size_t height, size_t srcStride, uint8_t * dst, size_t dstStride)
   {
       Int16ToGray((const int16_t *)src, width, height, srcStride / sizeof(int16_t), dst, dstStride);
   }

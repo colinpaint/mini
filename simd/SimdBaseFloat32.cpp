@@ -50,6 +50,7 @@ namespace Simd::Base {
           dst[i] = Float32ToUint8(src[i], _lower, _upper, boost);
   }
   //}}}
+
   //{{{
   SIMD_INLINE float Uint8ToFloat32(int value, float lower, float boost)
   {
@@ -73,6 +74,7 @@ namespace Simd::Base {
           dst[i] = Uint8ToFloat32(src[i], _lower, boost);
   }
   //}}}
+
   //{{{
   void CosineDistance32f(const float * a, const float * b, size_t size, float * distance)
   {

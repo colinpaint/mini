@@ -29,7 +29,7 @@
 
 namespace Simd::Base {
   //{{{
-  void BgrToHsl(const uint8_t * bgr, size_t width, size_t height, size_t bgrStride, uint8_t * hsl, size_t hslStride)
+  void BgrToHsl (const uint8_t * bgr, size_t width, size_t height, size_t bgrStride, uint8_t * hsl, size_t hslStride)
   {
       for (size_t row = 0; row < height; ++row)
       {
@@ -43,7 +43,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgrToHsv(const uint8_t * bgr, size_t width, size_t height, size_t bgrStride, uint8_t * hsv, size_t hsvStride)
+  void BgrToHsv (const uint8_t * bgr, size_t width, size_t height, size_t bgrStride, uint8_t * hsv, size_t hsvStride)
   {
       for (size_t row = 0; row < height; ++row)
       {
@@ -57,7 +57,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgrToRgb(const uint8_t * bgr, size_t width, size_t height, size_t bgrStride, uint8_t * rgb, size_t rgbStride)
+  void BgrToRgb (const uint8_t * bgr, size_t width, size_t height, size_t bgrStride, uint8_t * rgb, size_t rgbStride)
   {
       size_t size = width * 3;
       for (size_t row = 0; row < height; ++row)
@@ -74,7 +74,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  SIMD_INLINE void BgrToYuv420p(const uint8_t * bgr0, size_t bgrStride, uint8_t * y0, size_t yStride, uint8_t * u, uint8_t * v)
+  SIMD_INLINE void BgrToYuv420p (const uint8_t * bgr0, size_t bgrStride, uint8_t * y0, size_t yStride, uint8_t * u, uint8_t * v)
   {
       const uint8_t * bgr1 = bgr0 + bgrStride;
       uint8_t * y1 = y0 + yStride;
@@ -93,7 +93,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgrToYuv420p(const uint8_t * bgr, size_t width, size_t height, size_t bgrStride, uint8_t * y, size_t yStride,
+  void BgrToYuv420p (const uint8_t * bgr, size_t width, size_t height, size_t bgrStride, uint8_t * y, size_t yStride,
       uint8_t * u, size_t uStride, uint8_t * v, size_t vStride)
   {
       assert((width % 2 == 0) && (height % 2 == 0) && (width >= 2) && (height >= 2));
@@ -113,7 +113,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  SIMD_INLINE void BgrToYuv422p(const uint8_t * bgr, uint8_t * y, uint8_t * u, uint8_t * v)
+  SIMD_INLINE void BgrToYuv422p (const uint8_t * bgr, uint8_t * y, uint8_t * u, uint8_t * v)
   {
       y[0] = BgrToY(bgr[0], bgr[1], bgr[2]);
       y[1] = BgrToY(bgr[3], bgr[4], bgr[5]);
@@ -127,7 +127,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgrToYuv422p(const uint8_t * bgr, size_t width, size_t height, size_t bgrStride, uint8_t * y, size_t yStride,
+  void BgrToYuv422p (const uint8_t * bgr, size_t width, size_t height, size_t bgrStride, uint8_t * y, size_t yStride,
       uint8_t * u, size_t uStride, uint8_t * v, size_t vStride)
   {
       assert((width % 2 == 0) && (width >= 2));
@@ -145,7 +145,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  SIMD_INLINE void BgrToYuv444p(const uint8_t * bgr, uint8_t * y, uint8_t * u, uint8_t * v)
+  SIMD_INLINE void BgrToYuv444p (const uint8_t * bgr, uint8_t * y, uint8_t * u, uint8_t * v)
   {
       const int blue = bgr[0], green = bgr[1], red = bgr[2];
       y[0] = BgrToY(blue, green, red);
@@ -154,7 +154,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgrToYuv444p(const uint8_t * bgr, size_t width, size_t height, size_t bgrStride, uint8_t * y, size_t yStride,
+  void BgrToYuv444p (const uint8_t * bgr, size_t width, size_t height, size_t bgrStride, uint8_t * y, size_t yStride,
       uint8_t * u, size_t uStride, uint8_t * v, size_t vStride)
   {
       for (size_t row = 0; row < height; ++row)
@@ -169,7 +169,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgraToGray(const uint8_t * bgra, size_t width, size_t height, size_t bgraStride, uint8_t * gray, size_t grayStride)
+  void BgraToGray (const uint8_t * bgra, size_t width, size_t height, size_t bgraStride, uint8_t * gray, size_t grayStride)
   {
       for (size_t row = 0; row < height; ++row)
       {
@@ -184,7 +184,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  void RgbaToGray(const uint8_t* rgba, size_t width, size_t height, size_t rgbaStride, uint8_t* gray, size_t grayStride)
+  void RgbaToGray (const uint8_t* rgba, size_t width, size_t height, size_t rgbaStride, uint8_t* gray, size_t grayStride)
   {
       for (size_t row = 0; row < height; ++row)
       {
@@ -198,7 +198,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  SIMD_INLINE void BgraToYuv420p(const uint8_t * bgra0, size_t bgraStride, uint8_t * y0, size_t yStride, uint8_t * u, uint8_t * v)
+  SIMD_INLINE void BgraToYuv420p (const uint8_t * bgra0, size_t bgraStride, uint8_t * y0, size_t yStride, uint8_t * u, uint8_t * v)
   {
       const uint8_t * bgra1 = bgra0 + bgraStride;
       uint8_t * y1 = y0 + yStride;
@@ -217,7 +217,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgraToYuv420p(const uint8_t * bgra, size_t width, size_t height, size_t bgraStride, uint8_t * y, size_t yStride,
+  void BgraToYuv420p (const uint8_t * bgra, size_t width, size_t height, size_t bgraStride, uint8_t * y, size_t yStride,
       uint8_t * u, size_t uStride, uint8_t * v, size_t vStride)
   {
       assert((width % 2 == 0) && (height % 2 == 0) && (width >= 2) && (height >= 2));
@@ -235,7 +235,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  SIMD_INLINE void BgraToYuv422p(const uint8_t * bgra, uint8_t * y, uint8_t * u, uint8_t * v)
+  SIMD_INLINE void BgraToYuv422p (const uint8_t * bgra, uint8_t * y, uint8_t * u, uint8_t * v)
   {
       y[0] = BgrToY(bgra[0], bgra[1], bgra[2]);
       y[1] = BgrToY(bgra[4], bgra[5], bgra[6]);
@@ -249,7 +249,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgraToYuv422p(const uint8_t * bgra, size_t width, size_t height, size_t bgraStride, uint8_t * y, size_t yStride,
+  void BgraToYuv422p (const uint8_t * bgra, size_t width, size_t height, size_t bgraStride, uint8_t * y, size_t yStride,
       uint8_t * u, size_t uStride, uint8_t * v, size_t vStride)
   {
       assert((width % 2 == 0) && (width >= 2));
@@ -267,7 +267,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  SIMD_INLINE void BgraToYuv444p(const uint8_t * bgra, uint8_t * y, uint8_t * u, uint8_t * v)
+  SIMD_INLINE void BgraToYuv444p (const uint8_t * bgra, uint8_t * y, uint8_t * u, uint8_t * v)
   {
       const int blue = bgra[0], green = bgra[1], red = bgra[2];
       y[0] = BgrToY(blue, green, red);
@@ -276,7 +276,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgraToYuv444p(const uint8_t * bgra, size_t width, size_t height, size_t bgraStride, uint8_t * y, size_t yStride,
+  void BgraToYuv444p (const uint8_t * bgra, size_t width, size_t height, size_t bgraStride, uint8_t * y, size_t yStride,
       uint8_t * u, size_t uStride, uint8_t * v, size_t vStride)
   {
       for (size_t row = 0; row < height; ++row)
@@ -292,7 +292,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  SIMD_INLINE void BgraToYuva420p(const uint8_t * bgra0, size_t bgraStride, uint8_t * y0, size_t yStride, uint8_t * u, uint8_t * v, uint8_t * a0, size_t aStride)
+  SIMD_INLINE void BgraToYuva420p (const uint8_t * bgra0, size_t bgraStride, uint8_t * y0, size_t yStride, uint8_t * u, uint8_t * v, uint8_t * a0, size_t aStride)
   {
       const uint8_t * bgra1 = bgra0 + bgraStride;
       uint8_t * y1 = y0 + yStride;
@@ -317,7 +317,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgraToYuva420p(const uint8_t * bgra, size_t bgraStride, size_t width, size_t height, uint8_t * y, size_t yStride,
+  void BgraToYuva420p (const uint8_t * bgra, size_t bgraStride, size_t width, size_t height, uint8_t * y, size_t yStride,
       uint8_t * u, size_t uStride, uint8_t * v, size_t vStride, uint8_t * a, size_t aStride)
   {
       assert((width % 2 == 0) && (height % 2 == 0) && (width >= 2) && (height >= 2));
@@ -336,7 +336,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  template <class YuvType> SIMD_INLINE void BgraToYuv444pV2(const uint8_t* bgra, uint8_t* y, uint8_t* u, uint8_t* v)
+  template <class YuvType> SIMD_INLINE void BgraToYuv444pV2 (const uint8_t* bgra, uint8_t* y, uint8_t* u, uint8_t* v)
   {
       const int blue = bgra[0], green = bgra[1], red = bgra[2];
       y[0] = BgrToY<YuvType>(blue, green, red);
@@ -345,7 +345,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  template <class YuvType> void BgraToYuv444pV2(const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
+  template <class YuvType> void BgraToYuv444pV2 (const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
       uint8_t* y, size_t yStride, uint8_t* u, size_t uStride, uint8_t* v, size_t vStride)
   {
       for (size_t row = 0; row < height; ++row)
@@ -360,7 +360,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgraToYuv444pV2(const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
+  void BgraToYuv444pV2 (const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
       uint8_t* y, size_t yStride, uint8_t* u, size_t uStride, uint8_t* v, size_t vStride, SimdYuvType yuvType)
   {
       switch (yuvType)
@@ -376,7 +376,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  template <class YuvType> SIMD_INLINE void BgraToYuv420pV2(const uint8_t* bgra0, size_t bgraStride, uint8_t* y0, size_t yStride, uint8_t* u, uint8_t* v)
+  template <class YuvType> SIMD_INLINE void BgraToYuv420pV2 (const uint8_t* bgra0, size_t bgraStride, uint8_t* y0, size_t yStride, uint8_t* u, uint8_t* v)
   {
       const uint8_t* bgra1 = bgra0 + bgraStride;
       uint8_t* y1 = y0 + yStride;
@@ -395,7 +395,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  template <class YuvType> void BgraToYuv420pV2(const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
+  template <class YuvType> void BgraToYuv420pV2 (const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
       uint8_t* y, size_t yStride, uint8_t* u, size_t uStride, uint8_t* v, size_t vStride)
   {
       assert((width % 2 == 0) && (height % 2 == 0) && (width >= 2) && (height >= 2));
@@ -412,7 +412,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgraToYuv420pV2(const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
+  void BgraToYuv420pV2 (const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
       uint8_t* y, size_t yStride, uint8_t* u, size_t uStride, uint8_t* v, size_t vStride, SimdYuvType yuvType)
   {
       switch (yuvType)
@@ -427,7 +427,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgrToBgra(const uint8_t *bgr, size_t size, uint8_t *bgra, bool fillAlpha, bool lastRow, uint8_t alpha)
+  void BgrToBgra (const uint8_t *bgr, size_t size, uint8_t *bgra, bool fillAlpha, bool lastRow, uint8_t alpha)
   {
       if (fillAlpha)
       {
@@ -464,7 +464,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgrToBgra(const uint8_t *bgr, size_t width, size_t height, size_t bgrStride, uint8_t *bgra, size_t bgraStride, uint8_t alpha)
+  void BgrToBgra (const uint8_t *bgr, size_t width, size_t height, size_t bgrStride, uint8_t *bgra, size_t bgraStride, uint8_t alpha)
   {
       for (size_t row = 1; row < height; ++row)
       {
@@ -476,7 +476,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void Bgr48pToBgra32(const uint8_t * blue, size_t blueStride, size_t width, size_t height,
+  void Bgr48pToBgra32 (const uint8_t * blue, size_t blueStride, size_t width, size_t height,
       const uint8_t * green, size_t greenStride, const uint8_t * red, size_t redStride, uint8_t * bgra, size_t bgraStride, uint8_t alpha)
   {
       for (size_t row = 0; row < height; ++row)
@@ -510,7 +510,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void RgbToBgra(const uint8_t * rgb, size_t width, size_t height, size_t rgbStride, uint8_t* bgra, size_t bgraStride, uint8_t alpha)
+  void RgbToBgra (const uint8_t * rgb, size_t width, size_t height, size_t rgbStride, uint8_t* bgra, size_t bgraStride, uint8_t alpha)
   {
       size_t rgbGap = rgbStride - width * 3;
       size_t bgraGap = bgraStride - width * 4;
@@ -529,7 +529,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgrToGray(const uint8_t *bgr, size_t width, size_t height, size_t bgrStride, uint8_t *gray, size_t grayStride)
+  void BgrToGray (const uint8_t *bgr, size_t width, size_t height, size_t bgrStride, uint8_t *gray, size_t grayStride)
   {
       for (size_t row = 0; row < height; ++row)
       {
@@ -544,7 +544,7 @@ namespace Simd::Base {
   //}}}
 
   //{{{
-  void RgbToGray(const uint8_t* rgb, size_t width, size_t height, size_t rgbStride, uint8_t* gray, size_t grayStride)
+  void RgbToGray (const uint8_t* rgb, size_t width, size_t height, size_t rgbStride, uint8_t* gray, size_t grayStride)
   {
       for (size_t row = 0; row < height; ++row)
       {
@@ -558,7 +558,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgraToBgr(const uint8_t *bgra, size_t size, uint8_t *bgr, bool lastRow)
+  void BgraToBgr (const uint8_t *bgra, size_t size, uint8_t *bgr, bool lastRow)
   {
       for (size_t i = (lastRow ? 1 : 0); i < size; ++i, bgr += 3, bgra += 4)
       {
@@ -573,7 +573,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgraToBgr(const uint8_t *bgra, size_t width, size_t height, size_t bgraStride, uint8_t *bgr, size_t bgrStride)
+  void BgraToBgr (const uint8_t *bgra, size_t width, size_t height, size_t bgraStride, uint8_t *bgr, size_t bgrStride)
   {
       for (size_t row = 1; row < height; ++row)
       {
@@ -585,7 +585,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgraToRgb(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgb, size_t rgbStride)
+  void BgraToRgb (const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgb, size_t rgbStride)
   {
       size_t bgraGap = bgraStride - width * 4;
       size_t rgbGap = rgbStride - width * 3;
@@ -603,7 +603,7 @@ namespace Simd::Base {
   }
   //}}}
   //{{{
-  void BgraToRgba(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgba, size_t rgbaStride)
+  void BgraToRgba (const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgba, size_t rgbaStride)
   {
       size_t bgraGap = bgraStride - width * 4;
       size_t rgbaGap = rgbaStride - width * 4;
