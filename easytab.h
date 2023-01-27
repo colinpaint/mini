@@ -168,26 +168,24 @@
   //}}}
 
   //{{{  enum EasyTabResult
-  typedef enum
-  {
-      EASYTAB_OK = 0,
+  typedef enum {
+    EASYTAB_OK = 0,
 
-      // Errors
-      EASYTAB_MEMORY_ERROR           = -1,
-      EASYTAB_X11_ERROR              = -2,
-      EASYTAB_DLL_LOAD_ERROR         = -3,
-      EASYTAB_WACOM_WIN32_ERROR      = -4,
-      EASYTAB_INVALID_FUNCTION_ERROR = -5,
+    // Errors
+    EASYTAB_MEMORY_ERROR           = -1,
+    EASYTAB_X11_ERROR              = -2,
+    EASYTAB_DLL_LOAD_ERROR         = -3,
+    EASYTAB_WACOM_WIN32_ERROR      = -4,
+    EASYTAB_INVALID_FUNCTION_ERROR = -5,
 
-      EASYTAB_EVENT_NOT_HANDLED = -16,
-  } EasyTabResult;
+    EASYTAB_EVENT_NOT_HANDLED = -16,
+    } EasyTabResult;
   //}}}
   //{{{  enum EasyTabTrackingMode
-  typedef enum
-  {
-      EASYTAB_TRACKING_MODE_SYSTEM   = 0,
-      EASYTAB_TRACKING_MODE_RELATIVE = 1,
-  } EasyTabTrackingMode;
+  typedef enum {
+    EASYTAB_TRACKING_MODE_SYSTEM   = 0,
+    EASYTAB_TRACKING_MODE_RELATIVE = 1,
+    } EasyTabTrackingMode;
   //}}}
 
   #ifdef WIN32
@@ -199,183 +197,180 @@
     typedef DWORD WTPKT;
     typedef DWORD FIX32;
 
-    #if 1
-        //{{{  define messages
-        #define WT_DEFBASE          0x7FF0
-        #define WT_MAXOFFSET        0xF
+    // define messages
+    #define WT_DEFBASE          0x7FF0
+    #define WT_MAXOFFSET        0xF
 
-        #define _WT_PACKET(b)       ((b)+0)
-        #define _WT_CTXOPEN(b)      ((b)+1)
-        #define _WT_CTXCLOSE(b)     ((b)+2)
-        #define _WT_CTXUPDATE(b)    ((b)+3)
-        #define _WT_CTXOVERLAP(b)   ((b)+4)
-        #define _WT_PROXIMITY(b)    ((b)+5)
-        #define _WT_INFOCHANGE(b)   ((b)+6)
-        #define _WT_CSRCHANGE(b)    ((b)+7) /* 1.1 */
-        #define _WT_PACKETEXT(b)    ((b)+8) /* 1.4 */
-        #define _WT_MAX(b)          ((b)+WT_MAXOFFSET)
+    #define _WT_PACKET(b)       ((b)+0)
+    #define _WT_CTXOPEN(b)      ((b)+1)
+    #define _WT_CTXCLOSE(b)     ((b)+2)
+    #define _WT_CTXUPDATE(b)    ((b)+3)
+    #define _WT_CTXOVERLAP(b)   ((b)+4)
+    #define _WT_PROXIMITY(b)    ((b)+5)
+    #define _WT_INFOCHANGE(b)   ((b)+6)
+    #define _WT_CSRCHANGE(b)    ((b)+7) /* 1.1 */
+    #define _WT_PACKETEXT(b)    ((b)+8) /* 1.4 */
+    #define _WT_MAX(b)          ((b)+WT_MAXOFFSET)
 
-        #define WT_PACKET           _WT_PACKET(WT_DEFBASE)
-        #define WT_CTXOPEN          _WT_CTXOPEN(WT_DEFBASE)
-        #define WT_CTXCLOSE         _WT_CTXCLOSE(WT_DEFBASE)
-        #define WT_CTXUPDATE        _WT_CTXUPDATE(WT_DEFBASE)
-        #define WT_CTXOVERLAP       _WT_CTXOVERLAP(WT_DEFBASE)
-        #define WT_PROXIMITY        _WT_PROXIMITY(WT_DEFBASE)
-        #define WT_INFOCHANGE       _WT_INFOCHANGE(WT_DEFBASE)
-        #define WT_CSRCHANGE        _WT_CSRCHANGE(WT_DEFBASE) /* 1.1 */
-        #define WT_PACKETEXT        _WT_PACKETEXT(WT_DEFBASE) /* 1.4 */
-        #define WT_MAX              _WT_MAX(WT_DEFBASE)
-        //}}}
-    #endif // Messages
+    #define WT_PACKET           _WT_PACKET(WT_DEFBASE)
+    #define WT_CTXOPEN          _WT_CTXOPEN(WT_DEFBASE)
+    #define WT_CTXCLOSE         _WT_CTXCLOSE(WT_DEFBASE)
+    #define WT_CTXUPDATE        _WT_CTXUPDATE(WT_DEFBASE)
+    #define WT_CTXOVERLAP       _WT_CTXOVERLAP(WT_DEFBASE)
+    #define WT_PROXIMITY        _WT_PROXIMITY(WT_DEFBASE)
+    #define WT_INFOCHANGE       _WT_INFOCHANGE(WT_DEFBASE)
+    #define WT_CSRCHANGE        _WT_CSRCHANGE(WT_DEFBASE) /* 1.1 */
+    #define WT_PACKETEXT        _WT_PACKETEXT(WT_DEFBASE) /* 1.4 */
+    #define WT_MAX              _WT_MAX(WT_DEFBASE)
 
-    #if 1
-        //{{{  define flags
-        #define CTX_NAME        1
-        #define CTX_OPTIONS     2
-        #define CTX_STATUS      3
-        #define CTX_LOCKS       4
-        #define CTX_MSGBASE     5
-        #define CTX_DEVICE      6
-        #define CTX_PKTRATE     7
-        #define CTX_PKTDATA     8
-        #define CTX_PKTMODE     9
-        #define CTX_MOVEMASK    10
-        #define CTX_BTNDNMASK   11
-        #define CTX_BTNUPMASK   12
-        #define CTX_INORGX      13
-        #define CTX_INORGY      14
-        #define CTX_INORGZ      15
-        #define CTX_INEXTX      16
-        #define CTX_INEXTY      17
-        #define CTX_INEXTZ      18
-        #define CTX_OUTORGX     19
-        #define CTX_OUTORGY     20
-        #define CTX_OUTORGZ     21
-        #define CTX_OUTEXTX     22
-        #define CTX_OUTEXTY     23
-        #define CTX_OUTEXTZ     24
-        #define CTX_SENSX       25
-        #define CTX_SENSY       26
-        #define CTX_SENSZ       27
-        #define CTX_SYSMODE     28
-        #define CTX_SYSORGX     29
-        #define CTX_SYSORGY     30
-        #define CTX_SYSEXTX     31
-        #define CTX_SYSEXTY     32
-        #define CTX_SYSSENSX    33
-        #define CTX_SYSSENSY    34
-        #define CTX_MAX         34
+    //{{{  define flags
+    #define CTX_NAME        1
+    #define CTX_OPTIONS     2
+    #define CTX_STATUS      3
+    #define CTX_LOCKS       4
+    #define CTX_MSGBASE     5
+    #define CTX_DEVICE      6
+    #define CTX_PKTRATE     7
+    #define CTX_PKTDATA     8
+    #define CTX_PKTMODE     9
+    #define CTX_MOVEMASK    10
+    #define CTX_BTNDNMASK   11
+    #define CTX_BTNUPMASK   12
+    #define CTX_INORGX      13
+    #define CTX_INORGY      14
+    #define CTX_INORGZ      15
+    #define CTX_INEXTX      16
+    #define CTX_INEXTY      17
+    #define CTX_INEXTZ      18
+    #define CTX_OUTORGX     19
+    #define CTX_OUTORGY     20
+    #define CTX_OUTORGZ     21
+    #define CTX_OUTEXTX     22
+    #define CTX_OUTEXTY     23
+    #define CTX_OUTEXTZ     24
+    #define CTX_SENSX       25
+    #define CTX_SENSY       26
+    #define CTX_SENSZ       27
+    #define CTX_SYSMODE     28
+    #define CTX_SYSORGX     29
+    #define CTX_SYSORGY     30
+    #define CTX_SYSEXTX     31
+    #define CTX_SYSEXTY     32
+    #define CTX_SYSSENSX    33
+    #define CTX_SYSSENSY    34
+    #define CTX_MAX         34
 
-        // Context option values
-        #define CXO_SYSTEM      0x0001
-        #define CXO_PEN         0x0002
-        #define CXO_MESSAGES    0x0004
-        #define CXO_MARGIN      0x8000
-        #define CXO_MGNINSIDE   0x4000
-        #define CXO_CSRMESSAGES 0x0008 /* 1.1 */
+    // Context option values
+    #define CXO_SYSTEM      0x0001
+    #define CXO_PEN         0x0002
+    #define CXO_MESSAGES    0x0004
+    #define CXO_MARGIN      0x8000
+    #define CXO_MGNINSIDE   0x4000
+    #define CXO_CSRMESSAGES 0x0008 /* 1.1 */
 
-        #define DVC_NAME        1
-        #define DVC_HARDWARE    2
-        #define DVC_NCSRTYPES   3
-        #define DVC_FIRSTCSR    4
-        #define DVC_PKTRATE     5
-        #define DVC_PKTDATA     6
-        #define DVC_PKTMODE     7
-        #define DVC_CSRDATA     8
-        #define DVC_XMARGIN     9
-        #define DVC_YMARGIN     10
-        #define DVC_ZMARGIN     11
-        #define DVC_X           12
-        #define DVC_Y           13
-        #define DVC_Z           14
-        #define DVC_NPRESSURE   15
-        #define DVC_TPRESSURE   16
-        #define DVC_ORIENTATION 17
-        #define DVC_ROTATION    18 /* 1.1 */
-        #define DVC_PNPID       19 /* 1.1 */
-        #define DVC_MAX         19
+    #define DVC_NAME        1
+    #define DVC_HARDWARE    2
+    #define DVC_NCSRTYPES   3
+    #define DVC_FIRSTCSR    4
+    #define DVC_PKTRATE     5
+    #define DVC_PKTDATA     6
+    #define DVC_PKTMODE     7
+    #define DVC_CSRDATA     8
+    #define DVC_XMARGIN     9
+    #define DVC_YMARGIN     10
+    #define DVC_ZMARGIN     11
+    #define DVC_X           12
+    #define DVC_Y           13
+    #define DVC_Z           14
+    #define DVC_NPRESSURE   15
+    #define DVC_TPRESSURE   16
+    #define DVC_ORIENTATION 17
+    #define DVC_ROTATION    18 /* 1.1 */
+    #define DVC_PNPID       19 /* 1.1 */
+    #define DVC_MAX         19
 
-        #define PK_CONTEXT           0x0001 // reporting context
-        #define PK_STATUS            0x0002 // status bits
-        #define PK_TIME              0x0004 // time stamp
-        #define PK_CHANGED           0x0008 // change bit vector
-        #define PK_SERIAL_NUMBER     0x0010 // packet serial number
-        #define PK_CURSOR            0x0020 // reporting cursor
-        #define PK_BUTTONS           0x0040 // button information
-        #define PK_X                 0x0080 // x axis
-        #define PK_Y                 0x0100 // y axis
-        #define PK_Z                 0x0200 // z axis
-        #define PK_NORMAL_PRESSURE   0x0400 // normal or tip pressure
-        #define PK_TANGENT_PRESSURE  0x0800 // tangential or barrel pressure
-        #define PK_ORIENTATION       0x1000 // orientation info: tilts
-        #define PK_ROTATION          0x2000 // rotation info; 1.1
+    #define PK_CONTEXT           0x0001 // reporting context
+    #define PK_STATUS            0x0002 // status bits
+    #define PK_TIME              0x0004 // time stamp
+    #define PK_CHANGED           0x0008 // change bit vector
+    #define PK_SERIAL_NUMBER     0x0010 // packet serial number
+    #define PK_CURSOR            0x0020 // reporting cursor
+    #define PK_BUTTONS           0x0040 // button information
+    #define PK_X                 0x0080 // x axis
+    #define PK_Y                 0x0100 // y axis
+    #define PK_Z                 0x0200 // z axis
+    #define PK_NORMAL_PRESSURE   0x0400 // normal or tip pressure
+    #define PK_TANGENT_PRESSURE  0x0800 // tangential or barrel pressure
+    #define PK_ORIENTATION       0x1000 // orientation info: tilts
+    #define PK_ROTATION          0x2000 // rotation info; 1.1
 
-        // constants for use with pktdef.h
-        #define PKEXT_ABSOLUTE  1
-        #define PKEXT_RELATIVE  2
+    // constants for use with pktdef.h
+    #define PKEXT_ABSOLUTE  1
+    #define PKEXT_RELATIVE  2
 
-        #define WTI_DEFCONTEXT  3
-        #define WTI_DEFSYSCTX   4
-        #define WTI_DEVICES     100
-        #define WTI_DDCTXS      400 /* 1.1 */
-        #define WTI_DSCTXS      500 /* 1.1 */
-        //}}}
-    #endif // Flags
+    #define WTI_DEFCONTEXT  3
+    #define WTI_DEFSYSCTX   4
+    #define WTI_DEVICES     100
+    #define WTI_DDCTXS      400 /* 1.1 */
+    #define WTI_DSCTXS      500 /* 1.1 */
+    //}}}
 
     //{{{
     typedef struct tagAXIS {
-        LONG    axMin;
-        LONG    axMax;
-        UINT    axUnits;
-        FIX32   axResolution;
-    } AXIS, *PAXIS, NEAR *NPAXIS, FAR *LPAXIS;
+      LONG    axMin;
+      LONG    axMax;
+      UINT    axUnits;
+      FIX32   axResolution;
+      } AXIS, *PAXIS, NEAR *NPAXIS, FAR *LPAXIS;
     //}}}
 
     #define LCNAMELEN 40
     //{{{
     typedef struct tagLOGCONTEXTA {
-        char    lcName[LCNAMELEN];
-        UINT    lcOptions;
-        UINT    lcStatus;
-        UINT    lcLocks;
-        UINT    lcMsgBase;
-        UINT    lcDevice;
-        UINT    lcPktRate;
-        WTPKT   lcPktData;
-        WTPKT   lcPktMode;
-        WTPKT   lcMoveMask;
-        DWORD   lcBtnDnMask;
-        DWORD   lcBtnUpMask;
-        LONG    lcInOrgX;
-        LONG    lcInOrgY;
-        LONG    lcInOrgZ;
-        LONG    lcInExtX;
-        LONG    lcInExtY;
-        LONG    lcInExtZ;
-        LONG    lcOutOrgX;
-        LONG    lcOutOrgY;
-        LONG    lcOutOrgZ;
-        LONG    lcOutExtX;
-        LONG    lcOutExtY;
-        LONG    lcOutExtZ;
-        FIX32   lcSensX;
-        FIX32   lcSensY;
-        FIX32   lcSensZ;
-        BOOL    lcSysMode;
-        int     lcSysOrgX;
-        int     lcSysOrgY;
-        int     lcSysExtX;
-        int     lcSysExtY;
-        FIX32   lcSysSensX;
-        FIX32   lcSysSensY;
-    } LOGCONTEXTA, *PLOGCONTEXTA, NEAR *NPLOGCONTEXTA, FAR *LPLOGCONTEXTA;
+      char    lcName[LCNAMELEN];
+      UINT    lcOptions;
+      UINT    lcStatus;
+      UINT    lcLocks;
+      UINT    lcMsgBase;
+      UINT    lcDevice;
+      UINT    lcPktRate;
+      WTPKT   lcPktData;
+      WTPKT   lcPktMode;
+      WTPKT   lcMoveMask;
+      DWORD   lcBtnDnMask;
+      DWORD   lcBtnUpMask;
+      LONG    lcInOrgX;
+      LONG    lcInOrgY;
+      LONG    lcInOrgZ;
+      LONG    lcInExtX;
+      LONG    lcInExtY;
+      LONG    lcInExtZ;
+      LONG    lcOutOrgX;
+      LONG    lcOutOrgY;
+      LONG    lcOutOrgZ;
+      LONG    lcOutExtX;
+      LONG    lcOutExtY;
+      LONG    lcOutExtZ;
+      FIX32   lcSensX;
+      FIX32   lcSensY;
+      FIX32   lcSensZ;
+      BOOL    lcSysMode;
+      int     lcSysOrgX;
+      int     lcSysOrgY;
+      int     lcSysExtX;
+      int     lcSysExtY;
+      FIX32   lcSysSensX;
+      FIX32   lcSysSensY;
+      } LOGCONTEXTA, *PLOGCONTEXTA, NEAR *NPLOGCONTEXTA, FAR *LPLOGCONTEXTA;
 
+    //}}}
+    //{{{
     typedef struct tagEXTENSIONBASE { /* 1.4 */
-        HCTX    nContext;
-        UINT    nStatus;
-        DWORD   nTime;
-        UINT    nSerialNumber;
-    } EXTENSIONBASE;
+      HCTX    nContext;
+      UINT    nStatus;
+      DWORD   nTime;
+      UINT    nSerialNumber;
+      } EXTENSIONBASE;
     //}}}
     //}}}
     #define PACKETDATA PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE
@@ -414,87 +409,102 @@
 
     typedef struct __TAG {
     #if (__DATA & PK_CONTEXT)
-        HCTX            pkContext;
+      HCTX            pkContext;
     #endif
+
     #if (__DATA & PK_STATUS)
-        UINT            pkStatus;
+      UINT            pkStatus;
     #endif
+
     #if (__DATA & PK_TIME)
-        DWORD           pkTime;
+      DWORD           pkTime;
     #endif
+
     #if (__DATA & PK_CHANGED)
-        WTPKT           pkChanged;
+      WTPKT           pkChanged;
     #endif
+
     #if (__DATA & PK_SERIAL_NUMBER)
-        UINT            pkSerialNumber;
+      UINT            pkSerialNumber;
     #endif
+
     #if (__DATA & PK_CURSOR)
-        UINT            pkCursor;
+      UINT            pkCursor;
     #endif
+
     #if (__DATA & PK_BUTTONS)
-        DWORD           pkButtons;
+      DWORD           pkButtons;
     #endif
+
     #if (__DATA & PK_X)
-        LONG            pkX;
+      LONG            pkX;
     #endif
+
     #if (__DATA & PK_Y)
-        LONG            pkY;
+      LONG            pkY;
     #endif
+
     #if (__DATA & PK_Z)
-        LONG            pkZ;
+      LONG            pkZ;
     #endif
+
     #if (__DATA & PK_NORMAL_PRESSURE)
-    #if (__MODE & PK_NORMAL_PRESSURE)
+      #if (__MODE & PK_NORMAL_PRESSURE)
         /* relative */
         int         pkNormalPressure;
-    #else
+      #else
         /* absolute */
         UINT        pkNormalPressure;
+      #endif
     #endif
-    #endif
+
     #if (__DATA & PK_TANGENT_PRESSURE)
-    #if (__MODE & PK_TANGENT_PRESSURE)
+      #if (__MODE & PK_TANGENT_PRESSURE)
         /* relative */
         int         pkTangentPressure;
-    #else
+      #else
         /* absolute */
         UINT        pkTangentPressure;
+      #endif
     #endif
-    #endif
+
     #if (__DATA & PK_ORIENTATION)
-        ORIENTATION     pkOrientation;
+      ORIENTATION     pkOrientation;
     #endif
+
     #if (__DATA & PK_ROTATION)
-        ROTATION        pkRotation; /* 1.1 */
+      ROTATION        pkRotation; /* 1.1 */
     #endif
 
     #ifndef NOWTEXTENSIONS
-                                    /* extensions begin here. */
-    #if (__EXT(FKEYS) == PKEXT_RELATIVE) || (__EXT(FKEYS) == PKEXT_ABSOLUTE)
+      #if (__EXT(FKEYS) == PKEXT_RELATIVE) || (__EXT(FKEYS) == PKEXT_ABSOLUTE)
         UINT            pkFKeys;
-    #endif
-    #if (__EXT(TILT) == PKEXT_RELATIVE) || (__EXT(TILT) == PKEXT_ABSOLUTE)
+      #endif
+
+      #if (__EXT(TILT) == PKEXT_RELATIVE) || (__EXT(TILT) == PKEXT_ABSOLUTE)
         TILT            pkTilt;
-    #endif
+      #endif
     #endif
 
     } __TYPES;
 
     #ifndef NOWTEXTENSIONS
-    typedef struct __TAGE {
+      typedef struct __TAGE {
         EXTENSIONBASE   pkBase;
 
-    #if (__EXT(EXPKEYS) == PKEXT_RELATIVE) || (__EXT(EXPKEYS) == PKEXT_ABSOLUTE)
+      #if (__EXT(EXPKEYS) == PKEXT_RELATIVE) || (__EXT(EXPKEYS) == PKEXT_ABSOLUTE)
         EXPKEYSDATA pkExpKeys; /* 1.4 */
-    #endif
-    #if (__EXT(TOUCHSTRIP) == PKEXT_RELATIVE) || (__EXT(TOUCHSTRIP) == PKEXT_ABSOLUTE)
-        SLIDERDATA  pkTouchStrip; /* 1.4 */
-    #endif
-    #if (__EXT(TOUCHRING) == PKEXT_RELATIVE) || (__EXT(TOUCHRING) == PKEXT_ABSOLUTE)
-        SLIDERDATA  pkTouchRing; /* 1.4 */
-    #endif
+      #endif
 
-    } __TYPESE;
+      #if (__EXT(TOUCHSTRIP) == PKEXT_RELATIVE) || (__EXT(TOUCHSTRIP) == PKEXT_ABSOLUTE)
+        SLIDERDATA  pkTouchStrip; /* 1.4 */
+      #endif
+
+      #if (__EXT(TOUCHRING) == PKEXT_RELATIVE) || (__EXT(TOUCHRING) == PKEXT_ABSOLUTE)
+        SLIDERDATA  pkTouchRing; /* 1.4 */
+      #endif
+
+      } __TYPESE;
     #endif
 
     #undef PACKETNAME
@@ -520,18 +530,23 @@
     typedef HCTX (WINAPI * WTOPENA) (HWND, LPLOGCONTEXTA, BOOL);
     typedef BOOL (WINAPI * WTGETA) (HCTX, LPLOGCONTEXTA);
     typedef BOOL (WINAPI * WTSETA) (HCTX, LPLOGCONTEXTA);
+
     typedef BOOL (WINAPI * WTCLOSE) (HCTX);
     typedef BOOL (WINAPI * WTENABLE) (HCTX, BOOL);
     typedef BOOL (WINAPI * WTPACKET) (HCTX, UINT, LPVOID);
+
     typedef BOOL (WINAPI * WTOVERLAP) (HCTX, BOOL);
     typedef BOOL (WINAPI * WTSAVE) (HCTX, LPVOID);
     typedef BOOL (WINAPI * WTCONFIG) (HCTX, HWND);
     typedef HCTX (WINAPI * WTRESTORE) (HWND, LPVOID, BOOL);
+
     typedef BOOL (WINAPI * WTEXTSET) (HCTX, UINT, LPVOID);
     typedef BOOL (WINAPI * WTEXTGET) (HCTX, UINT, LPVOID);
+
     typedef BOOL (WINAPI * WTQUEUESIZESET) (HCTX, int);
     typedef int  (WINAPI * WTDATAPEEK) (HCTX, UINT, UINT, int, LPVOID, LPINT);
     typedef int  (WINAPI * WTPACKETSGET) (HCTX, int, LPVOID);
+
     typedef HMGR (WINAPI * WTMGROPEN) (HWND, UINT);
     typedef BOOL (WINAPI * WTMGRCLOSE) (HMGR);
     typedef HCTX (WINAPI * WTMGRDEFCONTEXT) (HMGR, BOOL);
@@ -632,13 +647,13 @@
     EasyTabResult EasyTab_Load (Display* Disp, Window Win) {
 
       EasyTab = (EasyTabInfo*)calloc(1, sizeof(EasyTabInfo)); // We want init to zero, hence calloc.
-      if (!EasyTab) 
-        return EASYTAB_MEMORY_ERROR; 
+      if (!EasyTab)
+        return EASYTAB_MEMORY_ERROR;
 
       int32_t Count;
       XDeviceInfoPtr Devices = (XDeviceInfoPtr)XListInputDevices(Disp, &Count);
-      if (!Devices) 
-        return EASYTAB_X11_ERROR; 
+      if (!Devices)
+        return EASYTAB_X11_ERROR;
 
       for (int32_t i = 0; i < Count; i++) {
         if (!strstr(Devices[i].name, "stylus") &&
@@ -649,7 +664,7 @@
 
         for (int32_t j = 0; j < Devices[i].num_classes; j++) {
           #if defined(__cplusplus)
-            switch (ClassPtr->c_class) { 
+            switch (ClassPtr->c_class) {
           #else
             switch (ClassPtr->class) {
           #endif
@@ -682,7 +697,7 @@
                   EasyTab->EventClasses[EasyTab->NumEventClasses] = EventClass;
                   EasyTab->NumEventClasses++;
                   }
-                } 
+                }
               break;
             }
 
@@ -694,16 +709,16 @@
 
       XFreeDeviceList(Devices);
 
-      if (EasyTab->Device != 0) 
-        return EASYTAB_OK; 
+      if (EasyTab->Device != 0)
+        return EASYTAB_OK;
       else
-        return EASYTAB_X11_ERROR; 
+        return EASYTAB_X11_ERROR;
       }
     //}}}
     //{{{
     EasyTabResult EasyTab_HandleEvent (XEvent* Event) {
 
-      if (Event->type != EasyTab->MotionType) 
+      if (Event->type != EasyTab->MotionType)
         return EASYTAB_EVENT_NOT_HANDLED;
 
       XDeviceMotionEvent* MotionEvent = (XDeviceMotionEvent*)(Event);
@@ -743,8 +758,8 @@
                                    float RelativeModeSensitivity, int32_t MoveCursor) {
 
         EasyTab = (EasyTabInfo*)calloc(1, sizeof(EasyTabInfo)); // We want init to zero, hence calloc.
-        if (!EasyTab) 
-          return EASYTAB_MEMORY_ERROR; 
+        if (!EasyTab)
+          return EASYTAB_MEMORY_ERROR;
 
         // Load Wintab DLL and get function addresses
         {
@@ -795,8 +810,8 @@
 
           LogContext.lcPktData = PACKETDATA; // ??
           LogContext.lcOptions |= CXO_MESSAGES;
-          if (MoveCursor) 
-            LogContext.lcOptions |= CXO_SYSTEM; 
+          if (MoveCursor)
+            LogContext.lcOptions |= CXO_SYSTEM;
           LogContext.lcPktMode = PACKETMODE;
           LogContext.lcMoveMask = PACKETDATA;
           LogContext.lcBtnUpMask = LogContext.lcBtnDnMask;
@@ -813,7 +828,7 @@
 
           if (TrackingMode == EASYTAB_TRACKING_MODE_RELATIVE) {
             // TODO: Should this be included in the PACKETMODE macro define up top?
-            LogContext.lcPktMode |= PK_X | PK_Y; 
+            LogContext.lcPktMode |= PK_X | PK_Y;
             LogContext.lcSysMode = 1;
 
             if (RelativeModeSensitivity > 1.0f)
