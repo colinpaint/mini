@@ -19,10 +19,10 @@ extern "C" {
 
 #ifndef NOWTMESSAGES
   //{{{  Messages
-  #define WT_DEFBASE      0x7FF0
-  #define WT_MAXOFFSET      0xF
+  #define WT_DEFBASE        0x7FF0
+  #define WT_MAXOFFSET         0xF
 
-  #define _WT_PACKET(b)   ((b)+0)
+  #define _WT_PACKET(b)     ((b)+0)
   #define _WT_CTXOPEN(b)    ((b)+1)
   #define _WT_CTXCLOSE(b)   ((b)+2)
   #define _WT_CTXUPDATE(b)  ((b)+3)
@@ -31,17 +31,17 @@ extern "C" {
   #define _WT_INFOCHANGE(b) ((b)+6)
   #define _WT_CSRCHANGE(b)  ((b)+7) /* 1.1 */
   #define _WT_PACKETEXT(b)  ((b)+8) /* 1.4 */
-  #define _WT_MAX(b)      ((b)+WT_MAXOFFSET)
+  #define _WT_MAX(b)        ((b)+WT_MAXOFFSET)
 
   #define WT_PACKET       _WT_PACKET(WT_DEFBASE)
   #define WT_CTXOPEN      _WT_CTXOPEN(WT_DEFBASE)
   #define WT_CTXCLOSE     _WT_CTXCLOSE(WT_DEFBASE)
-  #define WT_CTXUPDATE      _WT_CTXUPDATE(WT_DEFBASE)
+  #define WT_CTXUPDATE    _WT_CTXUPDATE(WT_DEFBASE)
   #define WT_CTXOVERLAP   _WT_CTXOVERLAP(WT_DEFBASE)
-  #define WT_PROXIMITY      _WT_PROXIMITY(WT_DEFBASE)
+  #define WT_PROXIMITY    _WT_PROXIMITY(WT_DEFBASE)
   #define WT_INFOCHANGE   _WT_INFOCHANGE(WT_DEFBASE)
-  #define WT_CSRCHANGE      _WT_CSRCHANGE(WT_DEFBASE) /* 1.1 */
-  #define WT_PACKETEXT      _WT_PACKETEXT(WT_DEFBASE) /* 1.4 */
+  #define WT_CSRCHANGE    _WT_CSRCHANGE(WT_DEFBASE) /* 1.1 */
+  #define WT_PACKETEXT    _WT_PACKETEXT(WT_DEFBASE) /* 1.4 */
   #define WT_MAX          _WT_MAX(WT_DEFBASE)
   //}}}
 #endif
@@ -420,7 +420,7 @@ typedef DWORD FIX32;     /* fixed-point arithmetic type */
     typedef PLOGCONTEXTA PLOGCONTEXT;
     typedef NPLOGCONTEXTA NPLOGCONTEXT;
     typedef LPLOGCONTEXTA LPLOGCONTEXT;
-  #endif 
+  #endif
 #else
   //{{{
   typedef struct tagLOGCONTEXT {
@@ -466,7 +466,7 @@ typedef DWORD FIX32;     /* fixed-point arithmetic type */
     FIX32 lcSysSensY;
     } LOGCONTEXT, *PLOGCONTEXT, NEAR *NPLOGCONTEXT, FAR *LPLOGCONTEXT;
   //}}}
-#endif 
+#endif
 
 //{{{  context option values
 #define CXO_SYSTEM    0x0001
