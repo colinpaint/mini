@@ -54,7 +54,6 @@ typedef HRESULT(WINAPI *PFN_GetDpiForMonitor)(HMONITOR, mfb_MONITOR_DPI_TYPE, UI
 
 #include "winTab.h"
 #define PACKETDATA PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE | PK_TIME | PK_SERIAL_NUMBER
-#define PACKETMODE 0
 #include "pktDef.h"
 
 extern short int g_keycodes[512];
@@ -151,7 +150,7 @@ namespace {
 
   sWinTabInfo* gWinTab = nullptr;
   //{{{
-  bool winTabLoad (HWND window, int32_t moveCursor) {
+  bool winTabLoad (HWND window) {
 
     gWinTab = (sWinTabInfo*)calloc (1, sizeof(sWinTabInfo));
     if (!gWinTab)
@@ -166,6 +165,7 @@ namespace {
       }
       //}}}
 
+    //{{{  get WT function addresses
     gWinTab->mWTInfoA = (WTINFOA)GetProcAddress (gWinTab->mDll, "WTInfoA");
     gWinTab->mWTOpenA = (WTOPENA)GetProcAddress (gWinTab->mDll, "WTOpenA");
 
@@ -193,6 +193,7 @@ namespace {
 
     gWinTab->mWTMgrDefContext = (WTMGRDEFCONTEXT)GetProcAddress (gWinTab->mDll, "WTMgrDefContext");
     gWinTab->mWTMgrDefContextEx = (WTMGRDEFCONTEXTEX)GetProcAddress (gWinTab->mDll, "WTMgrDefContextEx");                \
+    //}}}
 
     if (!gWinTab->mWTInfoA (0, 0, NULL)) {
       //{{{  error, return
@@ -202,13 +203,12 @@ namespace {
       //}}}
 
     LOGCONTEXTA logContext = {0};
-    gWinTab->mWTInfoA (WTI_DDCTXS, 0, &logContext);
+    //gWinTab->mWTInfoA (WTI_DDCTXS, 0, &logContext);
+    gWinTab->mWTInfoA (WTI_DEFSYSCTX, 0, &logContext);
 
     logContext.lcPktData = PACKETDATA;
-    logContext.lcOptions |= CXO_MESSAGES;
-    if (moveCursor)
-      logContext.lcOptions |= CXO_SYSTEM;
-    logContext.lcPktMode = PACKETMODE;
+    logContext.lcOptions |= CXO_MESSAGES | CXO_SYSTEM;
+    logContext.lcPktMode = 0;   // absolute mode
     logContext.lcMoveMask = PACKETDATA;
     logContext.lcBtnUpMask = logContext.lcBtnDnMask;
 
@@ -243,36 +243,6 @@ namespace {
     gWinTab->mMaxPressure = pressure.axMax;
 
     return true;
-    }
-  //}}}
-  //{{{
-  bool winTabHandleEvent (HWND window, UINT message, WPARAM wParam, LPARAM lParam) {
-
-    PACKET packet = {0};
-    if (message == WT_PACKET) {
-      cLog::log (LOGINFO, fmt::format ("winTabHandleEvent wt_packet {:x} {:x}", wParam, lParam));
-      if (((HCTX)lParam == gWinTab->mContext) &&
-          gWinTab->mWTPacket (gWinTab->mContext, (UINT)wParam, &packet)) {
-        POINT point = { 0 };
-        point.x = packet.pkX;
-        point.y = packet.pkY;
-        ScreenToClient (window, &point);
-
-        gWinTab->mPosX = point.x;
-        gWinTab->mPosY = point.y;
-        gWinTab->mPressure = (float)packet.pkNormalPressure / (float)gWinTab->mMaxPressure;
-        gWinTab->mButtons = packet.pkButtons;
-        gWinTab->mTime = packet.pkTime;
-        gWinTab->mSerialNumber = packet.pkSerialNumber;
-
-        return true;
-        }
-      }
-    else if (message == WT_PROXIMITY) {
-      cLog::log (LOGINFO, fmt::format ("winTabHandleEvent wt_proximity lParam:{:x}", lParam));
-      }
-
-    return false;
     }
   //}}}
   //{{{
@@ -623,13 +593,6 @@ namespace {
     if (window_data)
       window_data_win = (SWindowData_Win*)window_data->specific;
 
-    if (winTabHandleEvent (hWnd, message, wParam, lParam)) {
-      cLog::log (LOGINFO, fmt::format ("winTab message handled {}:{} press:{} but:{} time:{} no:{}",
-                                        gWinTab->mPosX, gWinTab->mPosY, gWinTab->mPressure, gWinTab->mButtons,
-                                        gWinTab->mTime, gWinTab->mSerialNumber));
-      return true; // Tablet event handled
-      }
-
     switch (message) {
       //{{{
       case WM_NCCREATE:
@@ -845,6 +808,42 @@ namespace {
       //}}}
 
       //{{{
+      case WT_PACKET:
+        if ((HCTX)lParam == gWinTab->mContext) {
+          PACKET packet = {0};
+          if (gWinTab->mWTPacket (gWinTab->mContext, (UINT)wParam, &packet)) {
+            POINT point = { 0 };
+            point.x = packet.pkX;
+            point.y = packet.pkY;
+            ScreenToClient (hWnd, &point);
+
+            gWinTab->mPosX = point.x;
+            gWinTab->mPosY = point.y;
+            gWinTab->mPressure = (float)packet.pkNormalPressure / (float)gWinTab->mMaxPressure;
+            gWinTab->mButtons = packet.pkButtons;
+            gWinTab->mTime = packet.pkTime;
+            gWinTab->mSerialNumber = packet.pkSerialNumber;
+
+            cLog::log (LOGINFO, fmt::format ("winTab message handled {}:{} press:{} but:{} time:{} no:{}",
+                                             gWinTab->mPosX, gWinTab->mPosY,
+                                             gWinTab->mPressure, gWinTab->mButtons,
+                                             gWinTab->mTime, gWinTab->mSerialNumber));
+            }
+          else
+            cLog::log (LOGINFO, fmt::format ("WT_PACKET no packet {:x} {:x}", wParam, lParam));
+          }
+        else
+          cLog::log (LOGINFO, fmt::format ("WT_PACKET wrong context {:x} {:x}", wParam, lParam));
+
+        break;
+      //}}}
+      //{{{
+      case WT_PROXIMITY:
+        cLog::log (LOGINFO, fmt::format ("winTabHandleEvent wt_proximity lParam:{:x}", lParam));
+        break;
+      //}}}
+
+      //{{{
       case WM_SETFOCUS:
 
         if (window_data) {
@@ -1034,7 +1033,7 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
-  if (!winTabLoad (window_data_win->window, 1))
+  if (!winTabLoad (window_data_win->window))
     cLog::log (LOGERROR, fmt::format ("winTab load failed"));
 
   window_data->is_initialized = true;
