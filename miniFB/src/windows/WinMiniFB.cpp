@@ -746,19 +746,13 @@ namespace {
         }
       //}}}
 
-      case WM_LBUTTONUP:
-      case WM_RBUTTONUP:
-      case WM_MBUTTONUP:
-      case WM_XBUTTONUP:
       case WM_LBUTTONDOWN:
       case WM_LBUTTONDBLCLK:
+      case WM_LBUTTONUP:
       case WM_RBUTTONDOWN:
       case WM_RBUTTONDBLCLK:
-      case WM_MBUTTONDOWN:
-      case WM_MBUTTONDBLCLK:
-      case WM_XBUTTONDOWN:
-      //{{{
-      case WM_XBUTTONDBLCLK:
+      case WM_RBUTTONUP:
+        //{{{  handle button
         if (window_data) {
           mfb_mouse_button button = MOUSE_BTN_0;
           window_data->mod_keys = translate_mod();
@@ -794,6 +788,39 @@ namespace {
           }
 
         break;
+        //}}}
+
+      //{{{
+      case WM_MOUSEMOVE:
+
+        cLog::log (LOGINFO, fmt::format ("WM_MOUSEMOVE {:x} {}:{}", wParam, LOWORD(lParam), HIWORD(lParam)));
+
+        if (window_data) {
+          if (window_data_win->mouse_inside == false) {
+            window_data_win->mouse_inside = true;
+
+            TRACKMOUSEEVENT tme;
+            ZeroMemory (&tme, sizeof(tme));
+            tme.cbSize = sizeof(tme);
+            tme.dwFlags = TME_LEAVE;
+            tme.hwndTrack = hWnd;
+            TrackMouseEvent (&tme);
+            }
+
+          window_data->mouse_pos_x = (int)(short) LOWORD(lParam);
+          window_data->mouse_pos_y = (int)(short) HIWORD(lParam);
+          kCall (mouse_move_func, window_data->mouse_pos_x, window_data->mouse_pos_y);
+          }
+
+        break;
+      //}}}
+      //{{{
+      case WM_MOUSELEAVE:
+
+        if (window_data)
+          window_data_win->mouse_inside = false;
+
+        break;
       //}}}
 
       //{{{
@@ -813,35 +840,6 @@ namespace {
           window_data->mouse_wheel_x = -((SHORT)HIWORD(wParam) / (float)WHEEL_DELTA);
           kCall (mouse_wheel_func, (mfb_key_mod)translate_mod(), window_data->mouse_wheel_x, 0.0f);
           }
-
-        break;
-      //}}}
-
-      //{{{
-      case WM_MOUSEMOVE:
-
-        if (window_data) {
-          if (window_data_win->mouse_inside == false) {
-            window_data_win->mouse_inside = true;
-            TRACKMOUSEEVENT tme;
-            ZeroMemory(&tme, sizeof(tme));
-            tme.cbSize = sizeof(tme);
-            tme.dwFlags = TME_LEAVE;
-            tme.hwndTrack = hWnd;
-            TrackMouseEvent(&tme);
-            }
-          window_data->mouse_pos_x = (int)(short) LOWORD(lParam);
-          window_data->mouse_pos_y = (int)(short) HIWORD(lParam);
-          kCall (mouse_move_func, window_data->mouse_pos_x, window_data->mouse_pos_y);
-          }
-
-        break;
-      //}}}
-      //{{{
-      case WM_MOUSELEAVE:
-
-        if (window_data)
-          window_data_win->mouse_inside = false;
 
         break;
       //}}}
