@@ -10,8 +10,7 @@ This file is copyright 1998-2008 by Wacom Technology
 with portions copyright 1991-1998 by LCS/Telegraphics.
 ------------------------------------------------------------------------------*/
 //}}}
-#ifndef _INC_WINTAB /* prevent multiple includes */
-#define _INC_WINTAB
+#pragma once
 //{{{
 #ifdef __cplusplus
 extern "C" {
@@ -411,7 +410,6 @@ typedef DWORD FIX32;     /* fixed-point arithmetic type */
     FIX32 lcSysSensY;
   } LOGCONTEXTW, *PLOGCONTEXTW, NEAR *NPLOGCONTEXTW, FAR *LPLOGCONTEXTW;
   //}}}
-
   #ifdef UNICODE
     typedef LOGCONTEXTW LOGCONTEXT;
     typedef PLOGCONTEXTW PLOGCONTEXT;
@@ -422,9 +420,8 @@ typedef DWORD FIX32;     /* fixed-point arithmetic type */
     typedef PLOGCONTEXTA PLOGCONTEXT;
     typedef NPLOGCONTEXTA NPLOGCONTEXT;
     typedef LPLOGCONTEXTA LPLOGCONTEXT;
-  #endif /* UNICODE */
-
-#else /* WIN32 */
+  #endif 
+#else
   //{{{
   typedef struct tagLOGCONTEXT {
     char  lcName[LCNAMELEN];
@@ -434,26 +431,32 @@ typedef DWORD FIX32;     /* fixed-point arithmetic type */
     UINT  lcMsgBase;
     UINT  lcDevice;
     UINT  lcPktRate;
+
     WTPKT lcPktData;
     WTPKT lcPktMode;
     WTPKT lcMoveMask;
+
     DWORD lcBtnDnMask;
     DWORD lcBtnUpMask;
+
     LONG  lcInOrgX;
     LONG  lcInOrgY;
     LONG  lcInOrgZ;
     LONG  lcInExtX;
     LONG  lcInExtY;
     LONG  lcInExtZ;
+
     LONG  lcOutOrgX;
     LONG  lcOutOrgY;
     LONG  lcOutOrgZ;
     LONG  lcOutExtX;
     LONG  lcOutExtY;
     LONG  lcOutExtZ;
+
     FIX32 lcSensX;
     FIX32 lcSensY;
     FIX32 lcSensZ;
+
     BOOL  lcSysMode;
     int lcSysOrgX;
     int lcSysOrgY;
@@ -461,9 +464,9 @@ typedef DWORD FIX32;     /* fixed-point arithmetic type */
     int lcSysExtY;
     FIX32 lcSysSensX;
     FIX32 lcSysSensY;
-  } LOGCONTEXT, *PLOGCONTEXT, NEAR *NPLOGCONTEXT, FAR *LPLOGCONTEXT;
+    } LOGCONTEXT, *PLOGCONTEXT, NEAR *NPLOGCONTEXT, FAR *LPLOGCONTEXT;
   //}}}
-#endif /* WIN32 */
+#endif 
 
 //{{{  context option values
 #define CXO_SYSTEM    0x0001
@@ -510,18 +513,17 @@ typedef struct tagROTATION { /* 1.1 */
 //}}}
 
 // grandfather in obsolete member names.
-#define rotPitch  roPitch
-#define rotRoll roRoll
-#define rotYaw    roYaw
+#define rotPitch roPitch
+#define rotRoll  roRoll
+#define rotYaw   roYaw
 
 /* relative buttons */
 #define TBN_NONE  0
 #define TBN_UP    1
 #define TBN_DOWN  2
 
-/* DEVICE CONFIG CONSTANTS */
 #ifndef NOWTDEVCFG
-  //{{{  wtDevCfg
+  //{{{  wt DevCfg
   #define WTDC_NONE   0
   #define WTDC_CANCEL   1
   #define WTDC_OK     2
@@ -529,9 +531,8 @@ typedef struct tagROTATION { /* 1.1 */
   //}}}
 #endif
 
-/* HOOK CONSTANTS */
 #ifndef NOWTHOOKS
-  //{{{  wtHooks
+  //{{{  wt Hooks
   #define WTH_PLAYBACK      1
   #define WTH_RECORD      2
   #define WTHC_GETLPLPFN    (-3)
@@ -543,17 +544,15 @@ typedef struct tagROTATION { /* 1.1 */
   //}}}
 #endif
 
-/* PREFERENCE FUNCTION CONSTANTS */
 #ifndef NOWTPREF
-  //{{{  wtPref
+  //{{{  wt Pref functions
   #define WTP_LPDEFAULT ((LPVOID)-1L)
   #define WTP_DWDEFAULT ((DWORD)-1L)
   //}}}
 #endif
 
-/* EXTENSION TAGS AND CONSTANTS */
 #ifndef NOWTEXTENSIONS
-  //{{{  wtExtensions
+  //{{{  wt Extensions
   /* constants for use with pktdef.h */
   #define PKEXT_ABSOLUTE  1
   #define PKEXT_RELATIVE  2
@@ -647,14 +646,14 @@ typedef struct tagROTATION { /* 1.1 */
 /* Functions */
 #ifndef API
   #ifndef WINAPI
-    #define API     FAR PASCAL
+    #define API FAR PASCAL
   #else
-    #define API     WINAPI
+    #define API WINAPI
   #endif
 #endif
 
 #ifndef NOWTCALLBACKS
-  //{{{  wtCallbacks
+  //{{{  wt callbacks
   #ifndef CALLBACK
     #define CALLBACK  FAR PASCAL
   #endif
@@ -670,14 +669,16 @@ typedef struct tagROTATION { /* 1.1 */
 #endif
 
 #ifndef NOWTFUNCTIONS
-  //{{{  wtFunctions
+  //{{{  wt functions
   #ifndef NOWTBASICFXNS
-  /* BASIC FUNCTIONS */
+    //{{{  BASIC FUNCTIONS
     #ifdef WIN32
       UINT API WTInfoA(UINT, UINT, LPVOID);
       #define ORD_WTInfoA           20
+
       UINT API WTInfoW(UINT, UINT, LPVOID);
       #define ORD_WTInfoW           1020
+
       #ifdef UNICODE
         #define WTInfo      WTInfoW
         #define ORD_WTInfo  ORD_WTInfoW
@@ -690,241 +691,269 @@ typedef struct tagROTATION { /* 1.1 */
       #define ORD_WTInfo              20
     #endif
 
-  #ifdef WIN32
-    HCTX API WTOpenA(HWND, LPLOGCONTEXTA, BOOL);
-    #define ORD_WTOpenA             21
-    HCTX API WTOpenW(HWND, LPLOGCONTEXTW, BOOL);
-    #define ORD_WTOpenW             1021
-    #ifdef UNICODE
-      #define WTOpen      WTOpenW
-      #define ORD_WTOpen  ORD_WTOpenW
+    #ifdef WIN32
+      HCTX API WTOpenA(HWND, LPLOGCONTEXTA, BOOL);
+      #define ORD_WTOpenA             21
+
+      HCTX API WTOpenW(HWND, LPLOGCONTEXTW, BOOL);
+      #define ORD_WTOpenW             1021
+
+      #ifdef UNICODE
+        #define WTOpen      WTOpenW
+        #define ORD_WTOpen  ORD_WTOpenW
+      #else
+        #define WTOpen      WTOpenA
+        #define ORD_WTOpen  ORD_WTOpenA
+      #endif /* !UNICODE */
     #else
-      #define WTOpen      WTOpenA
-      #define ORD_WTOpen  ORD_WTOpenA
-    #endif /* !UNICODE */
-  #else
-    HCTX API WTOpen(HWND, LPLOGCONTEXT, BOOL);
-    #define ORD_WTOpen              21
+      HCTX API WTOpen(HWND, LPLOGCONTEXT, BOOL);
+      #define ORD_WTOpen              21
+    #endif
+
+    BOOL API WTClose(HCTX);
+    #define ORD_WTClose             22
+
+    int API WTPacketsGet(HCTX, int, LPVOID);
+    #define ORD_WTPacketsGet          23
+
+    BOOL API WTPacket(HCTX, UINT, LPVOID);
+    #define ORD_WTPacket              24
+    //}}}
   #endif
 
-  BOOL API WTClose(HCTX);
-  #define ORD_WTClose             22
-  int API WTPacketsGet(HCTX, int, LPVOID);
-  #define ORD_WTPacketsGet          23
-  BOOL API WTPacket(HCTX, UINT, LPVOID);
-  #define ORD_WTPacket              24
-  //}}}
-#endif
+  #ifndef NOWTVISIBILITYFXNS
+    //{{{  xtVisibilityFxns
+    /* VISIBILITY FUNCTIONS */
+    BOOL API WTEnable(HCTX, BOOL);
+    #define ORD_WTEnable              40
 
-#ifndef NOWTVISIBILITYFXNS
-  //{{{  xtVisibilityFxns
-  /* VISIBILITY FUNCTIONS */
-  BOOL API WTEnable(HCTX, BOOL);
-  #define ORD_WTEnable              40
-  BOOL API WTOverlap(HCTX, BOOL);
-  #define ORD_WTOverlap           41
-  //}}}
-#endif
+    BOOL API WTOverlap(HCTX, BOOL);
+    #define ORD_WTOverlap           41
+    //}}}
+  #endif
 
-#ifndef NOWTCTXEDITFXNS
-  //{{{  CONTEXT EDITING FUNCTIONS
-  BOOL API WTConfig(HCTX, HWND);
-  #define ORD_WTConfig              60
-  #ifdef WIN32
-    BOOL API WTGetA(HCTX, LPLOGCONTEXTA);
-    #define ORD_WTGetA              61
-    BOOL API WTGetW(HCTX, LPLOGCONTEXTW);
-    #define ORD_WTGetW              1061
-    #ifdef UNICODE
-    #define WTGet     WTGetW
-    #define ORD_WTGet   ORD_WTGetW
+  #ifndef NOWTCTXEDITFXNS
+    //{{{  CONTEXT EDITING FUNCTIONS
+    BOOL API WTConfig(HCTX, HWND);
+    #define ORD_WTConfig              60
+
+    #ifdef WIN32
+      BOOL API WTGetA(HCTX, LPLOGCONTEXTA);
+      #define ORD_WTGetA              61
+
+      BOOL API WTGetW(HCTX, LPLOGCONTEXTW);
+      #define ORD_WTGetW              1061
+
+      #ifdef UNICODE
+        #define WTGet     WTGetW
+        #define ORD_WTGet   ORD_WTGetW
+      #else
+        #define WTGet     WTGetA
+        #define ORD_WTGet   ORD_WTGetA
+      #endif /* !UNICODE */
     #else
-    #define WTGet     WTGetA
-    #define ORD_WTGet   ORD_WTGetA
-    #endif /* !UNICODE */
-  #else
-    BOOL API WTGet(HCTX, LPLOGCONTEXT);
-    #define ORD_WTGet               61
-  #endif
+      BOOL API WTGet(HCTX, LPLOGCONTEXT);
+      #define ORD_WTGet               61
+    #endif
 
-  #ifdef WIN32
-    BOOL API WTSetA(HCTX, LPLOGCONTEXTA);
-    #define ORD_WTSetA              62
-    BOOL API WTSetW(HCTX, LPLOGCONTEXTW);
-    #define ORD_WTSetW              1062
-    #ifdef UNICODE
-    #define WTSet     WTSetW
-    #define ORD_WTSet   ORD_WTSetW
+    #ifdef WIN32
+      BOOL API WTSetA(HCTX, LPLOGCONTEXTA);
+      #define ORD_WTSetA              62
+
+      BOOL API WTSetW(HCTX, LPLOGCONTEXTW);
+      #define ORD_WTSetW              1062
+
+      #ifdef UNICODE
+        #define WTSet     WTSetW
+        #define ORD_WTSet   ORD_WTSetW
+      #else
+        #define WTSet     WTSetA
+        #define ORD_WTSet   ORD_WTSetA
+      #endif /* !UNICODE */
     #else
-    #define WTSet     WTSetA
-    #define ORD_WTSet   ORD_WTSetA
-    #endif /* !UNICODE */
-  #else
-    BOOL API WTSet(HCTX, LPLOGCONTEXT);
-    #define ORD_WTSet               62
+      BOOL API WTSet(HCTX, LPLOGCONTEXT);
+      #define ORD_WTSet               62
+    #endif
+
+    BOOL API WTExtGet(HCTX, UINT, LPVOID);
+    #define ORD_WTExtGet              63
+
+    BOOL API WTExtSet(HCTX, UINT, LPVOID);
+    #define ORD_WTExtSet              64
+
+    BOOL API WTSave(HCTX, LPVOID);
+    #define ORD_WTSave              65
+
+    HCTX API WTRestore(HWND, LPVOID, BOOL);
+    #define ORD_WTRestore           66
+    //}}}
   #endif
 
-  BOOL API WTExtGet(HCTX, UINT, LPVOID);
-  #define ORD_WTExtGet              63
-  BOOL API WTExtSet(HCTX, UINT, LPVOID);
-  #define ORD_WTExtSet              64
-  BOOL API WTSave(HCTX, LPVOID);
-  #define ORD_WTSave              65
-  HCTX API WTRestore(HWND, LPVOID, BOOL);
-  #define ORD_WTRestore           66
-  //}}}
-#endif
+  #ifndef NOWTQUEUEFXNS
+    //{{{  ADVANCED PACKET AND QUEUE FUNCTIONS
+    int API WTPacketsPeek(HCTX, int, LPVOID);
+    #define ORD_WTPacketsPeek         80
 
-#ifndef NOWTQUEUEFXNS
-  //{{{  ADVANCED PACKET AND QUEUE FUNCTIONS
-  int API WTPacketsPeek(HCTX, int, LPVOID);
-  #define ORD_WTPacketsPeek         80
-  int API WTDataGet(HCTX, UINT, UINT, int, LPVOID, LPINT);
-  #define ORD_WTDataGet           81
-  int API WTDataPeek(HCTX, UINT, UINT, int, LPVOID, LPINT);
-  #define ORD_WTDataPeek            82
+    int API WTDataGet(HCTX, UINT, UINT, int, LPVOID, LPINT);
+    #define ORD_WTDataGet           81
 
-  #ifndef WIN32
-    /* OBSOLETE IN WIN32! */
-    DWORD API WTQueuePackets(HCTX);
-    #define ORD_WTQueuePackets          83
+    int API WTDataPeek(HCTX, UINT, UINT, int, LPVOID, LPINT);
+    #define ORD_WTDataPeek            82
+
+    #ifndef WIN32
+      /* OBSOLETE IN WIN32! */
+      DWORD API WTQueuePackets(HCTX);
+      #define ORD_WTQueuePackets          83
+    #endif
+
+    int API WTQueueSizeGet(HCTX);
+    #define ORD_WTQueueSizeGet          84
+
+    BOOL API WTQueueSizeSet(HCTX, int);
+    #define ORD_WTQueueSizeSet          85
+    //}}}
   #endif
 
-  int API WTQueueSizeGet(HCTX);
-  #define ORD_WTQueueSizeGet          84
-  BOOL API WTQueueSizeSet(HCTX, int);
-  #define ORD_WTQueueSizeSet          85
-  //}}}
-#endif
+  #ifndef NOWTHMGRFXNS
+    //{{{  MANAGER HANDLE FUNCTIONS
+    HMGR API WTMgrOpen(HWND, UINT);
+    #define ORD_WTMgrOpen           100
 
-#ifndef NOWTHMGRFXNS
-  //{{{  MANAGER HANDLE FUNCTIONS
-  HMGR API WTMgrOpen(HWND, UINT);
-  #define ORD_WTMgrOpen           100
-  BOOL API WTMgrClose(HMGR);
-  #define ORD_WTMgrClose            101
-  //}}}
-#endif
-
-#ifndef NOWTMGRCTXFXNS
-  //{{{  MANAGER CONTEXT FUNCTIONS
-  BOOL API WTMgrContextEnum(HMGR, WTENUMPROC, LPARAM);
-  #define ORD_WTMgrContextEnum        120
-  HWND API WTMgrContextOwner(HMGR, HCTX);
-  #define ORD_WTMgrContextOwner       121
-  HCTX API WTMgrDefContext(HMGR, BOOL);
-  #define ORD_WTMgrDefContext       122
-  HCTX API WTMgrDefContextEx(HMGR, UINT, BOOL); /* 1.1 */
-  #define ORD_WTMgrDefContextEx       206
-  //}}}
-#endif
-
-#ifndef NOWTMGRCONFIGFXNS
-  //{{{  MANAGER CONFIG BOX  FUNCTIONS
-  UINT API WTMgrDeviceConfig(HMGR, UINT, HWND);
-  #define ORD_WTMgrDeviceConfig       140
-
-  #ifndef WIN32
-  /* OBSOLETE IN WIN32! */
-    BOOL API WTMgrConfigReplace(HMGR, BOOL, WTCONFIGPROC);
-    #define ORD_WTMgrConfigReplace      141
+    BOOL API WTMgrClose(HMGR);
+    #define ORD_WTMgrClose            101
+    //}}}
   #endif
-  //}}}
-#endif
 
-#ifndef NOWTMGRHOOKFXNS
-  //{{{  MANAGER PACKET HOOK FUNCTIONS
+  #ifndef NOWTMGRCTXFXNS
+    //{{{  MANAGER CONTEXT FUNCTIONS
+    BOOL API WTMgrContextEnum(HMGR, WTENUMPROC, LPARAM);
+    #define ORD_WTMgrContextEnum        120
+
+    HWND API WTMgrContextOwner(HMGR, HCTX);
+    #define ORD_WTMgrContextOwner       121
+
+    HCTX API WTMgrDefContext(HMGR, BOOL);
+    #define ORD_WTMgrDefContext       122
+
+    HCTX API WTMgrDefContextEx(HMGR, UINT, BOOL); /* 1.1 */
+    #define ORD_WTMgrDefContextEx       206
+    //}}}
+  #endif
+
+  #ifndef NOWTMGRCONFIGFXNS
+    //{{{  MANAGER CONFIG BOX  FUNCTIONS
+    UINT API WTMgrDeviceConfig(HMGR, UINT, HWND);
+    #define ORD_WTMgrDeviceConfig       140
+
     #ifndef WIN32
     /* OBSOLETE IN WIN32! */
-      WTHOOKPROC API WTMgrPacketHook(HMGR, BOOL, int, WTHOOKPROC);
-      #define ORD_WTMgrPacketHook       160
-      LRESULT API WTMgrPacketHookDefProc(int, WPARAM, LPARAM, LPWTHOOKPROC);
-      #define ORD_WTMgrPacketHookDefProc    161
+      BOOL API WTMgrConfigReplace(HMGR, BOOL, WTCONFIGPROC);
+      #define ORD_WTMgrConfigReplace      141
     #endif
-  //}}}
-#endif
+    //}}}
+  #endif
 
-#ifndef NOWTMGRPREFFXNS
-  //{{{  MANAGER PREFERENCE DATA FUNCTIONS
-  BOOL API WTMgrExt(HMGR, UINT, LPVOID);
-  #define ORD_WTMgrExt              180
-  BOOL API WTMgrCsrEnable(HMGR, UINT, BOOL);
-  #define ORD_WTMgrCsrEnable          181
-  BOOL API WTMgrCsrButtonMap(HMGR, UINT, LPBYTE, LPBYTE);
-  #define ORD_WTMgrCsrButtonMap       182
-  BOOL API WTMgrCsrPressureBtnMarks(HMGR, UINT, DWORD, DWORD);
-  #define ORD_WTMgrCsrPressureBtnMarks  183
-  BOOL API WTMgrCsrPressureResponse(HMGR, UINT, UINT FAR *, UINT FAR *);
-  #define ORD_WTMgrCsrPressureResponse  184
-  BOOL API WTMgrCsrExt(HMGR, UINT, UINT, LPVOID);
-  #define ORD_WTMgrCsrExt           185
-  //}}}
-#endif
+  #ifndef NOWTMGRHOOKFXNS
+    //{{{  MANAGER PACKET HOOK FUNCTIONS
+      #ifndef WIN32
+      /* OBSOLETE IN WIN32! */
+        WTHOOKPROC API WTMgrPacketHook(HMGR, BOOL, int, WTHOOKPROC);
+        #define ORD_WTMgrPacketHook       160
 
-/* Win32 replacements for non-portable functions. */
-#ifndef NOWTQUEUEFXNS
-  //{{{  ADVANCED PACKET AND QUEUE FUNCTIONS
-  BOOL API WTQueuePacketsEx(HCTX, UINT FAR *, UINT FAR *);
-  #define ORD_WTQueuePacketsEx        200
-  //}}}
-#endif
+        LRESULT API WTMgrPacketHookDefProc(int, WPARAM, LPARAM, LPWTHOOKPROC);
+        #define ORD_WTMgrPacketHookDefProc    161
+      #endif
+    //}}}
+  #endif
 
-#ifndef NOWTMGRCONFIGFXNS
-  //{{{  MANAGER CONFIG BOX  FUNCTIONS
-  #ifdef WIN32
-    BOOL API WTMgrConfigReplaceExA(HMGR, BOOL, LPSTR, LPSTR);
-    #define ORD_WTMgrConfigReplaceExA   202
-    BOOL API WTMgrConfigReplaceExW(HMGR, BOOL, LPWSTR, LPSTR);
-    #define ORD_WTMgrConfigReplaceExW   1202
-    #ifdef UNICODE
-    #define WTMgrConfigReplaceEx      WTMgrConfigReplaceExW
-    #define ORD_WTMgrConfigReplaceEx    ORD_WTMgrConfigReplaceExW
+  #ifndef NOWTMGRPREFFXNS
+    //{{{  MANAGER PREFERENCE DATA FUNCTIONS
+    BOOL API WTMgrExt(HMGR, UINT, LPVOID);
+    #define ORD_WTMgrExt              180
+
+    BOOL API WTMgrCsrEnable(HMGR, UINT, BOOL);
+    #define ORD_WTMgrCsrEnable          181
+
+    BOOL API WTMgrCsrButtonMap(HMGR, UINT, LPBYTE, LPBYTE);
+    #define ORD_WTMgrCsrButtonMap       182
+
+    BOOL API WTMgrCsrPressureBtnMarks(HMGR, UINT, DWORD, DWORD);
+    #define ORD_WTMgrCsrPressureBtnMarks  183
+
+    BOOL API WTMgrCsrPressureResponse(HMGR, UINT, UINT FAR *, UINT FAR *);
+    #define ORD_WTMgrCsrPressureResponse  184
+
+    BOOL API WTMgrCsrExt(HMGR, UINT, UINT, LPVOID);
+    #define ORD_WTMgrCsrExt           185
+    //}}}
+  #endif
+
+  /* Win32 replacements for non-portable functions. */
+  #ifndef NOWTQUEUEFXNS
+    //{{{  ADVANCED PACKET AND QUEUE FUNCTIONS
+    BOOL API WTQueuePacketsEx(HCTX, UINT FAR *, UINT FAR *);
+    #define ORD_WTQueuePacketsEx        200
+    //}}}
+  #endif
+
+  #ifndef NOWTMGRCONFIGFXNS
+    //{{{  MANAGER CONFIG BOX  FUNCTIONS
+    #ifdef WIN32
+      BOOL API WTMgrConfigReplaceExA(HMGR, BOOL, LPSTR, LPSTR);
+      #define ORD_WTMgrConfigReplaceExA   202
+
+      BOOL API WTMgrConfigReplaceExW(HMGR, BOOL, LPWSTR, LPSTR);
+      #define ORD_WTMgrConfigReplaceExW   1202
+
+      #ifdef UNICODE
+        #define WTMgrConfigReplaceEx      WTMgrConfigReplaceExW
+        #define ORD_WTMgrConfigReplaceEx    ORD_WTMgrConfigReplaceExW
+      #else
+        #define WTMgrConfigReplaceEx      WTMgrConfigReplaceExA
+        #define ORD_WTMgrConfigReplaceEx    ORD_WTMgrConfigReplaceExA
+      #endif /* !UNICODE */
     #else
-    #define WTMgrConfigReplaceEx      WTMgrConfigReplaceExA
-    #define ORD_WTMgrConfigReplaceEx    ORD_WTMgrConfigReplaceExA
-    #endif /* !UNICODE */
-  #else
-    BOOL API WTMgrConfigReplaceEx(HMGR, BOOL, LPSTR, LPSTR);
-    #define ORD_WTMgrConfigReplaceEx      202
+      BOOL API WTMgrConfigReplaceEx(HMGR, BOOL, LPSTR, LPSTR);
+      #define ORD_WTMgrConfigReplaceEx      202
+    #endif
+    //}}}
+  #endif
+
+  #ifndef NOWTMGRHOOKFXNS
+    //{{{  MANAGER PACKET HOOK FUNCTIONS
+    #ifdef WIN32
+      HWTHOOK API WTMgrPacketHookExA(HMGR, int, LPSTR, LPSTR);
+      #define ORD_WTMgrPacketHookExA      203
+
+      HWTHOOK API WTMgrPacketHookExW(HMGR, int, LPWSTR, LPSTR);
+      #define ORD_WTMgrPacketHookExW      1203
+
+      #ifdef UNICODE
+        #define WTMgrPacketHookEx     WTMgrPacketHookExW
+        #define ORD_WTMgrPacketHookEx   ORD_WTMgrPacketHookExW
+      #else
+        #define WTMgrPacketHookEx     WTMgrPacketHookExA
+        #define ORD_WTMgrPacketHookEx   ORD_WTMgrPacketHookExA
+      #endif /* !UNICODE */
+    #else
+      HWTHOOK API WTMgrPacketHookEx(HMGR, int, LPSTR, LPSTR);
+      #define ORD_WTMgrPacketHookEx       203
+    #endif
+    //}}}
+    BOOL API WTMgrPacketUnhook(HWTHOOK);
+    #define ORD_WTMgrPacketUnhook       204
+
+    LRESULT API WTMgrPacketHookNext(HWTHOOK, int, WPARAM, LPARAM);
+    #define ORD_WTMgrPacketHookNext     205
+  #endif
+
+  #ifndef NOWTMGRPREFFXNS
+    //{{{  MANAGER PREFERENCE DATA FUNCTIONS
+    BOOL API WTMgrCsrPressureBtnMarksEx(HMGR, UINT, UINT FAR *, UINT FAR *);
+    #define ORD_WTMgrCsrPressureBtnMarksEx  201
+    //}}}
   #endif
   //}}}
-#endif
-
-#ifndef NOWTMGRHOOKFXNS
-  //{{{  MANAGER PACKET HOOK FUNCTIONS
-  #ifdef WIN32
-    HWTHOOK API WTMgrPacketHookExA(HMGR, int, LPSTR, LPSTR);
-    #define ORD_WTMgrPacketHookExA      203
-
-    HWTHOOK API WTMgrPacketHookExW(HMGR, int, LPWSTR, LPSTR);
-    #define ORD_WTMgrPacketHookExW      1203
-
-    #ifdef UNICODE
-      #define WTMgrPacketHookEx     WTMgrPacketHookExW
-      #define ORD_WTMgrPacketHookEx   ORD_WTMgrPacketHookExW
-    #else
-      #define WTMgrPacketHookEx     WTMgrPacketHookExA
-      #define ORD_WTMgrPacketHookEx   ORD_WTMgrPacketHookExA
-    #endif /* !UNICODE */
-
-  #else
-    HWTHOOK API WTMgrPacketHookEx(HMGR, int, LPSTR, LPSTR);
-    #define ORD_WTMgrPacketHookEx       203
-
-  #endif
-  //}}}
-  BOOL API WTMgrPacketUnhook(HWTHOOK);
-  #define ORD_WTMgrPacketUnhook       204
-  LRESULT API WTMgrPacketHookNext(HWTHOOK, int, WPARAM, LPARAM);
-  #define ORD_WTMgrPacketHookNext     205
-#endif
-
-#ifndef NOWTMGRPREFFXNS
-  //{{{  MANAGER PREFERENCE DATA FUNCTIONS
-  BOOL API WTMgrCsrPressureBtnMarksEx(HMGR, UINT, UINT FAR *, UINT FAR *);
-  #define ORD_WTMgrCsrPressureBtnMarksEx  201
-  //}}}
-#endif
 #endif
 
 //{{{
@@ -932,4 +961,3 @@ typedef struct tagROTATION { /* 1.1 */
 }
 #endif  /* __cplusplus */
 //}}}
-#endif /* #define _INC_WINTAB */
