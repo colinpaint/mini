@@ -463,21 +463,13 @@ struct sWinTabInfo {
 sWinTabInfo* gWinTab;
 
 //{{{
-#define GETPROCADDRESS(type, func)                                          \
-  gWinTab->func = (type)GetProcAddress (gWinTab->mDll, #func);                \
-  if (!gWinTab->func) {                                                     \
-    cLog::log (LOGERROR, fmt::format ("function {} not found", #func)); \
-    return false;                                  \
-    }
-//}}}
-//{{{
 bool winTabLoad (HWND window, int32_t moveCursor) {
 
   gWinTab = (sWinTabInfo*)calloc (1, sizeof(sWinTabInfo));
   if (!gWinTab)
     return false;
 
-  // load Wintab DLL, get function addresses
+  // load wintab32.dll, get function addresses
   gWinTab->mDll = LoadLibraryA ("Wintab32.dll");
   if (!gWinTab->mDll) {
     //{{{  error, return
@@ -486,26 +478,33 @@ bool winTabLoad (HWND window, int32_t moveCursor) {
     }
     //}}}
 
-  GETPROCADDRESS (WTINFOA, mWTInfoA);
-  GETPROCADDRESS (WTOPENA, mWTOpenA);
-  GETPROCADDRESS (WTGETA, mWTGetA);
-  GETPROCADDRESS (WTSETA, mWTSetA);
-  GETPROCADDRESS (WTCLOSE, mWTClose);
-  GETPROCADDRESS (WTPACKET, mWTPacket);
-  GETPROCADDRESS (WTENABLE, mWTEnable);
-  GETPROCADDRESS (WTOVERLAP, mWTOverlap);
-  GETPROCADDRESS (WTSAVE, mWTSave);
-  GETPROCADDRESS (WTCONFIG, mWTConfig);
-  GETPROCADDRESS (WTRESTORE, mWTRestore);
-  GETPROCADDRESS (WTEXTSET, mWTExtSet);
-  GETPROCADDRESS (WTEXTGET, mWTExtGet);
-  GETPROCADDRESS (WTQUEUESIZESET, mWTQueueSizeSet);
-  GETPROCADDRESS (WTDATAPEEK, mWTDataPeek);
-  GETPROCADDRESS (WTPACKETSGET, mWTPacketsGet);
-  GETPROCADDRESS (WTMGROPEN, mWTMgrOpen);
-  GETPROCADDRESS (WTMGRCLOSE, mWTMgrClose);
-  GETPROCADDRESS (WTMGRDEFCONTEXT, mWTMgrDefContext);
-  GETPROCADDRESS (WTMGRDEFCONTEXTEX, mWTMgrDefContextEx);
+  gWinTab->mWTInfoA = (WTINFOA)GetProcAddress (gWinTab->mDll, "WTInfoA");
+  gWinTab->mWTOpenA = (WTOPENA)GetProcAddress (gWinTab->mDll, "WTOpenA");
+
+  gWinTab->mWTGetA = (WTGETA)GetProcAddress (gWinTab->mDll, "WTGetA");
+  gWinTab->mWTSetA = (WTSETA)GetProcAddress (gWinTab->mDll, "WTSetA");
+
+  gWinTab->mWTClose = (WTCLOSE)GetProcAddress (gWinTab->mDll, "WTClose");
+  gWinTab->mWTPacket = (WTPACKET)GetProcAddress (gWinTab->mDll, "WTPacket");
+  gWinTab->mWTEnable = (WTENABLE)GetProcAddress (gWinTab->mDll, "WTEnable");
+  gWinTab->mWTOverlap = (WTOVERLAP)GetProcAddress (gWinTab->mDll, "WTOverlap");
+
+  gWinTab->mWTSave = (WTSAVE)GetProcAddress (gWinTab->mDll, "WTSave");
+  gWinTab->mWTConfig = (WTCONFIG)GetProcAddress (gWinTab->mDll, "WTConfig");
+  gWinTab->mWTRestore = (WTRESTORE)GetProcAddress (gWinTab->mDll, "WTRestore");
+
+  gWinTab->mWTExtSet = (WTEXTSET)GetProcAddress (gWinTab->mDll, "WTExtSet");
+  gWinTab->mWTExtGet = (WTEXTGET)GetProcAddress (gWinTab->mDll, "WTExtGet");
+
+  gWinTab->mWTQueueSizeSet = (WTQUEUESIZESET)GetProcAddress (gWinTab->mDll, "WTQueueSizeSet");
+  gWinTab->mWTDataPeek = (WTDATAPEEK)GetProcAddress (gWinTab->mDll, "WTDataPeek");
+  gWinTab->mWTPacketsGet = (WTPACKETSGET)GetProcAddress (gWinTab->mDll, "WTPacketsGet");
+
+  gWinTab->mWTMgrOpen = (WTMGROPEN)GetProcAddress (gWinTab->mDll, "WTMgrOpen");
+  gWinTab->mWTMgrClose = (WTMGRCLOSE)GetProcAddress (gWinTab->mDll, "WTMgrClose");
+
+  gWinTab->mWTMgrDefContext = (WTMGRDEFCONTEXT)GetProcAddress (gWinTab->mDll, "WTMgrDefContext");
+  gWinTab->mWTMgrDefContextEx = (WTMGRDEFCONTEXTEX)GetProcAddress (gWinTab->mDll, "WTMgrDefContextEx");                \
 
   if (!gWinTab->mWTInfoA (0, 0, NULL)) {
     //{{{  error, return
@@ -562,20 +561,21 @@ bool winTabLoad (HWND window, int32_t moveCursor) {
 bool winTabHandleEvent (HWND window, UINT message, WPARAM wParam, LPARAM lParam) {
 
   PACKET packet = {0};
-  if ((message == WT_PACKET) &&
-      ((HCTX)lParam == gWinTab->mContext) &&
-      gWinTab->mWTPacket (gWinTab->mContext, (UINT)wParam, &packet)) {
+  if (message == WT_PACKET) {
+    //cLog::log (LOGINFO, fmt::format ("winTabHandleEvent wt_packet"));
+    if (((HCTX)lParam == gWinTab->mContext) &&
+        gWinTab->mWTPacket (gWinTab->mContext, (UINT)wParam, &packet)) {
+      POINT point = { 0 };
+      point.x = packet.pkX;
+      point.y = packet.pkY;
+      ScreenToClient (window, &point);
 
-    POINT point = { 0 };
-    point.x = packet.pkX;
-    point.y = packet.pkY;
-    ScreenToClient (window, &point);
-
-    gWinTab->mPosX = point.x;
-    gWinTab->mPosY = point.y;
-    gWinTab->mPressure = (float)packet.pkNormalPressure / (float)gWinTab->mMaxPressure;
-    gWinTab->mButtons = packet.pkButtons;
-    return true;
+      gWinTab->mPosX = point.x;
+      gWinTab->mPosY = point.y;
+      gWinTab->mPressure = (float)packet.pkNormalPressure / (float)gWinTab->mMaxPressure;
+      gWinTab->mButtons = packet.pkButtons;
+      return true;
+      }
     }
 
   return false;

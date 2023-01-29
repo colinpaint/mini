@@ -237,10 +237,15 @@ cTexture cTexture::createLoad (const string& name) {
   uint8_t* fileBuf = new uint8_t [kMaxFileSize];
 
   FILE* file = fopen (name.c_str(), "rb");
-  uint32_t fileBufLen = (uint32_t)fread (fileBuf, 1, kMaxFileSize, file);
-  fclose (file);
-
-  return createDecode (fileBuf, fileBufLen);
+  if (file) {
+    uint32_t fileBufLen = (uint32_t)fread (fileBuf, 1, kMaxFileSize, file);
+    fclose (file);
+    return createDecode (fileBuf, fileBufLen);
+    }
+  else {
+    cLog::log (LOGERROR, fmt::format ("failed to load file {}", name));
+    return cTexture();
+    }
   }
 //}}}
 //{{{
