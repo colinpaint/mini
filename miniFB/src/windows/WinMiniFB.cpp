@@ -54,37 +54,10 @@ typedef HRESULT(WINAPI *PFN_GetDpiForMonitor)(HMONITOR, mfb_MONITOR_DPI_TYPE, UI
 
 // winTab, initially from github EasyTab but not much left of it
 #include "winTab.h"
-#define PACKETDATA PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE
+#define PACKETDATA PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE | PK_TIME | PK_SERIAL_NUMBER
 #define PACKETMODE 0
 #include "pktDef.h"
-//{{{  WT functions prototypes
-typedef UINT (WINAPI* WTINFOA) (UINT, UINT, LPVOID);
-typedef HCTX (WINAPI* WTOPENA) (HWND, LPLOGCONTEXTA, BOOL);
 
-typedef BOOL (WINAPI* WTGETA) (HCTX, LPLOGCONTEXTA);
-typedef BOOL (WINAPI* WTSETA) (HCTX, LPLOGCONTEXTA);
-
-typedef BOOL (WINAPI* WTCLOSE) (HCTX);
-typedef BOOL (WINAPI* WTENABLE) (HCTX, BOOL);
-typedef BOOL (WINAPI* WTPACKET) (HCTX, UINT, LPVOID);
-
-typedef BOOL (WINAPI* WTOVERLAP) (HCTX, BOOL);
-typedef BOOL (WINAPI* WTSAVE) (HCTX, LPVOID);
-typedef BOOL (WINAPI* WTCONFIG) (HCTX, HWND);
-typedef HCTX (WINAPI* WTRESTORE) (HWND, LPVOID, BOOL);
-
-typedef BOOL (WINAPI* WTEXTSET) (HCTX, UINT, LPVOID);
-typedef BOOL (WINAPI* WTEXTGET) (HCTX, UINT, LPVOID);
-
-typedef BOOL (WINAPI* WTQUEUESIZESET) (HCTX, int);
-typedef int  (WINAPI* WTDATAPEEK) (HCTX, UINT, UINT, int, LPVOID, LPINT);
-typedef int  (WINAPI* WTPACKETSGET) (HCTX, int, LPVOID);
-
-typedef HMGR (WINAPI* WTMGROPEN) (HWND, UINT);
-typedef BOOL (WINAPI* WTMGRCLOSE) (HMGR);
-typedef HCTX (WINAPI* WTMGRDEFCONTEXT) (HMGR, BOOL);
-typedef HCTX (WINAPI* WTMGRDEFCONTEXTEX) (HMGR, UINT, BOOL);
-//}}}
 //{{{
 // Use this enum in conjunction with winTab->Buttons to check for tablet button presses.
 //  e.g. To check for lower pen button press, use:
@@ -96,6 +69,28 @@ enum eWinTabButtons_ {
   eWinTabButtons_Pen_Upper = 4, // Upper pen button pressed
   };
 //}}}
+//{{{  wt function pointers
+typedef UINT (WINAPI* WTINFOA) (UINT, UINT, LPVOID);
+typedef HCTX (WINAPI* WTOPENA) (HWND, LPLOGCONTEXTA, BOOL);
+typedef BOOL (WINAPI* WTGETA) (HCTX, LPLOGCONTEXTA);
+typedef BOOL (WINAPI* WTSETA) (HCTX, LPLOGCONTEXTA);
+typedef BOOL (WINAPI* WTCLOSE) (HCTX);
+typedef BOOL (WINAPI* WTPACKET) (HCTX, UINT, LPVOID);
+typedef BOOL (WINAPI* WTENABLE) (HCTX, BOOL);
+typedef BOOL (WINAPI* WTOVERLAP) (HCTX, BOOL);
+typedef BOOL (WINAPI* WTSAVE) (HCTX, LPVOID);
+typedef BOOL (WINAPI* WTCONFIG) (HCTX, HWND);
+typedef HCTX (WINAPI* WTRESTORE) (HWND, LPVOID, BOOL);
+typedef BOOL (WINAPI* WTEXTSET) (HCTX, UINT, LPVOID);
+typedef BOOL (WINAPI* WTEXTGET) (HCTX, UINT, LPVOID);
+typedef BOOL (WINAPI* WTQUEUESIZESET) (HCTX, int);
+typedef int  (WINAPI* WTDATAPEEK) (HCTX, UINT, UINT, int, LPVOID, LPINT);
+typedef int  (WINAPI* WTPACKETSGET) (HCTX, int, LPVOID);
+typedef HMGR (WINAPI* WTMGROPEN) (HWND, UINT);
+typedef BOOL (WINAPI* WTMGRCLOSE) (HMGR);
+typedef HCTX (WINAPI* WTMGRDEFCONTEXT) (HMGR, BOOL);
+typedef HCTX (WINAPI* WTMGRDEFCONTEXTEX) (HMGR, UINT, BOOL);
+//}}}
 //{{{
 struct sWinTabInfo {
   int32_t mPosX;
@@ -103,28 +98,38 @@ struct sWinTabInfo {
   float mPressure; // Range: 0.0f to 1.0f
   int32_t mButtons;  // Bit field. Use with the eWinTabButtons_ enum.
 
+  DWORD mTime;
+  UINT  mSerialNumber;
+
   int32_t mRangeX;
   int32_t mRangeY;
   int32_t mMaxPressure;
 
   HINSTANCE mDll;
   HCTX mContext;
+
   WTINFOA           mWTInfoA;
   WTOPENA           mWTOpenA;
+
   WTGETA            mWTGetA;
   WTSETA            mWTSetA;
+
   WTCLOSE           mWTClose;
   WTPACKET          mWTPacket;
   WTENABLE          mWTEnable;
+
   WTOVERLAP         mWTOverlap;
   WTSAVE            mWTSave;
   WTCONFIG          mWTConfig;
   WTRESTORE         mWTRestore;
+
   WTEXTSET          mWTExtSet;
   WTEXTGET          mWTExtGet;
+
   WTQUEUESIZESET    mWTQueueSizeSet;
   WTDATAPEEK        mWTDataPeek;
   WTPACKETSGET      mWTPacketsGet;
+
   WTMGROPEN         mWTMgrOpen;
   WTMGRCLOSE        mWTMgrClose;
   WTMGRDEFCONTEXT   mWTMgrDefContext;
@@ -245,6 +250,9 @@ bool winTabHandleEvent (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
       gWinTab->mPosY = point.y;
       gWinTab->mPressure = (float)packet.pkNormalPressure / (float)gWinTab->mMaxPressure;
       gWinTab->mButtons = packet.pkButtons;
+      gWinTab->mTime = packet.pkTime;
+      gWinTab->mSerialNumber = packet.pkSerialNumber;
+
       return true;
       }
     }
@@ -611,8 +619,9 @@ namespace {
       window_data_win = (SWindowData_Win*)window_data->specific;
 
     if (winTabHandleEvent (hWnd, message, wParam, lParam)) {
-      cLog::log (LOGINFO, fmt::format ("winTab message handled {} {} {} {}",
-                                        gWinTab->mPosX, gWinTab->mPosY, gWinTab->mPressure, gWinTab->mButtons));
+      cLog::log (LOGINFO, fmt::format ("winTab message handled {}:{} press:{} but:{} time:{} no:{}",
+                                        gWinTab->mPosX, gWinTab->mPosY, gWinTab->mPressure, gWinTab->mButtons,
+                                        gWinTab->mTime, gWinTab->mSerialNumber));
       return true; // Tablet event handled
       }
 
