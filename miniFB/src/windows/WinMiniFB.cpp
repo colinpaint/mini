@@ -242,8 +242,6 @@ namespace {
     gWinTab->mWTInfoA (WTI_DEVICES, DVC_NPRESSURE, &pressure);
     gWinTab->mMaxPressure = pressure.axMax;
 
-    EnableMouseInPointer (true);
-
     return true;
     }
   //}}}
@@ -826,7 +824,7 @@ namespace {
             gWinTab->mTime = packet.pkTime;
             gWinTab->mSerialNumber = packet.pkSerialNumber;
 
-            //cLog::log (LOGINFO, fmt::format ("winTab message handled {}:{} press:{} but:{} time:{} no:{}",
+            //cLog::log (LOGINFO, fmt::format ("WT_PACKET {}:{} press:{} but:{} time:{} no:{}",
             //                                 gWinTab->mPosX, gWinTab->mPosY,
             //                                 gWinTab->mPressure, gWinTab->mButtons,
             //                                 gWinTab->mTime, gWinTab->mSerialNumber));
@@ -841,7 +839,7 @@ namespace {
       //}}}
       //{{{
       case WT_PROXIMITY:
-        //cLog::log (LOGINFO, fmt::format ("winTabHandleEvent wt_proximity lParam:{:x}", lParam));
+        cLog::log (LOGINFO, fmt::format ("WT_PROXIMITY {:x} {:x}", wParam, lParam));
         break;
       //}}}
 
@@ -918,11 +916,7 @@ namespace {
               //INT32        tiltX;
               //INT32        tiltY;
             //}}}
-            //{{{
-            //BOOL GetPointerPenInfo(
-              //[in]  UINT32           pointerId,
-              //[out] POINTER_PEN_INFO *penInfo
-            //}}}
+            //BOOL GetPointerPenInfo ([in]UINT32 pointerId, [out] POINTER_PEN_INFO* penInfo)
           }
         break;
         }
@@ -946,33 +940,38 @@ namespace {
 
       // just log
       //{{{
-      case WM_POINTERACTIVATE:
-        cLog::log (LOGINFO, fmt::format ("WM_POINTERACTIVATE   {:x} {:x}", wParam, lParam));
-        break;
+      //case WM_POINTERACTIVATE:
+        //cLog::log (LOGINFO, fmt::format ("WM_POINTERACTIVATE   {:x} {:x}", wParam, lParam));
+        //break;
       //}}}
       //{{{
-      case WM_POINTERCAPTURECHANGED:
-        cLog::log (LOGINFO, fmt::format ("WM_POINTERCAPTURECHANGED {:x} {:x}", wParam, lParam));
-        break;
+      //case WM_POINTERCAPTURECHANGED:
+        //cLog::log (LOGINFO, fmt::format ("WM_POINTERCAPTURECHANGED {:x} {:x}", wParam, lParam));
+        //break;
       //}}}
       //{{{
-      case WM_POINTERDEVICECHANGE:
-        cLog::log (LOGINFO, fmt::format ("WM_POINTERDEVICECHANGE {:x} {:x}", wParam, lParam));
-        break;
+      //case WM_POINTERDEVICECHANGE:
+        //cLog::log (LOGINFO, fmt::format ("WM_POINTERDEVICECHANGE {:x} {:x}", wParam, lParam));
+        //break;
       //}}}
       //{{{
-      case WM_POINTERDEVICEINRANGE:
-        cLog::log (LOGINFO, fmt::format ("WM_POINTERDEVICEINRANGE {:x} {:x}", wParam, lParam));
-        break;
+      //case WM_POINTERDEVICEINRANGE:
+        //cLog::log (LOGINFO, fmt::format ("WM_POINTERDEVICEINRANGE {:x} {:x}", wParam, lParam));
+        //break;
       //}}}
       //{{{
-      case WM_POINTERDEVICEOUTOFRANGE:
-        cLog::log (LOGINFO, fmt::format ("WM_POINTERDEVICEOUTOFRANGE {:x} {:x}", wParam, lParam));
-        break;
+      //case WM_POINTERDEVICEOUTOFRANGE:
+        //cLog::log (LOGINFO, fmt::format ("WM_POINTERDEVICEOUTOFRANGE {:x} {:x}", wParam, lParam));
+        //break;
       //}}}
       //{{{
-      case WM_TOUCHHITTESTING:
-        cLog::log (LOGINFO, fmt::format ("WM_TOUCHHITTESTING  {:x} {:x}", wParam, lParam));
+      //case WM_TOUCHHITTESTING:
+        //cLog::log (LOGINFO, fmt::format ("WM_TOUCHHITTESTING  {:x} {:x}", wParam, lParam));
+        //break;
+      //}}}
+      //{{{
+      case WM_INPUT:
+        cLog::log (LOGINFO, fmt::format ("WM_INPUT {:x} {:x}", wParam, lParam));
         break;
       //}}}
 
@@ -1164,6 +1163,10 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
+  // enable WM_POINTER wndProc messaging, to tell mouse from pen
+  EnableMouseInPointer (true);
+
+  // enable winTab, mainly for WT_PROXIMITY, get WT_PACKET
   if (!winTabLoad (window_data_win->window))
     cLog::log (LOGERROR, fmt::format ("winTab load failed"));
 
