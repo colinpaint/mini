@@ -242,6 +242,8 @@ namespace {
     gWinTab->mWTInfoA (WTI_DEVICES, DVC_NPRESSURE, &pressure);
     gWinTab->mMaxPressure = pressure.axMax;
 
+    EnableMouseInPointer (true);
+
     return true;
     }
   //}}}
@@ -824,10 +826,10 @@ namespace {
             gWinTab->mTime = packet.pkTime;
             gWinTab->mSerialNumber = packet.pkSerialNumber;
 
-            cLog::log (LOGINFO, fmt::format ("winTab message handled {}:{} press:{} but:{} time:{} no:{}",
-                                             gWinTab->mPosX, gWinTab->mPosY,
-                                             gWinTab->mPressure, gWinTab->mButtons,
-                                             gWinTab->mTime, gWinTab->mSerialNumber));
+            //cLog::log (LOGINFO, fmt::format ("winTab message handled {}:{} press:{} but:{} time:{} no:{}",
+            //                                 gWinTab->mPosX, gWinTab->mPosY,
+            //                                 gWinTab->mPressure, gWinTab->mButtons,
+            //                                 gWinTab->mTime, gWinTab->mSerialNumber));
             }
           else
             cLog::log (LOGINFO, fmt::format ("WT_PACKET no packet {:x} {:x}", wParam, lParam));
@@ -839,7 +841,138 @@ namespace {
       //}}}
       //{{{
       case WT_PROXIMITY:
-        cLog::log (LOGINFO, fmt::format ("winTabHandleEvent wt_proximity lParam:{:x}", lParam));
+        //cLog::log (LOGINFO, fmt::format ("winTabHandleEvent wt_proximity lParam:{:x}", lParam));
+        break;
+      //}}}
+
+      case WM_POINTERENTER:
+        cLog::log (LOGINFO, fmt::format ("WM_POINTERENTER {:x} {:x}", wParam, lParam));
+        break;
+      case WM_POINTERLEAVE:
+        cLog::log (LOGINFO, fmt::format ("WM_POINTERLEAVE {:x} {:x}", wParam, lParam));
+        break;
+
+      case WM_POINTERDOWN:
+        cLog::log (LOGINFO, fmt::format ("WM_POINTERDOWN {:x} {:x}", wParam, lParam));
+        break;
+      case WM_POINTERUPDATE: {
+        //cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE {:x} {:x}", wParam, lParam));
+        POINTER_INFO pointerInfo;
+        if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
+          cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE info {} {} {}",
+            pointerInfo.pointerType,
+            pointerInfo.pointerFlags,
+            pointerInfo.dwTime));
+            //{{{  POINTER_INPUT
+              //PT_POINTER = 1,
+              //PT_TOUCH = 2,
+              //PT_PEN = 3,
+              //PT_MOUSE = 4,
+              //PT_TOUCHPAD = 5
+            //}}}
+            //{{{  POINTER_FLAG
+            //POINTER_FLAG_NONE 0x00000000
+            //POINTER_FLAG_NEW 0x00000001
+            //POINTER_FLAG_INRANGE 0x00000002
+            //POINTER_FLAG_INCONTACT 0x00000004
+            //POINTER_FLAG_FIRSTBUTTON 0x00000010
+            //POINTER_FLAG_SECONDBUTTON 0x00000020
+            //POINTER_FLAG_THIRDBUTTON 0x00000040
+            //POINTER_FLAG_FOURTHBUTTON 0x00000080
+            //POINTER_FLAG_FIFTHBUTTON 0x00000100
+            //POINTER_FLAG_PRIMARY 0x00002000
+            //POINTER_FLAG_CONFIDENCE 0x000004000
+            //POINTER_FLAG_CANCELED 0x000008000
+            //POINTER_FLAG_DOWN 0x00010000
+            //POINTER_FLAG_UPDATE 0x00020000
+            //POINTER_FLAG_UP 0x00040000
+            //POINTER_FLAG_WHEEL 0x00080000
+            //POINTER_FLAG_HWHEEL 0x00100000
+            //POINTER_FLAG_CAPTURECHANGED 0x00200000
+            //POINTER_FLAG_HASTRANSFORM 0x00400000
+            //}}}
+            //{{{  POINTER_INFO
+            //POINTER_INPUT_TYPE         pointerType;
+            //UINT32                     pointerId;
+            //UINT32                     frameId;
+            //POINTER_FLAGS              pointerFlags;
+            //HANDLE                     sourceDevice;
+            //HWND                       hwndTarget;
+            //POINT                      ptPixelLocation;
+            //POINT                      ptHimetricLocation;
+            //POINT                      ptPixelLocationRaw;
+            //POINT                      ptHimetricLocationRaw;
+            //DWORD                      dwTime;
+            //UINT32                     historyCount;
+            //INT32                      InputData;
+            //DWORD                      dwKeyStates;
+            //UINT64                     PerformanceCount;
+            //POINTER_BUTTON_CHANGE_TYPE ButtonChangeType;
+            //}}}
+            //{{{  POINTER_PEN_INFO
+              //POINTER_INFO pointerInfo;
+              //PEN_FLAGS    penFlags;
+              //PEN_MASK     penMask;
+              //UINT32       pressure;
+              //UINT32       rotation;
+              //INT32        tiltX;
+              //INT32        tiltY;
+            //}}}
+            //{{{
+            //BOOL GetPointerPenInfo(
+              //[in]  UINT32           pointerId,
+              //[out] POINTER_PEN_INFO *penInfo
+            //}}}
+          }
+        break;
+        }
+      case WM_POINTERUP:
+        cLog::log (LOGINFO, fmt::format ("WM_POINTERUP {:x} {:x}", wParam, lParam));
+        break;
+
+      case WM_POINTERWHEEL  :
+        cLog::log (LOGINFO, fmt::format ("WM_POINTERWHEEL   {:x} {:x}", wParam, lParam));
+        break;
+
+      //case WM_NCPOINTERDOWN :
+      //  cLog::log (LOGINFO, fmt::format ("WM_NCPOINTERDOWN  {:x} {:x}", wParam, lParam));
+      //  break;
+      //case WM_NCPOINTERUPDATE :
+        //cLog::log (LOGINFO, fmt::format ("WM_NCPOINTERUPDATE  {:x} {:x}", wParam, lParam));
+      //  break;
+      //case WM_NCPOINTERUP :
+      //  cLog::log (LOGINFO, fmt::format ("WM_NCPOINTERUP  {:x} {:x}", wParam, lParam));
+      //  break;
+
+      // just log
+      //{{{
+      case WM_POINTERACTIVATE:
+        cLog::log (LOGINFO, fmt::format ("WM_POINTERACTIVATE   {:x} {:x}", wParam, lParam));
+        break;
+      //}}}
+      //{{{
+      case WM_POINTERCAPTURECHANGED:
+        cLog::log (LOGINFO, fmt::format ("WM_POINTERCAPTURECHANGED {:x} {:x}", wParam, lParam));
+        break;
+      //}}}
+      //{{{
+      case WM_POINTERDEVICECHANGE:
+        cLog::log (LOGINFO, fmt::format ("WM_POINTERDEVICECHANGE {:x} {:x}", wParam, lParam));
+        break;
+      //}}}
+      //{{{
+      case WM_POINTERDEVICEINRANGE:
+        cLog::log (LOGINFO, fmt::format ("WM_POINTERDEVICEINRANGE {:x} {:x}", wParam, lParam));
+        break;
+      //}}}
+      //{{{
+      case WM_POINTERDEVICEOUTOFRANGE:
+        cLog::log (LOGINFO, fmt::format ("WM_POINTERDEVICEOUTOFRANGE {:x} {:x}", wParam, lParam));
+        break;
+      //}}}
+      //{{{
+      case WM_TOUCHHITTESTING:
+        cLog::log (LOGINFO, fmt::format ("WM_TOUCHHITTESTING  {:x} {:x}", wParam, lParam));
         break;
       //}}}
 
@@ -889,10 +1022,8 @@ namespace {
         break;
       //}}}
 
-      //{{{
       default:
         res = DefWindowProc (hWnd, message, wParam, lParam);
-      //}}}
       }
 
     return res;
