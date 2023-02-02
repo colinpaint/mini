@@ -11,7 +11,7 @@ set (files include/MiniFB.h
            )
 
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-  set (platform src/windows/WindowData_Win.h src/windows/WinMiniFB.cpp)
+  set (platform src/windows/WindowData_Win.h src/windows/WinMiniFB.cpp src/windows/pktDef.h src/windows/winTab.h)
 else()
   set (platform src/x11/WindowData_X11.h src/x11/X11MiniFB.cpp src/MiniFB_linux.cpp)
 endif()

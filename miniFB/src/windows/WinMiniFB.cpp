@@ -586,12 +586,10 @@ namespace {
   //{{{
   LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
-    LRESULT res = 0;
+    LRESULT result = 0;
 
-    SWindowData* window_data = (SWindowData *) GetWindowLongPtr(hWnd, GWLP_USERDATA);
-    SWindowData_Win* window_data_win = nullptr;
-    if (window_data)
-      window_data_win = (SWindowData_Win*)window_data->specific;
+    SWindowData* window_data = (SWindowData*) GetWindowLongPtr (hWnd, GWLP_USERDATA);
+    SWindowData_Win* window_data_win = window_data ? (SWindowData_Win*)window_data->specific : nullptr;
 
     switch (message) {
       //{{{
@@ -643,6 +641,52 @@ namespace {
         break;
       //}}}
 
+      //{{{
+      case WM_SETFOCUS:
+
+        if (window_data) {
+          window_data->is_active = true;
+          kCall (active_func, true);
+          }
+
+        break;
+      //}}}
+      //{{{
+      case WM_KILLFOCUS:
+
+        if (window_data) {
+          window_data->is_active = false;
+          kCall (active_func, false);
+          }
+
+        break;
+      //}}}
+
+      //{{{
+      case WM_SIZE:
+
+        if (window_data) {
+          if (wParam == SIZE_MINIMIZED)
+            return result;
+
+          float scale_x, scale_y;
+          get_monitor_scale (hWnd, &scale_x, &scale_y);
+          window_data->window_width = LOWORD(lParam);
+          window_data->window_height = HIWORD(lParam);
+          resize_dst (window_data, window_data->window_width, window_data->window_height);
+
+          resize_GL (window_data);
+          if (window_data->window_width != 0 && window_data->window_height != 0) {
+            uint32_t width, height;
+            width  = (uint32_t)(window_data->window_width  / scale_x);
+            height = (uint32_t)(window_data->window_height / scale_y);
+            kCall (resize_func, width, height);
+            }
+          }
+
+        break;
+      //}}}
+
       case WM_KEYDOWN:
       case WM_SYSKEYDOWN:
       case WM_KEYUP:
@@ -665,8 +709,7 @@ namespace {
 
       case WM_CHAR:
       //{{{
-      case WM_SYSCHAR:
-        {
+      case WM_SYSCHAR: {
         static WCHAR highSurrogate = 0;
 
         if (window_data) {
@@ -709,104 +752,6 @@ namespace {
         }
       //}}}
 
-      case WM_LBUTTONDOWN:
-      case WM_LBUTTONDBLCLK:
-      case WM_LBUTTONUP:
-      case WM_RBUTTONDOWN:
-      case WM_RBUTTONDBLCLK:
-      case WM_RBUTTONUP:
-        //{{{  handle button
-        if (window_data) {
-          mfb_mouse_button button = MOUSE_BTN_0;
-          window_data->mod_keys = translate_mod();
-          int is_pressed = 0;
-
-          switch (message) {
-            case WM_LBUTTONDOWN:
-              is_pressed = 1;
-            case WM_LBUTTONUP:
-              button = MOUSE_BTN_1;
-              break;
-
-            case WM_RBUTTONDOWN:
-              is_pressed = 1;
-            case WM_RBUTTONUP:
-              button = MOUSE_BTN_2;
-              break;
-
-            case WM_MBUTTONDOWN:
-              is_pressed = 1;
-            case WM_MBUTTONUP:
-              button = MOUSE_BTN_3;
-              break;
-
-            default:
-              button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1 ? MOUSE_BTN_5 : MOUSE_BTN_6);
-              if (message == WM_XBUTTONDOWN)
-                is_pressed = 1;
-            }
-
-          window_data->mouse_button_status[button & 0x07] = (uint8_t)is_pressed;
-          kCall (mouse_btn_func, button, (mfb_key_mod)window_data->mod_keys, is_pressed);
-          }
-
-        break;
-        //}}}
-
-      //{{{
-      case WM_MOUSEMOVE:
-
-        cLog::log (LOGINFO, fmt::format ("WM_MOUSEMOVE {:x} {}:{}", wParam, LOWORD(lParam), HIWORD(lParam)));
-
-        if (window_data) {
-          if (window_data_win->mouse_inside == false) {
-            window_data_win->mouse_inside = true;
-
-            TRACKMOUSEEVENT tme;
-            ZeroMemory (&tme, sizeof(tme));
-            tme.cbSize = sizeof(tme);
-            tme.dwFlags = TME_LEAVE;
-            tme.hwndTrack = hWnd;
-            TrackMouseEvent (&tme);
-            }
-
-          window_data->mouse_pos_x = (int)(short) LOWORD(lParam);
-          window_data->mouse_pos_y = (int)(short) HIWORD(lParam);
-          kCall (mouse_move_func, window_data->mouse_pos_x, window_data->mouse_pos_y);
-          }
-
-        break;
-      //}}}
-      //{{{
-      case WM_MOUSELEAVE:
-
-        if (window_data)
-          window_data_win->mouse_inside = false;
-
-        break;
-      //}}}
-
-      //{{{
-      case WM_MOUSEWHEEL:
-        if (window_data) {
-          window_data->mouse_wheel_y = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-          kCall (mouse_wheel_func, (mfb_key_mod)translate_mod(), 0.0f, window_data->mouse_wheel_y);
-          }
-        break;
-      //}}}
-      //{{{
-      case WM_MOUSEHWHEEL:
-        // This message is only sent on Windows Vista and later
-        // NOTE: The X-axis is inverted for consistency with macOS and X11
-
-        if (window_data) {
-          window_data->mouse_wheel_x = -((SHORT)HIWORD(wParam) / (float)WHEEL_DELTA);
-          kCall (mouse_wheel_func, (mfb_key_mod)translate_mod(), window_data->mouse_wheel_x, 0.0f);
-          }
-
-        break;
-      //}}}
-
       //{{{
       case WT_PACKET:
         if ((HCTX)lParam == gWinTab->mContext) {
@@ -843,102 +788,190 @@ namespace {
         break;
       //}}}
 
-      case WM_POINTERENTER:
-        cLog::log (LOGINFO, fmt::format ("WM_POINTERENTER {:x} {:x}", wParam, lParam));
-        break;
-      case WM_POINTERLEAVE:
-        cLog::log (LOGINFO, fmt::format ("WM_POINTERLEAVE {:x} {:x}", wParam, lParam));
-        break;
+      //{{{  pointer info
+      //POINTER_INFO
+      //POINTER_INPUT_TYPE         pointerType;
+      //UINT32                     pointerId;
+      //UINT32                     frameId;
+      //POINTER_FLAGS              pointerFlags;
+      //HANDLE                     sourceDevice;
+      //HWND                       hwndTarget;
+      //POINT                      ptPixelLocation;
+      //POINT                      ptHimetricLocation;
+      //POINT                      ptPixelLocationRaw;
+      //POINT                      ptHimetricLocationRaw;
+      //DWORD                      dwTime;
+      //UINT32                     historyCount;
+      //INT32                      InputData;
+      //DWORD                      dwKeyStates;
+      //UINT64                     PerformanceCount;
+      //POINTER_BUTTON_CHANGE_TYPE ButtonChangeType;
 
-      case WM_POINTERDOWN:
-        cLog::log (LOGINFO, fmt::format ("WM_POINTERDOWN {:x} {:x}", wParam, lParam));
-        break;
-      case WM_POINTERUPDATE: {
-        //cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE {:x} {:x}", wParam, lParam));
-        POINTER_INFO pointerInfo;
-        if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
-          cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE info {} {} {}",
-            pointerInfo.pointerType,
-            pointerInfo.pointerFlags,
-            pointerInfo.dwTime));
-            //{{{  POINTER_INPUT
-              //PT_POINTER = 1,
-              //PT_TOUCH = 2,
-              //PT_PEN = 3,
-              //PT_MOUSE = 4,
-              //PT_TOUCHPAD = 5
-            //}}}
-            //{{{  POINTER_FLAG
-            //POINTER_FLAG_NONE 0x00000000
-            //POINTER_FLAG_NEW 0x00000001
-            //POINTER_FLAG_INRANGE 0x00000002
-            //POINTER_FLAG_INCONTACT 0x00000004
-            //POINTER_FLAG_FIRSTBUTTON 0x00000010
-            //POINTER_FLAG_SECONDBUTTON 0x00000020
-            //POINTER_FLAG_THIRDBUTTON 0x00000040
-            //POINTER_FLAG_FOURTHBUTTON 0x00000080
-            //POINTER_FLAG_FIFTHBUTTON 0x00000100
-            //POINTER_FLAG_PRIMARY 0x00002000
-            //POINTER_FLAG_CONFIDENCE 0x000004000
-            //POINTER_FLAG_CANCELED 0x000008000
-            //POINTER_FLAG_DOWN 0x00010000
-            //POINTER_FLAG_UPDATE 0x00020000
-            //POINTER_FLAG_UP 0x00040000
-            //POINTER_FLAG_WHEEL 0x00080000
-            //POINTER_FLAG_HWHEEL 0x00100000
-            //POINTER_FLAG_CAPTURECHANGED 0x00200000
-            //POINTER_FLAG_HASTRANSFORM 0x00400000
-            //}}}
-            //{{{  POINTER_INFO
-            //POINTER_INPUT_TYPE         pointerType;
-            //UINT32                     pointerId;
-            //UINT32                     frameId;
-            //POINTER_FLAGS              pointerFlags;
-            //HANDLE                     sourceDevice;
-            //HWND                       hwndTarget;
-            //POINT                      ptPixelLocation;
-            //POINT                      ptHimetricLocation;
-            //POINT                      ptPixelLocationRaw;
-            //POINT                      ptHimetricLocationRaw;
-            //DWORD                      dwTime;
-            //UINT32                     historyCount;
-            //INT32                      InputData;
-            //DWORD                      dwKeyStates;
-            //UINT64                     PerformanceCount;
-            //POINTER_BUTTON_CHANGE_TYPE ButtonChangeType;
-            //}}}
-            //{{{  POINTER_PEN_INFO
-              //POINTER_INFO pointerInfo;
-              //PEN_FLAGS    penFlags;
-              //PEN_MASK     penMask;
-              //UINT32       pressure;
-              //UINT32       rotation;
-              //INT32        tiltX;
-              //INT32        tiltY;
-            //}}}
-            //BOOL GetPointerPenInfo ([in]UINT32 pointerId, [out] POINTER_PEN_INFO* penInfo)
+      ////POINTER_INPUT
+        //PT_POINTER = 1,
+        //PT_TOUCH = 2,
+        //PT_PEN = 3,
+        //PT_MOUSE = 4,
+        //PT_TOUCHPAD = 5
+
+      ////POINTER_FLAG
+      //POINTER_FLAG_NONE 0x00000000
+      //POINTER_FLAG_NEW 0x00000001
+      //POINTER_FLAG_INRANGE 0x00000002
+      //POINTER_FLAG_INCONTACT 0x00000004
+      //POINTER_FLAG_FIRSTBUTTON 0x00000010
+      //POINTER_FLAG_SECONDBUTTON 0x00000020
+      //POINTER_FLAG_THIRDBUTTON 0x00000040
+      //POINTER_FLAG_FOURTHBUTTON 0x00000080
+      //POINTER_FLAG_FIFTHBUTTON 0x00000100
+      //POINTER_FLAG_PRIMARY 0x00002000
+      //POINTER_FLAG_CONFIDENCE 0x000004000
+      //POINTER_FLAG_CANCELED 0x000008000
+      //POINTER_FLAG_DOWN 0x00010000
+      //POINTER_FLAG_UPDATE 0x00020000
+      //POINTER_FLAG_UP 0x00040000
+      //POINTER_FLAG_WHEEL 0x00080000
+      //POINTER_FLAG_HWHEEL 0x00100000
+      //POINTER_FLAG_CAPTURECHANGED 0x00200000
+      //POINTER_FLAG_HASTRANSFORM 0x00400000
+
+      ////POINTER_BUTTON_CHANGE_TYPE {
+        //POINTER_CHANGE_NONE,
+        //POINTER_CHANGE_FIRSTBUTTON_DOWN,
+        //POINTER_CHANGE_FIRSTBUTTON_UP,
+        //POINTER_CHANGE_SECONDBUTTON_DOWN,
+        //POINTER_CHANGE_SECONDBUTTON_UP,
+        //POINTER_CHANGE_THIRDBUTTON_DOWN,
+        //POINTER_CHANGE_THIRDBUTTON_UP,
+        //POINTER_CHANGE_FOURTHBUTTON_DOWN,
+        //POINTER_CHANGE_FOURTHBUTTON_UP,
+        //POINTER_CHANGE_FIFTHBUTTON_DOWN,
+        //POINTER_CHANGE_FIFTHBUTTON_UP
+      //}}}
+      //{{{  pointerPenInfo
+      //BOOL GetPointerPenInfo ([in]UINT32 pointerId, [out] POINTER_PEN_INFO* penInfo)
+
+      ////POINTER_PEN_INFO
+        //POINTER_INFO pointerInfo;
+        //PEN_FLAGS    penFlags;
+        //PEN_MASK     penMask;
+        //UINT32       pressure;
+        //UINT32       rotation;
+        //INT32        tiltX;
+        //INT32        tiltY;
+      //}}}
+      //{{{
+      case WM_POINTERWHEEL  :
+        //cLog::log (LOGINFO, fmt::format ("WM_POINTERWHEEL {:x} {:x}", wParam, lParam));
+        if (window_data) {
+          window_data->mouse_wheel_y = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
+          kCall (mouse_wheel_func, (mfb_key_mod)translate_mod(), 0.0f, window_data->mouse_wheel_y);
           }
         break;
-        }
+      //}}}
+      //{{{
+      case WM_POINTERUPDATE: 
+        if (window_data) {
+          POINTER_INFO pointerInfo;
+          if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
+            //cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE info {} {} {}",
+            //                                 pointerInfo.pointerType, pointerInfo.pointerFlags, pointerInfo.dwTime));
+            if (pointerInfo.pointerType == PT_MOUSE) {
+              }
+            else if (pointerInfo.pointerType == PT_PEN) {
+              }
+
+            window_data_win->mouse_inside = true;
+
+            POINT clientPos = pointerInfo.ptPixelLocation;
+            ScreenToClient (hWnd, &clientPos);
+            window_data->mouse_pos_x = clientPos.x;
+            window_data->mouse_pos_y = clientPos.y;
+
+            kCall (mouse_move_func, window_data->mouse_pos_x, window_data->mouse_pos_y);
+            }
+          }
+        break;
+      //}}}
+      //{{{
+      case WM_POINTERDOWN:
+        //cLog::log (LOGINFO, fmt::format ("WM_POINTERDOWN {:x} {:x}", wParam, lParam));
+        if (window_data) {
+          POINTER_INFO pointerInfo;
+          if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
+            if (pointerInfo.pointerType == PT_MOUSE) { // unused PT_TOUCH, PT_TOUCHPAD
+              cLog::log (LOGINFO, fmt::format ("mouseDown"));
+              }
+            else if (pointerInfo.pointerType == PT_PEN) {
+              cLog::log (LOGINFO, fmt::format ("penDown"));
+              }
+
+            window_data->mod_keys = translate_mod();
+            window_data->mouse_button_status[MOUSE_BTN_1] = 1;
+            kCall (mouse_btn_func, MOUSE_BTN_1, (mfb_key_mod)window_data->mod_keys, 1);
+            }
+          }
+        break;
+      //}}}
+      //{{{
       case WM_POINTERUP:
-        cLog::log (LOGINFO, fmt::format ("WM_POINTERUP {:x} {:x}", wParam, lParam));
-        break;
+        //cLog::log (LOGINFO, fmt::format ("WM_POINTERUP {:x} {:x}", wParam, lParam));
+        if (window_data) {
+          POINTER_INFO pointerInfo;
+          if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
+            if (pointerInfo.pointerType == PT_MOUSE) {
+              cLog::log (LOGINFO, fmt::format ("mouseUp"));
+              }
+            else if (pointerInfo.pointerType == PT_PEN) {
+              cLog::log (LOGINFO, fmt::format ("penUp"));
+              }
 
-      case WM_POINTERWHEEL  :
-        cLog::log (LOGINFO, fmt::format ("WM_POINTERWHEEL   {:x} {:x}", wParam, lParam));
+            window_data->mod_keys = translate_mod();
+            window_data->mouse_button_status[MOUSE_BTN_1] = 0;
+            kCall (mouse_btn_func, MOUSE_BTN_1, (mfb_key_mod)window_data->mod_keys, 0);
+            }
+          }
         break;
+      //}}}
+      //{{{
+      case WM_POINTERLEAVE:
+        cLog::log (LOGINFO, fmt::format ("WM_POINTERLEAVE {:x} {:x}", wParam, lParam));
+        window_data_win->mouse_inside = false;
+        break;
+      //}}}
+      //{{{
+      //case WM_MOUSEHWHEEL:
+        //// This message is only sent on Windows Vista and later
+        //// NOTE: The X-axis is inverted for consistency with macOS and X11
 
-      //case WM_NCPOINTERDOWN :
-      //  cLog::log (LOGINFO, fmt::format ("WM_NCPOINTERDOWN  {:x} {:x}", wParam, lParam));
-      //  break;
-      //case WM_NCPOINTERUPDATE :
+        //if (window_data) {
+          //window_data->mouse_wheel_x = -((SHORT)HIWORD(wParam) / (float)WHEEL_DELTA);
+          //kCall (mouse_wheel_func, (mfb_key_mod)translate_mod(), window_data->mouse_wheel_x, 0.0f);
+          //}
+
+        //break;
+      //}}}
+
+      //{{{
+      //case WM_INPUT:
+        //cLog::log (LOGINFO, fmt::format ("WM_INPUT {:x} {:x}", wParam, lParam));
+        //break;
+      //}}}
+      //{{{
+      //case WM_NCPOINTERUPDATE:
         //cLog::log (LOGINFO, fmt::format ("WM_NCPOINTERUPDATE  {:x} {:x}", wParam, lParam));
-      //  break;
-      //case WM_NCPOINTERUP :
-      //  cLog::log (LOGINFO, fmt::format ("WM_NCPOINTERUP  {:x} {:x}", wParam, lParam));
-      //  break;
-
-      // just log
+        //break;
+      //}}}
+      //{{{
+      //case WM_NCPOINTERUP:
+        //cLog::log (LOGINFO, fmt::format ("WM_NCPOINTERUP  {:x} {:x}", wParam, lParam));
+        //break;
+      //}}}
+      //{{{
+      //case WM_POINTERENTER:
+        //cLog::log (LOGINFO, fmt::format ("WM_POINTERENTER {:x} {:x}", wParam, lParam));
+        //break;
+      //}}}
       //{{{
       //case WM_POINTERACTIVATE:
         //cLog::log (LOGINFO, fmt::format ("WM_POINTERACTIVATE   {:x} {:x}", wParam, lParam));
@@ -969,63 +1002,12 @@ namespace {
         //cLog::log (LOGINFO, fmt::format ("WM_TOUCHHITTESTING  {:x} {:x}", wParam, lParam));
         //break;
       //}}}
-      //{{{
-      case WM_INPUT:
-        cLog::log (LOGINFO, fmt::format ("WM_INPUT {:x} {:x}", wParam, lParam));
-        break;
-      //}}}
-
-      //{{{
-      case WM_SETFOCUS:
-
-        if (window_data) {
-          window_data->is_active = true;
-          kCall (active_func, true);
-          }
-
-        break;
-      //}}}
-      //{{{
-      case WM_KILLFOCUS:
-
-        if (window_data) {
-          window_data->is_active = false;
-          kCall (active_func, false);
-          }
-
-        break;
-      //}}}
-
-      //{{{
-      case WM_SIZE:
-
-        if (window_data) {
-          if (wParam == SIZE_MINIMIZED)
-            return res;
-
-          float scale_x, scale_y;
-          get_monitor_scale (hWnd, &scale_x, &scale_y);
-          window_data->window_width = LOWORD(lParam);
-          window_data->window_height = HIWORD(lParam);
-          resize_dst (window_data, window_data->window_width, window_data->window_height);
-
-          resize_GL (window_data);
-          if (window_data->window_width != 0 && window_data->window_height != 0) {
-            uint32_t width, height;
-            width  = (uint32_t)(window_data->window_width  / scale_x);
-            height = (uint32_t)(window_data->window_height / scale_y);
-            kCall (resize_func, width, height);
-            }
-          }
-
-        break;
-      //}}}
 
       default:
-        res = DefWindowProc (hWnd, message, wParam, lParam);
+        result = DefWindowProc (hWnd, message, wParam, lParam);
       }
 
-    return res;
+    return result;
     }
   //}}}
   }
