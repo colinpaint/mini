@@ -35,6 +35,7 @@ typedef struct {
 
   int32_t  mouse_pos_x;
   int32_t  mouse_pos_y;
+  int32_t  mouse_pressure;
   float    mouse_wheel_x;
   float    mouse_wheel_y;
   uint8_t  mouse_button_status[8];

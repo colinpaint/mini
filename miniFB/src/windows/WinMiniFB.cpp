@@ -7,6 +7,7 @@
 #include "../MiniFB_internal.h"
 #include "../WindowData.h"
 #include "../windows/WindowData_Win.h"
+#include <windowsx.h>
 
 #include "../gl/MiniFB_GL.h"
 
@@ -203,11 +204,9 @@ namespace {
       //}}}
 
     LOGCONTEXTA logContext = {0};
-    //gWinTab->mWTInfoA (WTI_DDCTXS, 0, &logContext);
     gWinTab->mWTInfoA (WTI_DEFSYSCTX, 0, &logContext);
-
     logContext.lcPktData = PACKETDATA;
-    logContext.lcOptions |= CXO_MESSAGES | CXO_SYSTEM;
+    logContext.lcOptions |= CXO_MESSAGES | CXO_SYSTEM; // | CXO_PEN;
     logContext.lcPktMode = 0;   // absolute mode
     logContext.lcMoveMask = PACKETDATA;
     logContext.lcBtnUpMask = logContext.lcBtnDnMask;
@@ -570,7 +569,7 @@ namespace {
     if (window_data_win->window != 0 && window_data_win->hdc != 0) {
       ReleaseDC (window_data_win->window, window_data_win->hdc);
       DestroyWindow (window_data_win->window);
-      winTabUnload();
+      //winTabUnload();
       }
 
     window_data_win->window = 0;
@@ -599,23 +598,6 @@ namespace {
 
         return DefWindowProc(hWnd, message, wParam, lParam);
       //}}}
-      //{{{
-      //case 0x02E4://WM_GETDPISCALEDSIZE:
-      //{
-      //    SIZE* size = (SIZE*) lParam;
-      //    WORD dpi = LOWORD(wParam);
-      //    return true;
-      //    break;
-              //}
-      //}}}
-      //{{{
-      //case WM_DPICHANGED:
-      //{
-      //    const float xscale = HIWORD(wParam);
-      //    const float yscale = LOWORD(wParam);
-      //    break;
-      //}
-      //}}}
 
       //{{{
       case WM_CLOSE:
@@ -638,6 +620,7 @@ namespace {
       case WM_DESTROY:
         if (window_data)
           window_data->close = true;
+
         break;
       //}}}
 
@@ -738,7 +721,6 @@ namespace {
       //}}}
       //{{{
       case WM_UNICHAR:
-        {
         if (window_data) {
           if (wParam == UNICODE_NOCHAR) {
             // WM_UNICHAR is not sent by Windows, but is sent by some third-party input method engine
@@ -748,8 +730,8 @@ namespace {
 
           kCall(char_input_func, (unsigned int) wParam);
           }
+
         break;
-        }
       //}}}
 
       //{{{
@@ -769,22 +751,22 @@ namespace {
             gWinTab->mTime = packet.pkTime;
             gWinTab->mSerialNumber = packet.pkSerialNumber;
 
-            //cLog::log (LOGINFO, fmt::format ("WT_PACKET {}:{} press:{} but:{} time:{} no:{}",
-            //                                 gWinTab->mPosX, gWinTab->mPosY,
-            //                                 gWinTab->mPressure, gWinTab->mButtons,
-            //                                 gWinTab->mTime, gWinTab->mSerialNumber));
+            cLog::log (LOGINFO, fmt::format ("WT_PACKET press:{} time:{}", gWinTab->mPressure, gWinTab->mTime));
             }
           else
-            cLog::log (LOGINFO, fmt::format ("WT_PACKET no packet {:x} {:x}", wParam, lParam));
+            cLog::log (LOGERROR, fmt::format ("WT_PACKET no packet"));
           }
         else
-          cLog::log (LOGINFO, fmt::format ("WT_PACKET wrong context {:x} {:x}", wParam, lParam));
+          cLog::log (LOGERROR, fmt::format ("WT_PACKET wrong context"));
 
         break;
       //}}}
       //{{{
       case WT_PROXIMITY:
-        cLog::log (LOGINFO, fmt::format ("WT_PROXIMITY {:x} {:x}", wParam, lParam));
+        if (lParam & 0xFFFF)
+          cLog::log (LOGINFO, fmt::format ("WT_PROXIMITY in {:x}", lParam));
+        else
+          cLog::log (LOGINFO, fmt::format ("WT_PROXIMITY out {:x}", lParam));
         break;
       //}}}
 
@@ -861,61 +843,44 @@ namespace {
         //INT32        tiltY;
       //}}}
       //{{{
-      case WM_POINTERWHEEL  :
-        //cLog::log (LOGINFO, fmt::format ("WM_POINTERWHEEL {:x} {:x}", wParam, lParam));
-        if (window_data) {
-          window_data->mouse_wheel_y = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-          kCall (mouse_wheel_func, (mfb_key_mod)translate_mod(), 0.0f, window_data->mouse_wheel_y);
-          }
+      case WM_POINTERENTER:
+        cLog::log (LOGINFO, fmt::format ("pointerEnter {:x} {:x}", wParam, lParam));
         break;
       //}}}
       //{{{
-      case WM_POINTERUPDATE: 
-        if (window_data) {
-          POINTER_INFO pointerInfo;
-          if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
-            //cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE info {} {} {}",
-            //                                 pointerInfo.pointerType, pointerInfo.pointerFlags, pointerInfo.dwTime));
-            if (pointerInfo.pointerType == PT_MOUSE) {
-              }
-            else if (pointerInfo.pointerType == PT_PEN) {
-              }
-
-            window_data_win->mouse_inside = true;
-
-            POINT clientPos = pointerInfo.ptPixelLocation;
-            ScreenToClient (hWnd, &clientPos);
-            window_data->mouse_pos_x = clientPos.x;
-            window_data->mouse_pos_y = clientPos.y;
-
-            kCall (mouse_move_func, window_data->mouse_pos_x, window_data->mouse_pos_y);
-            }
-          }
+      case WM_POINTERLEAVE:
+        cLog::log (LOGINFO, fmt::format ("pointerLeave {}{}pos:{},{}",
+                                         IS_POINTER_INRANGE_WPARAM(wParam) ? "inRange " : "",
+                                         IS_POINTER_INCONTACT_WPARAM(wParam) ? "inContact " : "",
+                                         GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) ));
+        window_data_win->mouse_inside = false;
         break;
       //}}}
       //{{{
       case WM_POINTERDOWN:
-        //cLog::log (LOGINFO, fmt::format ("WM_POINTERDOWN {:x} {:x}", wParam, lParam));
         if (window_data) {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
-            if (pointerInfo.pointerType == PT_MOUSE) { // unused PT_TOUCH, PT_TOUCHPAD
+            if (pointerInfo.pointerType == PT_MOUSE) {
               cLog::log (LOGINFO, fmt::format ("mouseDown"));
               }
             else if (pointerInfo.pointerType == PT_PEN) {
               cLog::log (LOGINFO, fmt::format ("penDown"));
               }
+            else // unused PT_TOUCH, PT_TOUCHPAD
+              cLog::log (LOGERROR, fmt::format ("pointerDown - unknown type:{}", pointerInfo.pointerType));
 
             window_data->mod_keys = translate_mod();
             window_data->mouse_button_status[MOUSE_BTN_1] = 1;
             kCall (mouse_btn_func, MOUSE_BTN_1, (mfb_key_mod)window_data->mod_keys, 1);
             }
+          else
+            cLog::log (LOGERROR, fmt::format ("pointerDown - no info"));
           }
         break;
       //}}}
       //{{{
       case WM_POINTERUP:
-        //cLog::log (LOGINFO, fmt::format ("WM_POINTERUP {:x} {:x}", wParam, lParam));
         if (window_data) {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
@@ -925,84 +890,112 @@ namespace {
             else if (pointerInfo.pointerType == PT_PEN) {
               cLog::log (LOGINFO, fmt::format ("penUp"));
               }
+            else // unused PT_TOUCH, PT_TOUCHPAD
+              cLog::log (LOGERROR, fmt::format ("pointerUp - unknown type:{}", pointerInfo.pointerType));
 
             window_data->mod_keys = translate_mod();
             window_data->mouse_button_status[MOUSE_BTN_1] = 0;
             kCall (mouse_btn_func, MOUSE_BTN_1, (mfb_key_mod)window_data->mod_keys, 0);
             }
+          else
+            cLog::log (LOGERROR, fmt::format ("pointerUp - no info"));
+          }
+
+        break;
+      //}}}
+      //{{{
+      case WM_POINTERUPDATE:
+        if (window_data) {
+          POINTER_INFO pointerInfo;
+          if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
+            if (pointerInfo.pointerType == PT_MOUSE) {
+              //cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE mouse type:{} flags:{:x} time:{}",
+              //                               pointerInfo.pointerType, pointerInfo.pointerFlags, pointerInfo.dwTime));
+              window_data_win->mouse_inside = true;
+
+              POINT clientPos = pointerInfo.ptPixelLocation;
+              ScreenToClient (hWnd, &clientPos);
+              window_data->mouse_pos_x = clientPos.x;
+              window_data->mouse_pos_y = clientPos.y;
+
+              kCall (mouse_move_func, window_data->mouse_pos_x, window_data->mouse_pos_y);
+              }
+            else if (pointerInfo.pointerType == PT_PEN) {
+              POINTER_PEN_INFO pointerPenInfos[10];
+              uint32_t entriesCount = 10;
+              if (GetPointerPenInfoHistory (GET_POINTERID_WPARAM (wParam), &entriesCount, pointerPenInfos)) {
+                for (uint32_t i = 0; i < entriesCount ; i++) {
+                  ScreenToClient (hWnd, &pointerPenInfos[i].pointerInfo.ptPixelLocation);
+                  window_data->mouse_pos_x = pointerPenInfos[i].pointerInfo.ptPixelLocation.x;
+                  window_data->mouse_pos_y = pointerPenInfos[i].pointerInfo.ptPixelLocation.y;
+                  window_data->mouse_pressure = pointerPenInfos[i].pressure;
+                  cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE pen {} {},{} press:{}",
+                                                   i,
+                                                   window_data->mouse_pos_x,
+                                                   window_data->mouse_pos_y,
+                                                   window_data->mouse_pressure));
+
+                  window_data_win->mouse_inside = true;
+                  kCall (mouse_move_func, window_data->mouse_pos_x, window_data->mouse_pos_y);
+                  }
+                }
+              }
+            else
+              cLog::log (LOGERROR, fmt::format ("pointerUpdate - unknown type:{}", pointerInfo.pointerType));
+
+            }
+          else
+            cLog::log (LOGERROR, fmt::format ("pointerUpdate - no info"));
           }
         break;
       //}}}
       //{{{
-      case WM_POINTERLEAVE:
-        cLog::log (LOGINFO, fmt::format ("WM_POINTERLEAVE {:x} {:x}", wParam, lParam));
-        window_data_win->mouse_inside = false;
+      case WM_POINTERWHEEL:
+        if (window_data) {
+          cLog::log (LOGINFO, fmt::format ("pointer wheel"));
+          window_data->mouse_wheel_y = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
+          kCall (mouse_wheel_func, (mfb_key_mod)translate_mod(), 0.0f, window_data->mouse_wheel_y);
+          }
+        else
+          cLog::log (LOGERROR, fmt::format ("pointerWheel - no info"));
+
         break;
       //}}}
-      //{{{
-      //case WM_MOUSEHWHEEL:
-        //// This message is only sent on Windows Vista and later
-        //// NOTE: The X-axis is inverted for consistency with macOS and X11
-
-        //if (window_data) {
-          //window_data->mouse_wheel_x = -((SHORT)HIWORD(wParam) / (float)WHEEL_DELTA);
-          //kCall (mouse_wheel_func, (mfb_key_mod)translate_mod(), window_data->mouse_wheel_x, 0.0f);
-          //}
-
-        //break;
-      //}}}
 
       //{{{
-      //case WM_INPUT:
-        //cLog::log (LOGINFO, fmt::format ("WM_INPUT {:x} {:x}", wParam, lParam));
-        //break;
+      //case 0x02E4://WM_GETDPISCALEDSIZE: {
+      //  SIZE* size = (SIZE*)lParam;
+      //  WORD dpi = LOWORD(wParam);
+      //  return true;
+      //  break;
+      //  }
       //}}}
       //{{{
-      //case WM_NCPOINTERUPDATE:
-        //cLog::log (LOGINFO, fmt::format ("WM_NCPOINTERUPDATE  {:x} {:x}", wParam, lParam));
-        //break;
+      //case WM_DPICHANGED: //
+      //  const float xscale = HIWORD(wParam);
+      //  const float yscale = LOWORD(wParam);
+      //  break;
       //}}}
-      //{{{
-      //case WM_NCPOINTERUP:
-        //cLog::log (LOGINFO, fmt::format ("WM_NCPOINTERUP  {:x} {:x}", wParam, lParam));
-        //break;
-      //}}}
-      //{{{
-      //case WM_POINTERENTER:
-        //cLog::log (LOGINFO, fmt::format ("WM_POINTERENTER {:x} {:x}", wParam, lParam));
-        //break;
-      //}}}
-      //{{{
-      //case WM_POINTERACTIVATE:
-        //cLog::log (LOGINFO, fmt::format ("WM_POINTERACTIVATE   {:x} {:x}", wParam, lParam));
-        //break;
-      //}}}
-      //{{{
-      //case WM_POINTERCAPTURECHANGED:
-        //cLog::log (LOGINFO, fmt::format ("WM_POINTERCAPTURECHANGED {:x} {:x}", wParam, lParam));
-        //break;
-      //}}}
-      //{{{
-      //case WM_POINTERDEVICECHANGE:
-        //cLog::log (LOGINFO, fmt::format ("WM_POINTERDEVICECHANGE {:x} {:x}", wParam, lParam));
-        //break;
-      //}}}
-      //{{{
-      //case WM_POINTERDEVICEINRANGE:
-        //cLog::log (LOGINFO, fmt::format ("WM_POINTERDEVICEINRANGE {:x} {:x}", wParam, lParam));
-        //break;
-      //}}}
-      //{{{
-      //case WM_POINTERDEVICEOUTOFRANGE:
-        //cLog::log (LOGINFO, fmt::format ("WM_POINTERDEVICEOUTOFRANGE {:x} {:x}", wParam, lParam));
-        //break;
-      //}}}
-      //{{{
-      //case WM_TOUCHHITTESTING:
-        //cLog::log (LOGINFO, fmt::format ("WM_TOUCHHITTESTING  {:x} {:x}", wParam, lParam));
-        //break;
-      //}}}
-
+      case WM_POINTERACTIVATE:
+      case WM_POINTERCAPTURECHANGED:
+      case WM_POINTERDEVICECHANGE:
+      case WM_POINTERDEVICEINRANGE:
+      case WM_POINTERDEVICEOUTOFRANGE:
+      case WM_TOUCHHITTESTING:
+      case WM_INPUT:
+      case WM_NCPOINTERUPDATE:
+      case WM_NCPOINTERUP:
+      case WM_LBUTTONUP:
+      case WM_RBUTTONUP:
+      case WM_XBUTTONUP:
+      case WM_LBUTTONDOWN:
+      case WM_LBUTTONDBLCLK:
+      case WM_RBUTTONDOWN:
+      case WM_RBUTTONDBLCLK:
+      case WM_MOUSEMOVE:
+      case WM_MOUSELEAVE:
+      case WM_MOUSEWHEEL:
+      case WM_MOUSEHWHEEL:
       default:
         result = DefWindowProc (hWnd, message, wParam, lParam);
       }
@@ -1145,12 +1138,12 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
+  // enable winTab, mainly for WT_PROXIMITY, get WT_PACKET
+  //if (!winTabLoad (window_data_win->window))
+  //  cLog::log (LOGERROR, fmt::format ("winTab load failed"));
+
   // enable WM_POINTER wndProc messaging, to tell mouse from pen
   EnableMouseInPointer (true);
-
-  // enable winTab, mainly for WT_PROXIMITY, get WT_PACKET
-  if (!winTabLoad (window_data_win->window))
-    cLog::log (LOGERROR, fmt::format ("winTab load failed"));
 
   window_data->is_initialized = true;
   return (struct mfb_window*)window_data;

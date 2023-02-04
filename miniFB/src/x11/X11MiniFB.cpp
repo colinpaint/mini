@@ -608,9 +608,10 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
     return 0x0;
 
   XSelectInput (window_data_x11->display, window_data_x11->window,
-                KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask
-                | StructureNotifyMask | ExposureMask | FocusChangeMask | EnterWindowMask | LeaveWindowMask);
-
+                KeyPressMask | KeyReleaseMask | 
+                ButtonPressMask | ButtonReleaseMask | PointerMotionMask | 
+                StructureNotifyMask | ExposureMask | FocusChangeMask | 
+                EnterWindowMask | LeaveWindowMask);
   XStoreName (window_data_x11->display, window_data_x11->window, title);
 
   if (flags & WF_BORDERLESS) {
@@ -641,9 +642,9 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
                      PropModeReplace, (unsigned char*)&sf_p, 1);
     }
 
-  sizeHints.flags      = PPosition | PMinSize | PMaxSize;
-  sizeHints.x          = 0;
-  sizeHints.y          = 0;
+  sizeHints.flags = PPosition | PMinSize | PMaxSize;
+  sizeHints.x = 0;
+  sizeHints.y = 0;
   sizeHints.min_width  = width;
   sizeHints.min_height = height;
   if (flags & WF_RESIZABLE) {
