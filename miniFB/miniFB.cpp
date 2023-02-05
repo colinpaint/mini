@@ -110,7 +110,7 @@ void keyboard_default (struct mfb_window* window, mfb_key key, mfb_key_mod mod, 
 //}}}
 
 //{{{
-bool mfb_set_viewport_best_fit (struct mfb_window* window, unsigned old_width, unsigned old_height) {
+bool mfbSetViewportBestFit (struct mfb_window* window, unsigned old_width, unsigned old_height) {
 
   if (window) {
     unsigned new_width  = ((SWindowData*)(window))->window_width;
@@ -130,8 +130,8 @@ bool mfb_set_viewport_best_fit (struct mfb_window* window, unsigned old_width, u
     unsigned offset_y = (new_height - finalHeight) >> 1;
 
     mfbGetMonitorScale (window, &scale_x, &scale_y);
-    return mfb_set_viewport (window, (unsigned)(offset_x / scale_x), (unsigned)(offset_y / scale_y),
-                                     (unsigned)(finalWidth / scale_x), (unsigned)(finalHeight / scale_y));
+    return mfbSetViewport (window, (unsigned)(offset_x / scale_x), (unsigned)(offset_y / scale_y),
+                                   (unsigned)(finalWidth / scale_x), (unsigned)(finalHeight / scale_y));
     }
 
   return false;

@@ -6,11 +6,13 @@
   if (windowData && windowData->func) \
     windowData->func ((struct mfb_window*)windowData, __VA_ARGS__);
 
-typedef struct mfb_timer {
+//{{{
+struct mfb_timer {
   int64_t start_time;
   int64_t delta_counter;
   uint64_t time;
-  } mfb_timer;
+  };
+//}}}
 
 //{{{
 #if defined(__cplusplus)

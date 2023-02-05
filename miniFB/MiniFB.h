@@ -42,13 +42,13 @@ void mfbGetMonitorScale (struct mfb_window* window, float* scale_x, float* scale
 void mfb_set_user_data (struct mfb_window* window, void* user_data);
 void* mfb_get_user_data (struct mfb_window* window);
 
-bool mfb_set_viewport (struct mfb_window* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
-bool mfb_set_viewport_best_fit (struct mfb_window* window, unsigned old_width, unsigned old_height);
+bool mfbSetViewport (struct mfb_window* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
+bool mfbSetViewportBestFit (struct mfb_window* window, unsigned old_width, unsigned old_height);
 
 // fps
 void mfb_set_target_fps (uint32_t fps);
 unsigned mfb_get_target_fps();
-bool mfb_wait_sync (struct mfb_window* window);
+bool mfbWaitSync (struct mfb_window* window);
 
 // callbacks
 void mfb_set_activeCallback (struct mfb_window* window, mfb_active_func callback);

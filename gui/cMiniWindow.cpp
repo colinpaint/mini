@@ -73,7 +73,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         y = (height - getHeight()) >> 1;
         setHeight (height);
         }
-      mfb_set_viewport (window, x, y, width, height);
+      mfbSetViewport (window, x, y, width, height);
       },
     mWindow);
   //}}}
@@ -224,6 +224,8 @@ void cWindow::uiLoop (bool useChanged, bool drawPerf,
       // update window with our texture
       mfbUpdate (mWindow, getPixels());
       frameUs = duration_cast<microseconds>(system_clock::now() - time).count();
+      if (!useChanged)
+        mfbWaitSync (mWindow);
       }
     else {
       this_thread::sleep_for (1ms);

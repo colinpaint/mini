@@ -1210,7 +1210,7 @@ void mfbGetMonitorScale (struct mfb_window* window, float* scale_x, float* scale
   }
 //}}}
 //{{{
-bool mfb_set_viewport (struct mfb_window* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
+bool mfbSetViewport (struct mfb_window* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
 
   SWindowData* windowData = (SWindowData*)window;
   SWindowData_Win* windowData_win = 0x0;
@@ -1242,7 +1242,7 @@ bool mfb_set_viewport (struct mfb_window* window, unsigned offset_x, unsigned of
 
 // sync
 //{{{
-bool mfb_wait_sync (struct mfb_window* window) {
+bool mfbWaitSync (struct mfb_window* window) {
 
   if (!window)
     return false;

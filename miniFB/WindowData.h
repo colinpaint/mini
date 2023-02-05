@@ -49,4 +49,4 @@ struct SWindowData {
 
   uint8_t  key_status[512];
   uint32_t mod_keys;
-  } ;
+  };
