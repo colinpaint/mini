@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include "miniFBenums.h"
 
-struct SWindowData {
+struct sWindowData {
   void* specific;
   void* user_data;
 
@@ -33,9 +33,9 @@ struct SWindowData {
   uint32_t buffer_height;
   uint32_t buffer_stride;
 
-  int32_t  mouse_pos_x;
-  int32_t  mouse_pos_y;
-  int32_t  mouse_pressure;
+  int32_t  mousePosX;
+  int32_t  mousePosY;
+  int32_t  mousePressure;
   int64_t  timestamp;
 
   float    mouse_wheel_x;

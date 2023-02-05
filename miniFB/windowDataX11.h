@@ -4,7 +4,7 @@
 #include <X11/Xlib.h>
 #include <GL/glx.h>
 
-struct SWindowData_X11 {
+struct sWindowDataX11 {
   Window      window;
   Display*    display;
   int         screen;

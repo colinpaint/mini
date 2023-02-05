@@ -1,9 +1,9 @@
 #pragma once
 #include "windowData.h"
 
-bool createGLcontext (SWindowData* windowData);
-void destroyGLcontext (SWindowData* windowData);
+bool createGLcontext (sWindowData* windowData);
+void destroyGLcontext (sWindowData* windowData);
 
-void initGL (SWindowData* windowData);
-void redrawGL (SWindowData* windowData, const void *pixels);
-void resizeGL (SWindowData* windowData);
+void initGL (sWindowData* windowData);
+void redrawGL (sWindowData* windowData, const void *pixels);
+void resizeGL (sWindowData* windowData);

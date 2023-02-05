@@ -18,42 +18,42 @@ mfb_update_state mfbUpdate (struct mfb_window* window, void *buffer) {
   if (!window)
     return STATE_INVALID_WINDOW;
 
-  return mfbUpdateEx (window, buffer, ((SWindowData*)(window))->buffer_width, ((SWindowData*)(window))->buffer_height);
+  return mfbUpdateEx (window, buffer, ((sWindowData*)(window))->buffer_width, ((sWindowData*)(window))->buffer_height);
   }
 //}}}
 //{{{
 void mfb_set_activeCallback (struct mfb_window* window, mfb_active_func callback) {
 
   if (window)
-    ((SWindowData*)(window))->active_func = callback;
+    ((sWindowData*)(window))->active_func = callback;
   }
 //}}}
 //{{{
 void mfb_set_resizeCallback (struct mfb_window* window, mfb_resize_func callback) {
 
   if (window)
-    ((SWindowData*)(window))->resize_func = callback;
+    ((sWindowData*)(window))->resize_func = callback;
   }
 //}}}
 //{{{
 void mfb_set_closeCallback (struct mfb_window* window, mfb_close_func callback) {
 
   if (window)
-    ((SWindowData*)(window))->close_func = callback;
+    ((sWindowData*)(window))->close_func = callback;
   }
 //}}}
 //{{{
 void mfb_set_keyboardCallback (struct mfb_window* window, mfb_keyboard_func callback) {
 
   if (window)
-    ((SWindowData*)(window))->keyboard_func = callback;
+    ((sWindowData*)(window))->keyboard_func = callback;
   }
 //}}}
 //{{{
 void mfb_set_char_inputCallback (struct mfb_window* window, mfb_char_input_func callback) {
 
   if (window)
-    ((SWindowData*)(window))->char_input_func = callback;
+    ((sWindowData*)(window))->char_input_func = callback;
   }
 //}}}
 
@@ -61,38 +61,38 @@ void mfb_set_char_inputCallback (struct mfb_window* window, mfb_char_input_func 
 void mfb_set_mouse_buttonCallback (struct mfb_window* window, mfb_mouse_button_func callback) {
 
   if (window)
-    ((SWindowData*)(window))->mouse_btn_func = callback;
+    ((sWindowData*)(window))->mouse_btn_func = callback;
   }
 //}}}
 //{{{
 void mfb_set_mouse_moveCallback (struct mfb_window* window, mfb_mouse_move_func callback) {
 
   if (window)
-    ((SWindowData*)(window))->mouse_move_func = callback;
+    ((sWindowData*)(window))->mouse_move_func = callback;
   }
 //}}}
 //{{{
 void mfb_set_mouse_scrollCallback (struct mfb_window* window, mfb_mouse_scroll_func callback) {
 
   if (window)
-    ((SWindowData*)(window))->mouse_wheel_func = callback;
+    ((sWindowData*)(window))->mouse_wheel_func = callback;
   }
 //}}}
 //{{{
 void mfb_set_user_data (struct mfb_window* window, void* user_data) {
 
   if (window)
-    ((SWindowData*)(window))->user_data = user_data;
+    ((sWindowData*)(window))->user_data = user_data;
   }
 //}}}
 
-void* mfb_get_user_data (struct mfb_window* window) { return window ? ((SWindowData*)(window))->user_data : 0; }
+void* mfb_get_user_data (struct mfb_window* window) { return window ? ((sWindowData*)(window))->user_data : 0; }
 
 //{{{
 void mfbClose (struct mfb_window* window) {
 
   if (window)
-    ((SWindowData*)(window))->close = true;
+    ((sWindowData*)(window))->close = true;
   }
 //}}}
 //{{{
@@ -102,9 +102,9 @@ void keyboard_default (struct mfb_window* window, mfb_key key, mfb_key_mod mod, 
   (void)(isPressed);
 
   if (key == KB_KEY_ESCAPE) {
-    if (!((SWindowData*)(window))->close_func ||
-         ((SWindowData*)(window))->close_func ((struct mfb_window*)window))
-      ((SWindowData*)(window))->close = true;
+    if (!((sWindowData*)(window))->close_func ||
+         ((sWindowData*)(window))->close_func ((struct mfb_window*)window))
+      ((sWindowData*)(window))->close = true;
     }
   }
 //}}}
@@ -113,8 +113,8 @@ void keyboard_default (struct mfb_window* window, mfb_key key, mfb_key_mod mod, 
 bool mfbSetViewportBestFit (struct mfb_window* window, unsigned old_width, unsigned old_height) {
 
   if (window) {
-    unsigned new_width  = ((SWindowData*)(window))->window_width;
-    unsigned new_height = ((SWindowData*)(window))->window_height;
+    unsigned new_width  = ((sWindowData*)(window))->window_width;
+    unsigned new_height = ((sWindowData*)(window))->window_height;
 
     float scale_x = new_width  / (float) old_width;
     float scale_y = new_height / (float) old_height;
@@ -138,20 +138,20 @@ bool mfbSetViewportBestFit (struct mfb_window* window, unsigned old_width, unsig
   }
 //}}}
 
-bool mfbIsWindowActive (struct mfb_window* window)  { return window ? ((SWindowData*)(window))->is_active : 0; }
-unsigned mfbGetWindowWidth (struct mfb_window* window)  { return window ? ((SWindowData*)(window))->window_width : 0; }
-unsigned mfbGetWindowHeight (struct mfb_window* window) { return window ? ((SWindowData*)(window))->window_height : 0; }
+bool mfbIsWindowActive (struct mfb_window* window)  { return window ? ((sWindowData*)(window))->is_active : 0; }
+unsigned mfbGetWindowWidth (struct mfb_window* window)  { return window ? ((sWindowData*)(window))->window_width : 0; }
+unsigned mfbGetWindowHeight (struct mfb_window* window) { return window ? ((sWindowData*)(window))->window_height : 0; }
 
-int mfbGetMouseX (struct mfb_window* window) { return window ? ((SWindowData*)(window))->mouse_pos_x : 0; }
-int mfbGetMouseY (struct mfb_window* window) { return window ? ((SWindowData*)(window))->mouse_pos_y : 0; }
-int mfbGetMousePressure (struct mfb_window* window) { return window ? ((SWindowData*)(window))->mouse_pressure : 0; }
-int64_t mfbGetMouseTimestamp (struct mfb_window* window) { return window ? ((SWindowData*)(window))->timestamp : 0; }
+int mfbGetMouseX (struct mfb_window* window) { return window ? ((sWindowData*)(window))->mousePosX : 0; }
+int mfbGetMouseY (struct mfb_window* window) { return window ? ((sWindowData*)(window))->mousePosY : 0; }
+int mfbGetMousePressure (struct mfb_window* window) { return window ? ((sWindowData*)(window))->mousePressure : 0; }
+int64_t mfbGetMouseTimestamp (struct mfb_window* window) { return window ? ((sWindowData*)(window))->timestamp : 0; }
 
-float mfbGetMouseScrollX (struct mfb_window* window) { return window ? ((SWindowData*)(window))->mouse_wheel_x : 0; }
-float mfbGetMouseScrollY (struct mfb_window* window) { return window ? ((SWindowData*)(window))->mouse_wheel_y : 0; }
+float mfbGetMouseScrollX (struct mfb_window* window) { return window ? ((sWindowData*)(window))->mouse_wheel_x : 0; }
+float mfbGetMouseScrollY (struct mfb_window* window) { return window ? ((sWindowData*)(window))->mouse_wheel_y : 0; }
 
-const uint8_t* mfbGetMouseButtonBuffer (struct mfb_window* window) { return window ? ((SWindowData*)(window))->mouse_button_status : 0; }
-const uint8_t* mfbGetKeyBuffer (struct mfb_window* window)  { return window ? ((SWindowData*)(window))->key_status : 0; }
+const uint8_t* mfbGetMouseButtonBuffer (struct mfb_window* window) { return window ? ((sWindowData*)(window))->mouse_button_status : 0; }
+const uint8_t* mfbGetKeyBuffer (struct mfb_window* window)  { return window ? ((sWindowData*)(window))->key_status : 0; }
 
 //{{{
 const char* mfbGetKeyName (mfb_key key) {

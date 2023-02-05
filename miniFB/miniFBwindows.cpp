@@ -559,12 +559,12 @@ namespace {
   //}}}
 
   //{{{
-  void destroyWindowData (SWindowData* windowData) {
+  void destroyWindowData (sWindowData* windowData) {
 
     if (windowData == 0x0)
       return;
 
-    SWindowDataWindows* windowDataWindows = (SWindowDataWindows*)windowData->specific;
+    sWindowDataWindows* windowDataWindows = (sWindowDataWindows*)windowData->specific;
 
     destroyGLcontext (windowData);
 
@@ -590,8 +590,8 @@ namespace {
   //{{{
   LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
-    SWindowData* windowData = (SWindowData*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
-    SWindowDataWindows* windowData_win = windowData ? (SWindowDataWindows*)windowData->specific : nullptr;
+    sWindowData* windowData = (sWindowData*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+    sWindowDataWindows* windowData_win = windowData ? (sWindowDataWindows*)windowData->specific : nullptr;
 
     switch (message) {
       //{{{
@@ -919,10 +919,10 @@ namespace {
 
               POINT clientPos = pointerInfo.ptPixelLocation;
               ScreenToClient (hWnd, &clientPos);
-              windowData->mouse_pos_x = clientPos.x;
-              windowData->mouse_pos_y = clientPos.y;
+              windowData->mousePosX = clientPos.x;
+              windowData->mousePosY = clientPos.y;
 
-              kCall (mouse_move_func, windowData->mouse_pos_x, windowData->mouse_pos_y);
+              kCall (mouse_move_func, windowData->mousePosX, windowData->mousePosY);
               }
             else if (pointerInfo.pointerType == PT_PEN) {
               POINTER_PEN_INFO pointerPenInfos[10];
@@ -931,16 +931,16 @@ namespace {
                 windowData_win->mouse_inside = true;
                 for (uint32_t i = entriesCount; i > 0; i--) {
                   ScreenToClient (hWnd, &pointerPenInfos[i-1].pointerInfo.ptPixelLocation);
-                  windowData->mouse_pos_x = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
-                  windowData->mouse_pos_y = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
-                  windowData->mouse_pressure = pointerPenInfos[i-1].pressure;
+                  windowData->mousePosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
+                  windowData->mousePosY = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
+                  windowData->mousePressure = pointerPenInfos[i-1].pressure;
                   windowData->timestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
 
-                  kCall (mouse_move_func, windowData->mouse_pos_x, windowData->mouse_pos_y);
+                  kCall (mouse_move_func, windowData->mousePosX, windowData->mousePosY);
 
                   //cLog::log (LOGINFO, fmt::format ("pointerUpdate pen {} {},{} press:{} time:{}",
-                  //                                 i, windowData->mouse_pos_x, windowData->mouse_pos_y,
-                  //                                 windowData->mouse_pressure, windowData->time));
+                  //                                 i, windowData->mousePosX, windowData->mousePosY,
+                  //                                 windowData->mousePressure, windowData->time));
                   }
                 }
               }
@@ -1021,12 +1021,12 @@ struct mfb_window* mfbOpenEx (const char* title, unsigned width, unsigned height
   dpiAware();
   initKeycodes();
 
-  SWindowData* windowData = (SWindowData*)malloc(sizeof(SWindowData));
+  sWindowData* windowData = (sWindowData*)malloc(sizeof(sWindowData));
   if (windowData == 0x0)
     return 0x0;
-  memset (windowData, 0, sizeof(SWindowData));
+  memset (windowData, 0, sizeof(sWindowData));
 
-  SWindowDataWindows* windowData_win = (SWindowDataWindows*)calloc(1, sizeof(SWindowDataWindows));
+  sWindowDataWindows* windowData_win = (sWindowDataWindows*)calloc(1, sizeof(sWindowDataWindows));
   if (windowData_win == 0x0) {
     //{{{  error, return
     free (windowData);
@@ -1161,7 +1161,7 @@ mfb_update_state mfbUpdateEx (struct mfb_window* window, void* buffer, unsigned 
   if (!window)
     return STATE_INVALID_WINDOW;
 
-  SWindowData* windowData = (SWindowData*)window;
+  sWindowData* windowData = (sWindowData*)window;
   if (windowData->close) {
     destroyWindowData (windowData);
     return STATE_EXIT;
@@ -1184,14 +1184,14 @@ mfb_update_state mfbUpdateEvents (struct mfb_window* window) {
   if (!window)
     return STATE_INVALID_WINDOW;
 
-  SWindowData* windowData = (SWindowData*)window;
+  sWindowData* windowData = (sWindowData*)window;
   if (windowData->close) {
     destroyWindowData (windowData);
     return STATE_EXIT;
     }
 
   MSG msg;
-  SWindowDataWindows* windowData_win = (SWindowDataWindows*)windowData->specific;
+  sWindowDataWindows* windowData_win = (sWindowDataWindows*)windowData->specific;
   while (!windowData->close && PeekMessage (&msg, windowData_win->window, 0, 0, PM_REMOVE)) {
     //if(msg.message == WM_PAINT)
     //    return STATE_OK;
@@ -1210,8 +1210,8 @@ void mfbGetMonitorScale (struct mfb_window* window, float* scale_x, float* scale
   HWND hWnd = 0x0;
 
   if (window) {
-    SWindowData* windowData = (SWindowData*)window;
-    SWindowDataWindows* windowData_win = (SWindowDataWindows*)windowData->specific;
+    sWindowData* windowData = (sWindowData*)window;
+    sWindowDataWindows* windowData_win = (sWindowDataWindows*)windowData->specific;
     hWnd = windowData_win->window;
     }
 
@@ -1221,8 +1221,8 @@ void mfbGetMonitorScale (struct mfb_window* window, float* scale_x, float* scale
 //{{{
 bool mfbSetViewport (struct mfb_window* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
 
-  SWindowData* windowData = (SWindowData*)window;
-  SWindowDataWindows* windowData_win = 0x0;
+  sWindowData* windowData = (sWindowData*)window;
+  sWindowDataWindows* windowData_win = 0x0;
 
   if (!windowData)
     return false;
@@ -1233,7 +1233,7 @@ bool mfbSetViewport (struct mfb_window* window, unsigned offset_x, unsigned offs
   if (offset_y + height > windowData->window_height)
     return false;
 
-  windowData_win = (SWindowDataWindows*)windowData->specific;
+  windowData_win = (sWindowDataWindows*)windowData->specific;
 
   float scale_x, scale_y;
   getMonitorScale (windowData_win->window, &scale_x, &scale_y);
@@ -1256,7 +1256,7 @@ bool mfbWaitSync (struct mfb_window* window) {
   if (!window)
     return false;
 
-  SWindowData* windowData = (SWindowData*)window;
+  sWindowData* windowData = (sWindowData*)window;
   if (windowData->close) {
     //{{{  return false
     destroyWindowData (windowData);
@@ -1267,7 +1267,7 @@ bool mfbWaitSync (struct mfb_window* window) {
   if (g_use_hardware_sync)
     return true;
 
-  SWindowDataWindows* windowData_win = (SWindowDataWindows*)windowData->specific;
+  sWindowDataWindows* windowData_win = (sWindowDataWindows*)windowData->specific;
   double current;
 
   while (true) {

@@ -79,7 +79,7 @@ void stretch_image (uint32_t* srcImage, uint32_t srcX, uint32_t srcY, uint32_t s
 //}}}
 
 //{{{
-void calc_dst_factor (SWindowData *window_data, uint32_t width, uint32_t height) {
+void calc_dst_factor (sWindowData *window_data, uint32_t width, uint32_t height) {
 
   if (window_data->dst_width == 0)
     window_data->dst_width = width;
@@ -95,7 +95,7 @@ void calc_dst_factor (SWindowData *window_data, uint32_t width, uint32_t height)
   }
 //}}}
 //{{{
-void resize_dst (SWindowData *window_data, uint32_t width, uint32_t height) {
+void resize_dst (sWindowData *window_data, uint32_t width, uint32_t height) {
 
   window_data->dst_offset_x = (uint32_t) (width  * window_data->factor_x);
   window_data->dst_offset_y = (uint32_t) (height * window_data->factor_y);

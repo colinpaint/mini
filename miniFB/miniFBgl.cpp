@@ -80,7 +80,7 @@ namespace {
 
   #else
     //{{{
-    bool setup_pixel_format (SWindowData_X11* windowData_x11) {
+    bool setup_pixel_format (sWindowDataX11* windowDataX11) {
 
       GLint glxAttribs[] = { GLX_RGBA,
                              GLX_DOUBLEBUFFER,
@@ -95,14 +95,14 @@ namespace {
                              GLX_SAMPLES,        0,
                              None };
 
-      XVisualInfo* visualInfo = glXChooseVisual (windowData_x11->display, windowData_x11->screen, glxAttribs);
+      XVisualInfo* visualInfo = glXChooseVisual (windowDataX11->display, windowDataX11->screen, glxAttribs);
       if (!visualInfo) {
         cLog::log (LOGERROR, "Could not create correct visual window");
-        XCloseDisplay (windowData_x11->display);
+        XCloseDisplay (windowDataX11->display);
         return false;
         }
 
-      windowData_x11->context = glXCreateContext (windowData_x11->display, visualInfo, NULL, GL_TRUE);
+      windowDataX11->context = glXCreateContext (windowDataX11->display, visualInfo, NULL, GL_TRUE);
 
       return true;
       }
@@ -198,12 +198,12 @@ void set_target_fps_aux() {
 //}}}
 
 //{{{
-void initGL (SWindowData* windowData) {
+void initGL (sWindowData* windowData) {
 
   #if defined(_WIN32) || defined(WIN32)
-    SWindowDataWindows* windowData_ex = (SWindowDataWindows*)windowData->specific;
+    sWindowDataWindows* windowData_ex = (sWindowDataWindows*)windowData->specific;
   #else
-    SWindowData_X11* windowData_ex = (SWindowData_X11*)windowData->specific;
+    sWindowDataX11* windowData_ex = (sWindowDataX11*)windowData->specific;
   #endif
 
   glViewport (0, 0, windowData->window_width, windowData->window_height);
@@ -237,14 +237,14 @@ void initGL (SWindowData* windowData) {
   }
 //}}}
 //{{{
-void resizeGL (SWindowData* windowData) {
+void resizeGL (sWindowData* windowData) {
 
   if (windowData->is_initialized) {
     #if defined(_WIN32) || defined(WIN32)
-    SWindowDataWindows* windowData_ex = (SWindowDataWindows*) windowData->specific;
+    sWindowDataWindows* windowData_ex = (sWindowDataWindows*) windowData->specific;
       wglMakeCurrent (windowData_ex->hdc, windowData_ex->hGLRC);
     #else
-      SWindowData_X11* windowData_ex = (SWindowData_X11*) windowData->specific;
+      sWindowDataX11* windowData_ex = (sWindowDataX11*) windowData->specific;
       glXMakeCurrent (windowData_ex->display, windowData_ex->window, windowData_ex->context);
     #endif
 
@@ -259,13 +259,13 @@ void resizeGL (SWindowData* windowData) {
   }
 //}}}
 //{{{
-void redrawGL (SWindowData* windowData, const void* pixels) {
+void redrawGL (sWindowData* windowData, const void* pixels) {
 
   #if defined(_WIN32) || defined(WIN32)
-  SWindowDataWindows* windowData_ex = (SWindowDataWindows*)windowData->specific;
+  sWindowDataWindows* windowData_ex = (sWindowDataWindows*)windowData->specific;
     wglMakeCurrent (windowData_ex->hdc, windowData_ex->hGLRC);
   #else
-    SWindowData_X11* windowData_ex = (SWindowData_X11*)windowData->specific;
+    sWindowDataX11* windowData_ex = (sWindowDataX11*)windowData->specific;
     glXMakeCurrent (windowData_ex->display, windowData_ex->window, windowData_ex->context);
   #endif
 
@@ -312,10 +312,10 @@ void redrawGL (SWindowData* windowData, const void* pixels) {
 //}}}
 
 //{{{
-bool createGLcontext (SWindowData* windowData) {
+bool createGLcontext (sWindowData* windowData) {
 
   #if defined(_WIN32) || defined(WIN32)
-  SWindowDataWindows* windowData_win = (SWindowDataWindows*)windowData->specific;
+  sWindowDataWindows* windowData_win = (sWindowDataWindows*)windowData->specific;
     if (setup_pixel_format (windowData_win->hdc) == false)
       return false;
 
@@ -333,23 +333,23 @@ bool createGLcontext (SWindowData* windowData) {
     set_target_fps_aux();
 
   #else
-    SWindowData_X11* windowData_x11 = (SWindowData_X11*) windowData->specific;
+    sWindowDataX11* windowDataX11 = (sWindowDataX11*) windowData->specific;
 
     GLint majorGLX = 0;
     GLint minorGLX = 0;
-    glXQueryVersion (windowData_x11->display, &majorGLX, &minorGLX);
+    glXQueryVersion (windowDataX11->display, &majorGLX, &minorGLX);
     if ((majorGLX <= 1) && (minorGLX < 2)) {
       cLog::log (LOGERROR, "GLX 1.2 or greater is required");
-      XCloseDisplay (windowData_x11->display);
+      XCloseDisplay (windowDataX11->display);
       return false;
       }
     else
       cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
 
-    if (setup_pixel_format (windowData_x11) == false)
+    if (setup_pixel_format (windowDataX11) == false)
       return false;
 
-    glXMakeCurrent (windowData_x11->display, windowData_x11->window, windowData_x11->context);
+    glXMakeCurrent (windowDataX11->display, windowDataX11->window, windowDataX11->context);
 
     cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
     cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
@@ -369,10 +369,10 @@ bool createGLcontext (SWindowData* windowData) {
   }
 //}}}
 //{{{
-void destroyGLcontext (SWindowData* windowData) {
+void destroyGLcontext (sWindowData* windowData) {
 
   #if defined(_WIN32) || defined(WIN32)
-  SWindowDataWindows* windowData_win = (SWindowDataWindows*)windowData->specific;
+  sWindowDataWindows* windowData_win = (sWindowDataWindows*)windowData->specific;
     if (windowData_win->hGLRC) {
       wglMakeCurrent (NULL, NULL);
       wglDeleteContext (windowData_win->hGLRC);
@@ -380,8 +380,8 @@ void destroyGLcontext (SWindowData* windowData) {
       }
 
   #else
-    SWindowData_X11* windowData_x11 = (SWindowData_X11*)windowData->specific;
-    glXDestroyContext (windowData_x11->display, windowData_x11->context);
+    sWindowDataX11* windowDataX11 = (sWindowDataX11*)windowData->specific;
+    glXDestroyContext (windowDataX11->display, windowDataX11->context);
   #endif
   }
 //}}}
