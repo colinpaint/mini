@@ -4,7 +4,7 @@
 #include "miniFBinternal.h"
 
 #if defined(_WIN32) || defined(WIN32)
-  #include "windowDataWin.h"
+  #include "windowDataWindows.h"
   #include <gl/gl.h>
 #else
   #include "windowDataX11.h"
@@ -201,7 +201,7 @@ void set_target_fps_aux() {
 void initGL (SWindowData* windowData) {
 
   #if defined(_WIN32) || defined(WIN32)
-    SWindowData_Win* windowData_ex = (SWindowData_Win*)windowData->specific;
+    SWindowDataWindows* windowData_ex = (SWindowDataWindows*)windowData->specific;
   #else
     SWindowData_X11* windowData_ex = (SWindowData_X11*)windowData->specific;
   #endif
@@ -241,7 +241,7 @@ void resizeGL (SWindowData* windowData) {
 
   if (windowData->is_initialized) {
     #if defined(_WIN32) || defined(WIN32)
-      SWindowData_Win* windowData_ex = (SWindowData_Win*) windowData->specific;
+    SWindowDataWindows* windowData_ex = (SWindowDataWindows*) windowData->specific;
       wglMakeCurrent (windowData_ex->hdc, windowData_ex->hGLRC);
     #else
       SWindowData_X11* windowData_ex = (SWindowData_X11*) windowData->specific;
@@ -262,7 +262,7 @@ void resizeGL (SWindowData* windowData) {
 void redrawGL (SWindowData* windowData, const void* pixels) {
 
   #if defined(_WIN32) || defined(WIN32)
-    SWindowData_Win* windowData_ex = (SWindowData_Win*)windowData->specific;
+  SWindowDataWindows* windowData_ex = (SWindowDataWindows*)windowData->specific;
     wglMakeCurrent (windowData_ex->hdc, windowData_ex->hGLRC);
   #else
     SWindowData_X11* windowData_ex = (SWindowData_X11*)windowData->specific;
@@ -315,7 +315,7 @@ void redrawGL (SWindowData* windowData, const void* pixels) {
 bool createGLcontext (SWindowData* windowData) {
 
   #if defined(_WIN32) || defined(WIN32)
-    SWindowData_Win* windowData_win = (SWindowData_Win*)windowData->specific;
+  SWindowDataWindows* windowData_win = (SWindowDataWindows*)windowData->specific;
     if (setup_pixel_format (windowData_win->hdc) == false)
       return false;
 
@@ -372,7 +372,7 @@ bool createGLcontext (SWindowData* windowData) {
 void destroyGLcontext (SWindowData* windowData) {
 
   #if defined(_WIN32) || defined(WIN32)
-    SWindowData_Win* windowData_win = (SWindowData_Win*)windowData->specific;
+  SWindowDataWindows* windowData_win = (SWindowDataWindows*)windowData->specific;
     if (windowData_win->hGLRC) {
       wglMakeCurrent (NULL, NULL);
       wglDeleteContext (windowData_win->hGLRC);

@@ -8,7 +8,7 @@ set (files miniFB.h miniFBcpp.h miniFBenums.h
            )
 
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-  set (platform windowDataWin.h miniFBwin.cpp pktDef.h winTab.h)
+  set (platform windowDataWindows.h miniFBwindows.cpp pktDef.h winTab.h)
 else()
   set (platform windowDataX11.h miniFBx11.cpp miniFBlinux.cpp)
 endif()

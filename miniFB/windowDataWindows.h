@@ -2,7 +2,7 @@
 #include "miniFBenums.h"
 #include <windows.h>
 
-struct SWindowData_Win {
+struct SWindowDataWindows {
   HWND              window;
   WNDCLASS          wc;
   HDC               hdc;
