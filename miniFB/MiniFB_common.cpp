@@ -1,5 +1,5 @@
 // MiniFB_common.cpp
-#include "../include/MiniFB.h"
+#include "MiniFB.h"
 #include "WindowData.h"
 #include "MiniFB_internal.h"
 
@@ -147,6 +147,8 @@ unsigned mfb_get_window_height (struct mfb_window* window) { return window ? ((S
 
 int mfb_get_mouse_x (struct mfb_window* window) { return window ? ((SWindowData*)(window))->mouse_pos_x : 0; }
 int mfb_get_mouse_y (struct mfb_window* window) { return window ? ((SWindowData*)(window))->mouse_pos_y : 0; }
+int mfb_get_mouse_pressure (struct mfb_window* window) { return window ? ((SWindowData*)(window))->mouse_pressure : 0; }
+int64_t mfb_get_mouse_timestamp (struct mfb_window* window) { return window ? ((SWindowData*)(window))->timestamp : 0; }
 
 float mfb_get_mouse_scroll_x (struct mfb_window* window) { return window ? ((SWindowData*)(window))->mouse_wheel_x : 0; }
 float mfb_get_mouse_scroll_y (struct mfb_window* window) { return window ? ((SWindowData*)(window))->mouse_wheel_y : 0; }

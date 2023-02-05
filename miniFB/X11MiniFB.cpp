@@ -17,13 +17,13 @@
 //#include <X11/extensions/Xrandr.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include "../../include/MiniFB.h"
-#include "../MiniFB_internal.h"
-#include "../WindowData.h"
-#include "../gl/MiniFB_GL.h"
+#include "MiniFB.h"
+#include "MiniFB_internal.h"
+#include "WindowData.h"
+#include "MiniFB_GL.h"
 #include "WindowData_X11.h"
 
-#include "../../../common/cLog.h"
+#include "../common/cLog.h"
 //}}}
 
 extern void stretch_image (uint32_t* srcImage, uint32_t srcX, uint32_t srcY,
@@ -608,9 +608,9 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
     return 0x0;
 
   XSelectInput (window_data_x11->display, window_data_x11->window,
-                KeyPressMask | KeyReleaseMask | 
-                ButtonPressMask | ButtonReleaseMask | PointerMotionMask | 
-                StructureNotifyMask | ExposureMask | FocusChangeMask | 
+                KeyPressMask | KeyReleaseMask |
+                ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
+                StructureNotifyMask | ExposureMask | FocusChangeMask |
                 EnterWindowMask | LeaveWindowMask);
   XStoreName (window_data_x11->display, window_data_x11->window, title);
 

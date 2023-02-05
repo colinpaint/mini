@@ -1,8 +1,8 @@
 #pragma once
 #include <cstdlib>
-#include "../include/MiniFB_enums.h"
+#include "MiniFB_enums.h"
 
-typedef struct {
+struct SWindowData {
   void* specific;
   void* user_data;
 
@@ -36,15 +36,17 @@ typedef struct {
   int32_t  mouse_pos_x;
   int32_t  mouse_pos_y;
   int32_t  mouse_pressure;
+  int64_t  timestamp;
+
   float    mouse_wheel_x;
   float    mouse_wheel_y;
   uint8_t  mouse_button_status[8];
-
-  uint8_t  key_status[512];
-  uint32_t mod_keys;
 
   bool     is_active;
   bool     is_initialized;
 
   bool     close;
-  } SWindowData;
+
+  uint8_t  key_status[512];
+  uint32_t mod_keys;
+  } ;

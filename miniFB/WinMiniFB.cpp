@@ -2,16 +2,16 @@
 //{{{  includes
 #include <cstdint>
 
-#include "../../include/MiniFB.h"
+#include "MiniFB.h"
 
-#include "../MiniFB_internal.h"
-#include "../WindowData.h"
-#include "../windows/WindowData_Win.h"
+#include "MiniFB_internal.h"
+#include "WindowData.h"
+#include "WindowData_Win.h"
 #include <windowsx.h>
 
-#include "../gl/MiniFB_GL.h"
+#include "MiniFB_GL.h"
 
-#include "../../../common/cLog.h"
+#include "../common/cLog.h"
 
 using namespace std;
 //}}}
@@ -54,7 +54,7 @@ typedef HRESULT(WINAPI *PFN_GetDpiForMonitor)(HMONITOR, mfb_MONITOR_DPI_TYPE, UI
 //}}}
 
 #include "winTab.h"
-#define PACKETDATA PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE | PK_TIME | PK_SERIAL_NUMBER
+#define PACKETDATA PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE | PK_TIME
 #include "pktDef.h"
 
 extern short int g_keycodes[512];
@@ -111,7 +111,6 @@ namespace {
     int32_t mButtons;  // Bit field. Use with the eWinTabButtons_ enum.
 
     DWORD mTime;
-    UINT  mSerialNumber;
 
     int32_t mRangeX;
     int32_t mRangeY;
@@ -282,7 +281,7 @@ namespace {
   //}}}
 
   //{{{
-  void load_functions() {
+  void loadFunctions() {
 
     if (mfb_user32_dll == 0x0) {
       mfb_user32_dll = LoadLibraryA ("user32.dll");
@@ -313,7 +312,7 @@ namespace {
     }
   //}}}
   //{{{
-  void dpi_aware() {
+  void dpiAware() {
 
     if (mfb_SetProcessDpiAwarenessContext) {
       if (!mfb_SetProcessDpiAwarenessContext (mfb_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)) {
@@ -341,7 +340,7 @@ namespace {
     }
   //}}}
   //{{{
-  void get_monitor_scale (HWND hWnd, float* scale_x, float* scale_y) {
+  void getMonitorScale (HWND hWnd, float* scale_x, float* scale_y) {
 
     UINT x, y;
 
@@ -372,7 +371,7 @@ namespace {
   //}}}
 
   //{{{
-  void init_keycodes() {
+  void initKeycodes() {
 
     if (g_keycodes[0x00B] != KB_KEY_0) {
       //{{{  alpha numeric
@@ -585,18 +584,38 @@ namespace {
   //{{{
   LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
-    LRESULT result = 0;
-
-    SWindowData* window_data = (SWindowData*) GetWindowLongPtr (hWnd, GWLP_USERDATA);
+    SWindowData* window_data = (SWindowData*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
     SWindowData_Win* window_data_win = window_data ? (SWindowData_Win*)window_data->specific : nullptr;
 
     switch (message) {
       //{{{
       case WM_NCCREATE:
         if (mfb_EnableNonClientDpiScaling)
-          mfb_EnableNonClientDpiScaling(hWnd);
+          mfb_EnableNonClientDpiScaling (hWnd);
 
-        return DefWindowProc(hWnd, message, wParam, lParam);
+        return DefWindowProc (hWnd, message, wParam, lParam);
+      //}}}
+      //{{{
+      case WM_SIZE:
+        if (window_data) {
+          if (wParam == SIZE_MINIMIZED)
+            return 0;
+
+          float scale_x, scale_y;
+          getMonitorScale (hWnd, &scale_x, &scale_y);
+          window_data->window_width = GET_X_LPARAM(lParam);
+          window_data->window_height =  GET_Y_LPARAM(lParam);
+          resize_dst (window_data, window_data->window_width, window_data->window_height);
+
+          resize_GL (window_data);
+          if (window_data->window_width && window_data->window_height) {
+            uint32_t width  = (uint32_t)(window_data->window_width  / scale_x);
+            uint32_t height = (uint32_t)(window_data->window_height / scale_y);
+            kCall (resize_func, width, height);
+            }
+          }
+
+        break;
       //}}}
 
       //{{{
@@ -614,6 +633,7 @@ namespace {
               DestroyWindow (window_data_win->window);
             }
           }
+
         break;
       //}}}
       //{{{
@@ -626,7 +646,6 @@ namespace {
 
       //{{{
       case WM_SETFOCUS:
-
         if (window_data) {
           window_data->is_active = true;
           kCall (active_func, true);
@@ -636,7 +655,6 @@ namespace {
       //}}}
       //{{{
       case WM_KILLFOCUS:
-
         if (window_data) {
           window_data->is_active = false;
           kCall (active_func, false);
@@ -645,43 +663,18 @@ namespace {
         break;
       //}}}
 
-      //{{{
-      case WM_SIZE:
-
-        if (window_data) {
-          if (wParam == SIZE_MINIMIZED)
-            return result;
-
-          float scale_x, scale_y;
-          get_monitor_scale (hWnd, &scale_x, &scale_y);
-          window_data->window_width = LOWORD(lParam);
-          window_data->window_height = HIWORD(lParam);
-          resize_dst (window_data, window_data->window_width, window_data->window_height);
-
-          resize_GL (window_data);
-          if (window_data->window_width != 0 && window_data->window_height != 0) {
-            uint32_t width, height;
-            width  = (uint32_t)(window_data->window_width  / scale_x);
-            height = (uint32_t)(window_data->window_height / scale_y);
-            kCall (resize_func, width, height);
-            }
-          }
-
-        break;
-      //}}}
-
-      case WM_KEYDOWN:
       case WM_SYSKEYDOWN:
-      case WM_KEYUP:
-      //{{{
       case WM_SYSKEYUP:
+      case WM_KEYDOWN:
+      //{{{
+      case WM_KEYUP:
         if (window_data) {
           mfb_key key_code = translate_key ((unsigned int)wParam, (unsigned long)lParam);
           int is_pressed = !((lParam >> 31) & 1);
           window_data->mod_keys = translate_mod();
 
           if (key_code == KB_KEY_UNKNOWN)
-            return FALSE;
+            return 0;
 
           window_data->key_status[key_code] = (uint8_t)is_pressed;
           kCall (keyboard_func, key_code, (mfb_key_mod)window_data->mod_keys, is_pressed);
@@ -692,7 +685,8 @@ namespace {
 
       case WM_CHAR:
       //{{{
-      case WM_SYSCHAR: {
+      case WM_SYSCHAR:
+        {
         static WCHAR highSurrogate = 0;
 
         if (window_data) {
@@ -712,7 +706,7 @@ namespace {
               codepoint = (WCHAR) wParam;
 
             highSurrogate = 0;
-            kCall(char_input_func, codepoint);
+            kCall (char_input_func, codepoint);
             }
           }
         }
@@ -725,10 +719,10 @@ namespace {
           if (wParam == UNICODE_NOCHAR) {
             // WM_UNICHAR is not sent by Windows, but is sent by some third-party input method engine
             // Returning TRUE here announces support for this message
-            return TRUE;
+            return 1;
             }
 
-          kCall(char_input_func, (unsigned int) wParam);
+          kCall (char_input_func, (unsigned int) wParam);
           }
 
         break;
@@ -749,7 +743,6 @@ namespace {
             gWinTab->mPressure = (float)packet.pkNormalPressure / (float)gWinTab->mMaxPressure;
             gWinTab->mButtons = packet.pkButtons;
             gWinTab->mTime = packet.pkTime;
-            gWinTab->mSerialNumber = packet.pkSerialNumber;
 
             cLog::log (LOGINFO, fmt::format ("WT_PACKET press:{} time:{}", gWinTab->mPressure, gWinTab->mTime));
             }
@@ -767,6 +760,7 @@ namespace {
           cLog::log (LOGINFO, fmt::format ("WT_PROXIMITY in {:x}", lParam));
         else
           cLog::log (LOGINFO, fmt::format ("WT_PROXIMITY out {:x}", lParam));
+
         break;
       //}}}
 
@@ -854,6 +848,7 @@ namespace {
                                          IS_POINTER_INCONTACT_WPARAM(wParam) ? "inContact " : "",
                                          GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) ));
         window_data_win->mouse_inside = false;
+
         break;
       //}}}
       //{{{
@@ -877,6 +872,7 @@ namespace {
           else
             cLog::log (LOGERROR, fmt::format ("pointerDown - no info"));
           }
+
         break;
       //}}}
       //{{{
@@ -909,8 +905,8 @@ namespace {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
             if (pointerInfo.pointerType == PT_MOUSE) {
-              //cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE mouse type:{} flags:{:x} time:{}",
-              //                               pointerInfo.pointerType, pointerInfo.pointerFlags, pointerInfo.dwTime));
+              //cLog::log (LOGINFO, fmt::format ("pointerUpdate mouse type:{} flags:{:x} time:{}",
+              //                                 pointerInfo.pointerType, pointerInfo.pointerFlags, pointerInfo.dwTime));
               window_data_win->mouse_inside = true;
 
               POINT clientPos = pointerInfo.ptPixelLocation;
@@ -924,19 +920,19 @@ namespace {
               POINTER_PEN_INFO pointerPenInfos[10];
               uint32_t entriesCount = 10;
               if (GetPointerPenInfoHistory (GET_POINTERID_WPARAM (wParam), &entriesCount, pointerPenInfos)) {
-                for (uint32_t i = 0; i < entriesCount ; i++) {
-                  ScreenToClient (hWnd, &pointerPenInfos[i].pointerInfo.ptPixelLocation);
-                  window_data->mouse_pos_x = pointerPenInfos[i].pointerInfo.ptPixelLocation.x;
-                  window_data->mouse_pos_y = pointerPenInfos[i].pointerInfo.ptPixelLocation.y;
-                  window_data->mouse_pressure = pointerPenInfos[i].pressure;
-                  cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE pen {} {},{} press:{}",
-                                                   i,
-                                                   window_data->mouse_pos_x,
-                                                   window_data->mouse_pos_y,
-                                                   window_data->mouse_pressure));
+                window_data_win->mouse_inside = true;
+                for (uint32_t i = entriesCount; i > 0; i--) {
+                  ScreenToClient (hWnd, &pointerPenInfos[i-1].pointerInfo.ptPixelLocation);
+                  window_data->mouse_pos_x = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
+                  window_data->mouse_pos_y = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
+                  window_data->mouse_pressure = pointerPenInfos[i-1].pressure;
+                  window_data->timestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
 
-                  window_data_win->mouse_inside = true;
                   kCall (mouse_move_func, window_data->mouse_pos_x, window_data->mouse_pos_y);
+
+                  //cLog::log (LOGINFO, fmt::format ("pointerUpdate pen {} {},{} press:{} time:{}",
+                  //                                 i, window_data->mouse_pos_x, window_data->mouse_pos_y,
+                  //                                 window_data->mouse_pressure, window_data->time));
                   }
                 }
               }
@@ -947,12 +943,13 @@ namespace {
           else
             cLog::log (LOGERROR, fmt::format ("pointerUpdate - no info"));
           }
+
         break;
       //}}}
       //{{{
       case WM_POINTERWHEEL:
         if (window_data) {
-          cLog::log (LOGINFO, fmt::format ("pointer wheel"));
+          cLog::log (LOGINFO, fmt::format ("pointerWheel"));
           window_data->mouse_wheel_y = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
           kCall (mouse_wheel_func, (mfb_key_mod)translate_mod(), 0.0f, window_data->mouse_wheel_y);
           }
@@ -965,7 +962,7 @@ namespace {
       //{{{
       //case 0x02E4://WM_GETDPISCALEDSIZE: {
       //  SIZE* size = (SIZE*)lParam;
-      //  WORD dpi = LOWORD(wParam);
+      //  WORD dpi = (wParam);
       //  return true;
       //  break;
       //  }
@@ -997,10 +994,10 @@ namespace {
       case WM_MOUSEWHEEL:
       case WM_MOUSEHWHEEL:
       default:
-        result = DefWindowProc (hWnd, message, wParam, lParam);
+        return DefWindowProc (hWnd, message, wParam, lParam);
       }
 
-    return result;
+    return 0;
     }
   //}}}
   }
@@ -1012,9 +1009,9 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
   RECT rect = { 0 };
   int  x = 0, y = 0;
 
-  load_functions();
-  dpi_aware();
-  init_keycodes();
+  loadFunctions();
+  dpiAware();
+  initKeycodes();
 
   SWindowData* window_data = (SWindowData*)malloc(sizeof(SWindowData));
   if (window_data == 0x0)
@@ -1086,7 +1083,7 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
   else if (!(flags & WF_FULLSCREEN)) {
     //{{{  desktop fullscreen
     float scale_x, scale_y;
-    get_monitor_scale(0, &scale_x, &scale_y);
+    getMonitorScale (0, &scale_x, &scale_y);
 
     rect.right  = (LONG) (width  * scale_x);
     rect.bottom = (LONG) (height * scale_y);
@@ -1209,7 +1206,7 @@ void mfb_get_monitor_scale (struct mfb_window* window, float* scale_x, float* sc
     hWnd = window_data_win->window;
     }
 
-  get_monitor_scale (hWnd, scale_x, scale_y);
+  getMonitorScale (hWnd, scale_x, scale_y);
   }
 //}}}
 //{{{
@@ -1230,7 +1227,7 @@ bool mfb_set_viewport (struct mfb_window* window, unsigned offset_x, unsigned of
   window_data_win = (SWindowData_Win*)window_data->specific;
 
   float scale_x, scale_y;
-  get_monitor_scale (window_data_win->window, &scale_x, &scale_y);
+  getMonitorScale (window_data_win->window, &scale_x, &scale_y);
   window_data->dst_offset_x = (uint32_t)(offset_x * scale_x);
   window_data->dst_offset_y = (uint32_t)(offset_y * scale_y);
 

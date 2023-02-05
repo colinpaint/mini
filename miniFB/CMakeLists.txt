@@ -1,19 +1,19 @@
 project (miniFB)
 
-set (files include/MiniFB.h
-           include/MiniFB_cpp.h src/MiniFB_cpp.cpp
-           include/MiniFB_enums.h
-           src/MiniFB_internal.h src/MiniFB_internal.cpp
-           src/WindowData.h
-           src/MiniFB_common.cpp
-           src/MiniFB_timer.cpp
-           src/gl/MiniFB_GL.h src/gl/MiniFB_GL.cpp
+set (files MiniFB.h
+           MiniFB_cpp.h MiniFB_cpp.cpp
+           MiniFB_enums.h
+           MiniFB_internal.h MiniFB_internal.cpp
+           WindowData.h
+           MiniFB_common.cpp
+           MiniFB_timer.cpp
+           MiniFB_GL.h MiniFB_GL.cpp
            )
 
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-  set (platform src/windows/WindowData_Win.h src/windows/WinMiniFB.cpp src/windows/pktDef.h src/windows/winTab.h)
+  set (platform WindowData_Win.h WinMiniFB.cpp pktDef.h winTab.h)
 else()
-  set (platform src/x11/WindowData_X11.h src/x11/X11MiniFB.cpp src/MiniFB_linux.cpp)
+  set (platform WindowData_X11.h X11MiniFB.cpp MiniFB_linux.cpp)
 endif()
 
 add_library (${PROJECT_NAME} ${files} ${platform})

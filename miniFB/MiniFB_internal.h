@@ -1,5 +1,5 @@
 #pragma once
-#include "../include/MiniFB.h"
+#include "MiniFB.h"
 #include "WindowData.h"
 
 #define kCall(func, ...)  \

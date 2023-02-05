@@ -1,5 +1,5 @@
 #pragma once
-#include "../../include/MiniFB_enums.h"
+#include "MiniFB_enums.h"
 #include <windows.h>
 
 typedef struct {

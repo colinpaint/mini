@@ -8,7 +8,7 @@
 #include "../common/utils.h"
 #include "../common/cLog.h"
 
-#include "../miniFB/include/MiniFB_cpp.h"
+#include "../miniFB/MiniFB_cpp.h"
 
 using namespace std;
 using namespace chrono;
