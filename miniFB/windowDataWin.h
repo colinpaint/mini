@@ -2,7 +2,7 @@
 #include "miniFBenums.h"
 #include <windows.h>
 
-typedef struct {
+struct SWindowData_Win {
   HWND              window;
   WNDCLASS          wc;
   HDC               hdc;
@@ -10,4 +10,4 @@ typedef struct {
   uint32_t          text_id;
   struct mfb_timer* timer;
   bool              mouse_inside;
-  } SWindowData_Win;
+  };
