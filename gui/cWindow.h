@@ -8,7 +8,7 @@
 #include <deque>
 
 // some keycodes
-#include "../miniFB/miniFB_enums.h"
+#include "../miniFB/miniFBenums.h"
 //}}}
 
 class cWindow : public cDrawTexture {

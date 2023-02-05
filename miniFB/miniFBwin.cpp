@@ -2,14 +2,14 @@
 //{{{  includes
 #include <cstdint>
 
-#include "MiniFB.h"
+#include "miniFB.h"
 
-#include "MiniFB_internal.h"
-#include "WindowData.h"
-#include "WindowData_Win.h"
+#include "miniFBinternal.h"
+#include "windowData.h"
+#include "windowDataWin.h"
 #include <windowsx.h>
 
-#include "MiniFB_GL.h"
+#include "miniFBgl.h"
 
 #include "../common/cLog.h"
 
@@ -556,36 +556,36 @@ namespace {
   //}}}
 
   //{{{
-  void destroy_window_data (SWindowData* window_data) {
+  void destroyWindowData (SWindowData* windowData) {
 
-    if (window_data == 0x0)
+    if (windowData == 0x0)
       return;
 
-    SWindowData_Win* window_data_win = (SWindowData_Win*)window_data->specific;
+    SWindowData_Win* windowData_win = (SWindowData_Win*)windowData->specific;
 
-    destroy_GL_context (window_data);
+    destroyGLcontext (windowData);
 
-    if (window_data_win->window != 0 && window_data_win->hdc != 0) {
-      ReleaseDC (window_data_win->window, window_data_win->hdc);
-      DestroyWindow (window_data_win->window);
+    if (windowData_win->window != 0 && windowData_win->hdc != 0) {
+      ReleaseDC (windowData_win->window, windowData_win->hdc);
+      DestroyWindow (windowData_win->window);
       //winTabUnload();
       }
 
-    window_data_win->window = 0;
-    window_data_win->hdc = 0;
+    windowData_win->window = 0;
+    windowData_win->hdc = 0;
 
-    mfb_timer_destroy(window_data_win->timer);
-    window_data_win->timer = 0x0;
+    mfb_timer_destroy(windowData_win->timer);
+    windowData_win->timer = 0x0;
 
-    window_data->draw_buffer = 0x0;
-    window_data->close = true;
+    windowData->draw_buffer = 0x0;
+    windowData->close = true;
     }
   //}}}
   //{{{
   LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
-    SWindowData* window_data = (SWindowData*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
-    SWindowData_Win* window_data_win = window_data ? (SWindowData_Win*)window_data->specific : nullptr;
+    SWindowData* windowData = (SWindowData*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+    SWindowData_Win* windowData_win = windowData ? (SWindowData_Win*)windowData->specific : nullptr;
 
     switch (message) {
       //{{{
@@ -597,20 +597,20 @@ namespace {
       //}}}
       //{{{
       case WM_SIZE:
-        if (window_data) {
+        if (windowData) {
           if (wParam == SIZE_MINIMIZED)
             return 0;
 
           float scale_x, scale_y;
           getMonitorScale (hWnd, &scale_x, &scale_y);
-          window_data->window_width = GET_X_LPARAM(lParam);
-          window_data->window_height =  GET_Y_LPARAM(lParam);
-          resize_dst (window_data, window_data->window_width, window_data->window_height);
+          windowData->window_width = GET_X_LPARAM(lParam);
+          windowData->window_height =  GET_Y_LPARAM(lParam);
+          resize_dst (windowData, windowData->window_width, windowData->window_height);
 
-          resize_GL (window_data);
-          if (window_data->window_width && window_data->window_height) {
-            uint32_t width  = (uint32_t)(window_data->window_width  / scale_x);
-            uint32_t height = (uint32_t)(window_data->window_height / scale_y);
+          resizeGL (windowData);
+          if (windowData->window_width && windowData->window_height) {
+            uint32_t width  = (uint32_t)(windowData->window_width  / scale_x);
+            uint32_t height = (uint32_t)(windowData->window_height / scale_y);
             kCall (resize_func, width, height);
             }
           }
@@ -620,17 +620,17 @@ namespace {
 
       //{{{
       case WM_CLOSE:
-        if (window_data) {
+        if (windowData) {
           bool destroy = false;
 
           // Obtain a confirmation of close
-          if (!window_data->close_func || window_data->close_func ((struct mfb_window*)window_data))
+          if (!windowData->close_func || windowData->close_func ((struct mfb_window*)windowData))
             destroy = true;
 
           if (destroy) {
-            window_data->close = true;
-            if (window_data_win)
-              DestroyWindow (window_data_win->window);
+            windowData->close = true;
+            if (windowData_win)
+              DestroyWindow (windowData_win->window);
             }
           }
 
@@ -638,16 +638,16 @@ namespace {
       //}}}
       //{{{
       case WM_DESTROY:
-        if (window_data)
-          window_data->close = true;
+        if (windowData)
+          windowData->close = true;
 
         break;
       //}}}
 
       //{{{
       case WM_SETFOCUS:
-        if (window_data) {
-          window_data->is_active = true;
+        if (windowData) {
+          windowData->is_active = true;
           kCall (active_func, true);
           }
 
@@ -655,8 +655,8 @@ namespace {
       //}}}
       //{{{
       case WM_KILLFOCUS:
-        if (window_data) {
-          window_data->is_active = false;
+        if (windowData) {
+          windowData->is_active = false;
           kCall (active_func, false);
           }
 
@@ -668,16 +668,16 @@ namespace {
       case WM_KEYDOWN:
       //{{{
       case WM_KEYUP:
-        if (window_data) {
+        if (windowData) {
           mfb_key key_code = translate_key ((unsigned int)wParam, (unsigned long)lParam);
           int is_pressed = !((lParam >> 31) & 1);
-          window_data->mod_keys = translate_mod();
+          windowData->mod_keys = translate_mod();
 
           if (key_code == KB_KEY_UNKNOWN)
             return 0;
 
-          window_data->key_status[key_code] = (uint8_t)is_pressed;
-          kCall (keyboard_func, key_code, (mfb_key_mod)window_data->mod_keys, is_pressed);
+          windowData->key_status[key_code] = (uint8_t)is_pressed;
+          kCall (keyboard_func, key_code, (mfb_key_mod)windowData->mod_keys, is_pressed);
           }
 
         break;
@@ -689,7 +689,7 @@ namespace {
         {
         static WCHAR highSurrogate = 0;
 
-        if (window_data) {
+        if (windowData) {
           if (wParam >= 0xd800 && wParam <= 0xdbff) {
             highSurrogate = (WCHAR) wParam;
             }
@@ -715,7 +715,7 @@ namespace {
       //}}}
       //{{{
       case WM_UNICHAR:
-        if (window_data) {
+        if (windowData) {
           if (wParam == UNICODE_NOCHAR) {
             // WM_UNICHAR is not sent by Windows, but is sent by some third-party input method engine
             // Returning TRUE here announces support for this message
@@ -847,13 +847,13 @@ namespace {
                                          IS_POINTER_INRANGE_WPARAM(wParam) ? "inRange " : "",
                                          IS_POINTER_INCONTACT_WPARAM(wParam) ? "inContact " : "",
                                          GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) ));
-        window_data_win->mouse_inside = false;
+        windowData_win->mouse_inside = false;
 
         break;
       //}}}
       //{{{
       case WM_POINTERDOWN:
-        if (window_data) {
+        if (windowData) {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
             if (pointerInfo.pointerType == PT_MOUSE) {
@@ -865,9 +865,9 @@ namespace {
             else // unused PT_TOUCH, PT_TOUCHPAD
               cLog::log (LOGERROR, fmt::format ("pointerDown - unknown type:{}", pointerInfo.pointerType));
 
-            window_data->mod_keys = translate_mod();
-            window_data->mouse_button_status[MOUSE_BTN_1] = 1;
-            kCall (mouse_btn_func, MOUSE_BTN_1, (mfb_key_mod)window_data->mod_keys, 1);
+            windowData->mod_keys = translate_mod();
+            windowData->mouse_button_status[MOUSE_BTN_1] = 1;
+            kCall (mouse_btn_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 1);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerDown - no info"));
@@ -877,7 +877,7 @@ namespace {
       //}}}
       //{{{
       case WM_POINTERUP:
-        if (window_data) {
+        if (windowData) {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
             if (pointerInfo.pointerType == PT_MOUSE) {
@@ -889,9 +889,9 @@ namespace {
             else // unused PT_TOUCH, PT_TOUCHPAD
               cLog::log (LOGERROR, fmt::format ("pointerUp - unknown type:{}", pointerInfo.pointerType));
 
-            window_data->mod_keys = translate_mod();
-            window_data->mouse_button_status[MOUSE_BTN_1] = 0;
-            kCall (mouse_btn_func, MOUSE_BTN_1, (mfb_key_mod)window_data->mod_keys, 0);
+            windowData->mod_keys = translate_mod();
+            windowData->mouse_button_status[MOUSE_BTN_1] = 0;
+            kCall (mouse_btn_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 0);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerUp - no info"));
@@ -901,38 +901,38 @@ namespace {
       //}}}
       //{{{
       case WM_POINTERUPDATE:
-        if (window_data) {
+        if (windowData) {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
             if (pointerInfo.pointerType == PT_MOUSE) {
               //cLog::log (LOGINFO, fmt::format ("pointerUpdate mouse type:{} flags:{:x} time:{}",
               //                                 pointerInfo.pointerType, pointerInfo.pointerFlags, pointerInfo.dwTime));
-              window_data_win->mouse_inside = true;
+              windowData_win->mouse_inside = true;
 
               POINT clientPos = pointerInfo.ptPixelLocation;
               ScreenToClient (hWnd, &clientPos);
-              window_data->mouse_pos_x = clientPos.x;
-              window_data->mouse_pos_y = clientPos.y;
+              windowData->mouse_pos_x = clientPos.x;
+              windowData->mouse_pos_y = clientPos.y;
 
-              kCall (mouse_move_func, window_data->mouse_pos_x, window_data->mouse_pos_y);
+              kCall (mouse_move_func, windowData->mouse_pos_x, windowData->mouse_pos_y);
               }
             else if (pointerInfo.pointerType == PT_PEN) {
               POINTER_PEN_INFO pointerPenInfos[10];
               uint32_t entriesCount = 10;
               if (GetPointerPenInfoHistory (GET_POINTERID_WPARAM (wParam), &entriesCount, pointerPenInfos)) {
-                window_data_win->mouse_inside = true;
+                windowData_win->mouse_inside = true;
                 for (uint32_t i = entriesCount; i > 0; i--) {
                   ScreenToClient (hWnd, &pointerPenInfos[i-1].pointerInfo.ptPixelLocation);
-                  window_data->mouse_pos_x = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
-                  window_data->mouse_pos_y = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
-                  window_data->mouse_pressure = pointerPenInfos[i-1].pressure;
-                  window_data->timestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
+                  windowData->mouse_pos_x = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
+                  windowData->mouse_pos_y = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
+                  windowData->mouse_pressure = pointerPenInfos[i-1].pressure;
+                  windowData->timestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
 
-                  kCall (mouse_move_func, window_data->mouse_pos_x, window_data->mouse_pos_y);
+                  kCall (mouse_move_func, windowData->mouse_pos_x, windowData->mouse_pos_y);
 
                   //cLog::log (LOGINFO, fmt::format ("pointerUpdate pen {} {},{} press:{} time:{}",
-                  //                                 i, window_data->mouse_pos_x, window_data->mouse_pos_y,
-                  //                                 window_data->mouse_pressure, window_data->time));
+                  //                                 i, windowData->mouse_pos_x, windowData->mouse_pos_y,
+                  //                                 windowData->mouse_pressure, windowData->time));
                   }
                 }
               }
@@ -948,10 +948,10 @@ namespace {
       //}}}
       //{{{
       case WM_POINTERWHEEL:
-        if (window_data) {
+        if (windowData) {
           cLog::log (LOGINFO, fmt::format ("pointerWheel"));
-          window_data->mouse_wheel_y = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-          kCall (mouse_wheel_func, (mfb_key_mod)translate_mod(), 0.0f, window_data->mouse_wheel_y);
+          windowData->mouse_wheel_y = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
+          kCall (mouse_wheel_func, (mfb_key_mod)translate_mod(), 0.0f, windowData->mouse_wheel_y);
           }
         else
           cLog::log (LOGERROR, fmt::format ("pointerWheel - no info"));
@@ -1004,7 +1004,7 @@ namespace {
 
 // interface
 //{{{
-struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned height, unsigned flags) {
+struct mfb_window* mfbOpenEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   RECT rect = { 0 };
   int  x = 0, y = 0;
@@ -1013,24 +1013,24 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
   dpiAware();
   initKeycodes();
 
-  SWindowData* window_data = (SWindowData*)malloc(sizeof(SWindowData));
-  if (window_data == 0x0)
+  SWindowData* windowData = (SWindowData*)malloc(sizeof(SWindowData));
+  if (windowData == 0x0)
     return 0x0;
-  memset (window_data, 0, sizeof(SWindowData));
+  memset (windowData, 0, sizeof(SWindowData));
 
-  SWindowData_Win* window_data_win = (SWindowData_Win*)malloc(sizeof(SWindowData_Win));
-  if (window_data_win == 0x0) {
+  SWindowData_Win* windowData_win = (SWindowData_Win*)malloc(sizeof(SWindowData_Win));
+  if (windowData_win == 0x0) {
     //{{{  error, return
-    free (window_data);
+    free (windowData);
     return 0x0;
     }
     //}}}
 
-  memset(window_data_win, 0, sizeof(SWindowData_Win));
-  window_data->specific = window_data_win;
-  window_data->buffer_width  = width;
-  window_data->buffer_height = height;
-  window_data->buffer_stride = width * 4;
+  memset(windowData_win, 0, sizeof(SWindowData_Win));
+  windowData->specific = windowData_win;
+  windowData->buffer_width  = width;
+  windowData->buffer_height = height;
+  windowData->buffer_stride = width * 4;
 
   long s_window_style = WS_POPUP | WS_SYSMENU | WS_CAPTION;
   s_window_style = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME;
@@ -1096,94 +1096,94 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
     }
     //}}}
 
-  window_data_win->wc.style         = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
-  window_data_win->wc.lpfnWndProc   = WndProc;
-  window_data_win->wc.hCursor       = LoadCursor(0, IDC_ARROW);
-  window_data_win->wc.lpszClassName = title;
-  RegisterClass (&window_data_win->wc);
+  windowData_win->wc.style         = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
+  windowData_win->wc.lpfnWndProc   = WndProc;
+  windowData_win->wc.hCursor       = LoadCursor(0, IDC_ARROW);
+  windowData_win->wc.lpszClassName = title;
+  RegisterClass (&windowData_win->wc);
 
-  calc_dst_factor (window_data, width, height);
+  calc_dst_factor (windowData, width, height);
 
-  window_data->window_width  = rect.right;
-  window_data->window_height = rect.bottom;
+  windowData->window_width  = rect.right;
+  windowData->window_height = rect.bottom;
 
-  window_data_win->window = CreateWindowEx (0,
+  windowData_win->window = CreateWindowEx (0,
                                             title, title,
                                             s_window_style,
                                             x, y,
-                                            window_data->window_width, window_data->window_height,
+                                            windowData->window_width, windowData->window_height,
                                             0, 0, 0, 0);
-  if (!window_data_win->window) {
+  if (!windowData_win->window) {
     //{{{  error, return
-    free (window_data);
-    free (window_data_win);
+    free (windowData);
+    free (windowData_win);
     return 0x0;
     }
     //}}}
 
-  SetWindowLongPtr (window_data_win->window, GWLP_USERDATA, (LONG_PTR) window_data);
+  SetWindowLongPtr (windowData_win->window, GWLP_USERDATA, (LONG_PTR) windowData);
 
   if (flags & WF_ALWAYS_ON_TOP)
-    SetWindowPos (window_data_win->window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-  ShowWindow (window_data_win->window, SW_NORMAL);
+    SetWindowPos (windowData_win->window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+  ShowWindow (windowData_win->window, SW_NORMAL);
 
-  window_data_win->hdc = GetDC (window_data_win->window);
+  windowData_win->hdc = GetDC (windowData_win->window);
 
-  create_GL_context (window_data);
-  window_data_win->timer = mfb_timer_create();
-  mfb_set_keyboard_callback ((struct mfb_window*) window_data, keyboard_default);
+  createGLcontext (windowData);
+  windowData_win->timer = mfb_timer_create();
+  mfb_set_keyboardCallback ((struct mfb_window*) windowData, keyboard_default);
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
   // enable winTab, mainly for WT_PROXIMITY, get WT_PACKET
-  //if (!winTabLoad (window_data_win->window))
+  //if (!winTabLoad (windowData_win->window))
   //  cLog::log (LOGERROR, fmt::format ("winTab load failed"));
 
   // enable WM_POINTER wndProc messaging, to tell mouse from pen
   EnableMouseInPointer (true);
 
-  window_data->is_initialized = true;
-  return (struct mfb_window*)window_data;
+  windowData->is_initialized = true;
+  return (struct mfb_window*)windowData;
   }
 //}}}
 //{{{
-mfb_update_state mfb_update_ex (struct mfb_window* window, void* buffer, unsigned width, unsigned height) {
+mfb_update_state mfbUpdateEx (struct mfb_window* window, void* buffer, unsigned width, unsigned height) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
 
-  SWindowData* window_data = (SWindowData*)window;
-  if (window_data->close) {
-    destroy_window_data (window_data);
+  SWindowData* windowData = (SWindowData*)window;
+  if (windowData->close) {
+    destroyWindowData (windowData);
     return STATE_EXIT;
     }
 
   if (!buffer)
     return STATE_INVALID_BUFFER;
-  window_data->draw_buffer = buffer;
-  window_data->buffer_width = width;
-  window_data->buffer_stride = width * 4;
-  window_data->buffer_height = height;
-  redraw_GL (window_data, buffer);
+  windowData->draw_buffer = buffer;
+  windowData->buffer_width = width;
+  windowData->buffer_stride = width * 4;
+  windowData->buffer_height = height;
+  redrawGL (windowData, buffer);
 
   return STATE_OK;
   }
 //}}}
 //{{{
-mfb_update_state mfb_update_events (struct mfb_window* window) {
+mfb_update_state mfbUpdateEvents (struct mfb_window* window) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
 
-  SWindowData* window_data = (SWindowData*)window;
-  if (window_data->close) {
-    destroy_window_data (window_data);
+  SWindowData* windowData = (SWindowData*)window;
+  if (windowData->close) {
+    destroyWindowData (windowData);
     return STATE_EXIT;
     }
 
   MSG msg;
-  SWindowData_Win* window_data_win = (SWindowData_Win*)window_data->specific;
-  while (!window_data->close && PeekMessage (&msg, window_data_win->window, 0, 0, PM_REMOVE)) {
+  SWindowData_Win* windowData_win = (SWindowData_Win*)windowData->specific;
+  while (!windowData->close && PeekMessage (&msg, windowData_win->window, 0, 0, PM_REMOVE)) {
     //if(msg.message == WM_PAINT)
     //    return STATE_OK;
     TranslateMessage (&msg);
@@ -1196,14 +1196,14 @@ mfb_update_state mfb_update_events (struct mfb_window* window) {
 
 // viewport
 //{{{
-void mfb_get_monitor_scale (struct mfb_window* window, float* scale_x, float* scale_y) {
+void mfbGetMonitorScale (struct mfb_window* window, float* scale_x, float* scale_y) {
 
   HWND hWnd = 0x0;
 
   if (window) {
-    SWindowData* window_data = (SWindowData*)window;
-    SWindowData_Win* window_data_win = (SWindowData_Win*)window_data->specific;
-    hWnd = window_data_win->window;
+    SWindowData* windowData = (SWindowData*)window;
+    SWindowData_Win* windowData_win = (SWindowData_Win*)windowData->specific;
+    hWnd = windowData_win->window;
     }
 
   getMonitorScale (hWnd, scale_x, scale_y);
@@ -1212,29 +1212,29 @@ void mfb_get_monitor_scale (struct mfb_window* window, float* scale_x, float* sc
 //{{{
 bool mfb_set_viewport (struct mfb_window* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
 
-  SWindowData* window_data = (SWindowData*)window;
-  SWindowData_Win* window_data_win = 0x0;
+  SWindowData* windowData = (SWindowData*)window;
+  SWindowData_Win* windowData_win = 0x0;
 
-  if (!window_data)
+  if (!windowData)
     return false;
 
-  if (offset_x + width > window_data->window_width)
+  if (offset_x + width > windowData->window_width)
     return false;
 
-  if (offset_y + height > window_data->window_height)
+  if (offset_y + height > windowData->window_height)
     return false;
 
-  window_data_win = (SWindowData_Win*)window_data->specific;
+  windowData_win = (SWindowData_Win*)windowData->specific;
 
   float scale_x, scale_y;
-  getMonitorScale (window_data_win->window, &scale_x, &scale_y);
-  window_data->dst_offset_x = (uint32_t)(offset_x * scale_x);
-  window_data->dst_offset_y = (uint32_t)(offset_y * scale_y);
+  getMonitorScale (windowData_win->window, &scale_x, &scale_y);
+  windowData->dst_offset_x = (uint32_t)(offset_x * scale_x);
+  windowData->dst_offset_y = (uint32_t)(offset_y * scale_y);
 
-  window_data->dst_width = (uint32_t)(width  * scale_x);
-  window_data->dst_height = (uint32_t)(height * scale_y);
+  windowData->dst_width = (uint32_t)(width  * scale_x);
+  windowData->dst_height = (uint32_t)(height * scale_y);
 
-  calc_dst_factor (window_data, window_data->window_width, window_data->window_height);
+  calc_dst_factor (windowData, windowData->window_width, windowData->window_height);
 
   return true;
   }
@@ -1247,10 +1247,10 @@ bool mfb_wait_sync (struct mfb_window* window) {
   if (!window)
     return false;
 
-  SWindowData* window_data = (SWindowData*)window;
-  if (window_data->close) {
+  SWindowData* windowData = (SWindowData*)window;
+  if (windowData->close) {
     //{{{  return false
-    destroy_window_data (window_data);
+    destroyWindowData (windowData);
     return false;
     }
     //}}}
@@ -1258,13 +1258,13 @@ bool mfb_wait_sync (struct mfb_window* window) {
   if (g_use_hardware_sync)
     return true;
 
-  SWindowData_Win* window_data_win = (SWindowData_Win*)window_data->specific;
+  SWindowData_Win* windowData_win = (SWindowData_Win*)windowData->specific;
   double current;
 
   while (true) {
-    current = mfb_timer_now (window_data_win->timer);
+    current = mfb_timer_now (windowData_win->timer);
     if (current >= g_time_for_frame) {
-      mfb_timer_reset (window_data_win->timer);
+      mfb_timer_reset (windowData_win->timer);
       return true;
       }
     else if (g_time_for_frame - current > 2.0 / 1000.0) {
@@ -1273,13 +1273,13 @@ bool mfb_wait_sync (struct mfb_window* window) {
       timeEndPeriod (1);
 
       MSG msg;
-      if (PeekMessage (&msg, window_data_win->window, 0, 0, PM_REMOVE)) {
+      if (PeekMessage (&msg, windowData_win->window, 0, 0, PM_REMOVE)) {
         TranslateMessage (&msg);
         DispatchMessage (&msg);
 
-        if (window_data->close) {
+        if (windowData->close) {
           //{{{  return false
-          destroy_window_data (window_data);
+          destroyWindowData (windowData);
           return false;
           }
           //}}}

@@ -1,5 +1,5 @@
 // MiniFB_timer.cpp
-#include "MiniFB_internal.h"
+#include "miniFBinternal.h"
 
 double g_timer_frequency;
 double g_timer_resolution;

@@ -1,6 +1,6 @@
 // MiniFB_linux.cpp
 #include <time.h>
-#include "MiniFB.h"
+#include "miniFB.h"
 
 extern double g_timer_frequency;
 extern double g_timer_resolution;

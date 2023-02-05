@@ -17,11 +17,11 @@
 //#include <X11/extensions/Xrandr.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include "MiniFB.h"
-#include "MiniFB_internal.h"
-#include "WindowData.h"
-#include "MiniFB_GL.h"
-#include "WindowData_X11.h"
+#include "miniFB.h"
+#include "miniFBinternal.h"
+#include "windowData.h"
+#include "miniFBgl.h"
+#include "windowDataX11.h"
 
 #include "../common/cLog.h"
 //}}}
@@ -44,7 +44,7 @@ namespace {
       if (window_data->specific != 0x0) {
         SWindowData_X11* window_data_x11 = (SWindowData_X11*)window_data->specific;
 
-        destroy_GL_context (window_data);
+        destroyGLcontext (window_data);
 
         mfb_timer_destroy (window_data_x11->timer);
         memset (window_data_x11, 0, sizeof(SWindowData_X11));
@@ -445,7 +445,7 @@ namespace {
         window_data->window_height = event->xconfigure.height;
         resize_dst (window_data, event->xconfigure.width, event->xconfigure.height);
 
-        resize_GL (window_data);
+        resizeGL (window_data);
         kCall (resize_func, window_data->window_width, window_data->window_height);
         }
       break;
@@ -513,7 +513,7 @@ namespace {
 
 // mfb interface
 //{{{
-struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned height, unsigned flags) {
+struct mfb_window* mfbOpenEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   int depth, i, formatCount, convDepth = -1;
   XPixmapFormatValues* formats;
@@ -659,7 +659,7 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
   s_delete_window_atom = XInternAtom (window_data_x11->display, "WM_DELETE_WINDOW", False);
   XSetWMProtocols (window_data_x11->display, window_data_x11->window, &s_delete_window_atom, 1);
 
-  if (!create_GL_context (window_data))
+  if (!createGLcontext (window_data))
     return 0x0;
 
   XSetWMNormalHints (window_data_x11->display, window_data_x11->window, &sizeHints);
@@ -670,7 +670,7 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
   window_data_x11->gc = DefaultGC (window_data_x11->display, window_data_x11->screen);
   window_data_x11->timer = mfb_timer_create();
 
-  mfb_set_keyboard_callback ((struct mfb_window *) window_data, keyboard_default);
+  mfb_set_keyboardCallback ((struct mfb_window *) window_data, keyboard_default);
 
   cLog::log (LOGINFO, "using X11 API");
 
@@ -680,7 +680,7 @@ struct mfb_window* mfb_open_ex (const char* title, unsigned width, unsigned heig
 //}}}
 
 //{{{
-mfb_update_state mfb_update_ex (struct mfb_window* window, void* buffer, unsigned width, unsigned height) {
+mfb_update_state mfbUpdateEx (struct mfb_window* window, void* buffer, unsigned width, unsigned height) {
 
   if (window == 0x0)
     return STATE_INVALID_WINDOW;
@@ -700,7 +700,7 @@ mfb_update_state mfb_update_ex (struct mfb_window* window, void* buffer, unsigne
     window_data->buffer_height = height;
     }
 
-  redraw_GL (window_data, buffer);
+  redrawGL (window_data, buffer);
 
   processEvents (window_data);
 
@@ -708,7 +708,7 @@ mfb_update_state mfb_update_ex (struct mfb_window* window, void* buffer, unsigne
   }
 //}}}
 //{{{
-mfb_update_state mfb_update_events (struct mfb_window* window) {
+mfb_update_state mfbUpdateEvents (struct mfb_window* window) {
 
   if (window == 0x0)
     return STATE_INVALID_WINDOW;
@@ -796,7 +796,7 @@ bool mfb_set_viewport (struct mfb_window* window, unsigned offset_x, unsigned of
   }
 //}}}
 //{{{
-void mfb_get_monitor_scale (struct mfb_window* window, float* scale_x, float* scale_y) {
+void mfbGetMonitorScale (struct mfb_window* window, float* scale_x, float* scale_y) {
 
   float x = 96.0;
   float y = 96.0;

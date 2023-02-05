@@ -1,6 +1,6 @@
 // MiniFB_internal.cpp
 #include <cstdint>
-#include "MiniFB_internal.h"
+#include "miniFBinternal.h"
 
 //#define kUseBilinearInterpolation
 //{{{

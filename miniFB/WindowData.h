@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdlib>
-#include "MiniFB_enums.h"
+#include "miniFBenums.h"
 
 struct SWindowData {
   void* specific;

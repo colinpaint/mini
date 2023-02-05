@@ -1,5 +1,5 @@
 #pragma once
-#include "MiniFB_enums.h"
+#include "miniFBenums.h"
 #include <stdint.h>
 #include <X11/Xlib.h>
 #include <GL/glx.h>

@@ -1,10 +1,10 @@
 #pragma once
-#include "MiniFB.h"
-#include "WindowData.h"
+#include "miniFB.h"
+#include "windowData.h"
 
 #define kCall(func, ...)  \
-  if (window_data && window_data->func) \
-    window_data->func ((struct mfb_window*)window_data, __VA_ARGS__);
+  if (windowData && windowData->func) \
+    windowData->func ((struct mfb_window*)windowData, __VA_ARGS__);
 
 typedef struct mfb_timer {
   int64_t start_time;
@@ -21,8 +21,8 @@ typedef struct mfb_timer {
 extern short int g_keycodes[512];
 void keyboard_default (struct mfb_window* window, mfb_key key, mfb_key_mod mod, bool isPressed);
 
-void calc_dst_factor (SWindowData* window_data, uint32_t width, uint32_t height);
-void resize_dst (SWindowData* window_data, uint32_t width, uint32_t height);
+void calc_dst_factor (SWindowData* windowData, uint32_t width, uint32_t height);
+void resize_dst (SWindowData* windowData, uint32_t width, uint32_t height);
 
 void set_target_fps_aux();
 
