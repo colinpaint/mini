@@ -68,6 +68,7 @@ extern double g_timer_resolution;
 
 namespace {
   #ifdef USE_WINTAB
+    //{{{  use wintab
     //{{{
     // Use this enum in conjunction with winTab->Buttons to check for tablet button presses.
     //  e.g. To check for lower pen button press, use:
@@ -260,30 +261,10 @@ namespace {
       gWinTab = nullptr;
       }
     //}}}
+    //}}}
   #endif
 
   HMODULE mfb_shcore_dll = 0x0;
-  PFN_GetDpiForMonitor mfb_GetDpiForMonitor = 0x0;
-  PFN_SetProcessDpiAwareness mfb_SetProcessDpiAwareness = 0x0;
-
-  //{{{
-  // NOT Thread safe. Just convenient (Don't do this at home guys)
-  char* GetErrorMessage() {
-
-    static char buffer[256];
-
-    buffer[0] = 0;
-    FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                   NULL,  // Not used with FORMAT_MESSAGE_FROM_SYSTEM
-                   GetLastError(),
-                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                   buffer,
-                   sizeof(buffer),
-                   NULL);
-    return buffer;
-    }
-  //}}}
-
   //{{{
   void loadFunctions() {
 
@@ -315,6 +296,9 @@ namespace {
       }
     }
   //}}}
+
+  PFN_GetDpiForMonitor mfb_GetDpiForMonitor = 0x0;
+  PFN_SetProcessDpiAwareness mfb_SetProcessDpiAwareness = 0x0;
   //{{{
   void dpiAware() {
 
@@ -327,20 +311,37 @@ namespace {
             error = GetLastError();
           }
         if (error != NO_ERROR)
-          cLog::log (LOGERROR, fmt::format ("SetProcessDpiAwarenessContext failed {}", GetErrorMessage()));
+          cLog::log (LOGERROR, fmt::format ("SetProcessDpiAwarenessContext failed {}", getErrorMessage()));
         }
       }
 
     else if (mfb_SetProcessDpiAwareness) {
       if (mfb_SetProcessDpiAwareness(mfb_PROCESS_PER_MONITOR_DPI_AWARE) != S_OK)
-        cLog::log (LOGERROR, fmt::format ("SetProcessDpiAwareness failed {}", GetErrorMessage()));
+        cLog::log (LOGERROR, fmt::format ("SetProcessDpiAwareness failed {}", getErrorMessage()));
       }
 
     else if (mfb_SetProcessDPIAware) {
       if (!mfb_SetProcessDPIAware())
-        cLog::log (LOGERROR, fmt::format ("SetProcessDPIAware failed {}", GetErrorMessage()));
+        cLog::log (LOGERROR, fmt::format ("SetProcessDPIAware failed {}", getErrorMessage()));
       }
 
+    }
+  //}}}
+  //{{{
+  // NOT Thread safe. Just convenient (Don't do this at home guys)
+  char* getErrorMessage() {
+
+    static char buffer[256];
+
+    buffer[0] = 0;
+    FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                   NULL,  // Not used with FORMAT_MESSAGE_FROM_SYSTEM
+                   GetLastError(),
+                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                   buffer,
+                   sizeof(buffer),
+                   NULL);
+    return buffer;
     }
   //}}}
   //{{{
@@ -1016,7 +1017,8 @@ namespace {
 struct sMiniFBwindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   RECT rect = { 0 };
-  int  x = 0, y = 0;
+  int x = 0;
+  int y = 0;
 
   loadFunctions();
   dpiAware();
