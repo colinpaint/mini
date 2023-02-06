@@ -8,6 +8,6 @@ struct sWindowDataWindows {
   HDC               hdc;
   HGLRC             hGLRC;
   uint32_t          text_id;
-  struct mfb_timer* timer;
+  struct sMiniFBtimer* timer;
   bool              mouse_inside;
   };

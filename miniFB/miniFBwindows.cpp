@@ -6,6 +6,7 @@
 
 #include "miniFBinternal.h"
 #include "windowData.h"
+
 #include "windowDataWindows.h"
 #include <windowsx.h>
 
@@ -343,7 +344,7 @@ namespace {
     }
   //}}}
   //{{{
-  void getMonitorScale (HWND hWnd, float* scale_x, float* scale_y) {
+  void getWindowsMonitorScale (HWND hWnd, float* scale_x, float* scale_y) {
 
     UINT x, y;
 
@@ -507,7 +508,7 @@ namespace {
     }
   //}}}
   //{{{
-  uint32_t translate_mod() {
+  uint32_t translateMod() {
 
     uint32_t mods = 0;
 
@@ -533,7 +534,7 @@ namespace {
     }
   //}}}
   //{{{
-  mfb_key translate_key (unsigned int wParam, unsigned long lParam) {
+  mfb_key translateKey (unsigned int wParam, unsigned long lParam) {
 
     if (wParam == VK_CONTROL) {
       if (lParam & 0x01000000)
@@ -580,7 +581,7 @@ namespace {
     windowDataWindows->window = 0;
     windowDataWindows->hdc = 0;
 
-    mfb_timer_destroy(windowDataWindows->timer);
+    timerDestroy(windowDataWindows->timer);
     windowDataWindows->timer = 0x0;
 
     windowData->draw_buffer = 0x0;
@@ -608,10 +609,10 @@ namespace {
             return 0;
 
           float scale_x, scale_y;
-          getMonitorScale (hWnd, &scale_x, &scale_y);
+          getWindowsMonitorScale (hWnd, &scale_x, &scale_y);
           windowData->window_width = GET_X_LPARAM(lParam);
           windowData->window_height =  GET_Y_LPARAM(lParam);
-          resize_dst (windowData, windowData->window_width, windowData->window_height);
+          resizeDst (windowData, windowData->window_width, windowData->window_height);
 
           resizeGL (windowData);
           if (windowData->window_width && windowData->window_height) {
@@ -630,7 +631,7 @@ namespace {
           bool destroy = false;
 
           // Obtain a confirmation of close
-          if (!windowData->close_func || windowData->close_func ((struct mfb_window*)windowData))
+          if (!windowData->close_func || windowData->close_func ((struct sMiniFBwindow*)windowData))
             destroy = true;
 
           if (destroy) {
@@ -675,9 +676,9 @@ namespace {
       //{{{
       case WM_KEYUP:
         if (windowData) {
-          mfb_key key_code = translate_key ((unsigned int)wParam, (unsigned long)lParam);
+          mfb_key key_code = translateKey ((unsigned int)wParam, (unsigned long)lParam);
           int is_pressed = !((lParam >> 31) & 1);
-          windowData->mod_keys = translate_mod();
+          windowData->mod_keys = translateMod();
 
           if (key_code == KB_KEY_UNKNOWN)
             return 0;
@@ -873,7 +874,7 @@ namespace {
             else // unused PT_TOUCH, PT_TOUCHPAD
               cLog::log (LOGERROR, fmt::format ("pointerDown - unknown type:{}", pointerInfo.pointerType));
 
-            windowData->mod_keys = translate_mod();
+            windowData->mod_keys = translateMod();
             windowData->mouse_button_status[MOUSE_BTN_1] = 1;
             kCall (mouse_btn_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 1);
             }
@@ -897,7 +898,7 @@ namespace {
             else // unused PT_TOUCH, PT_TOUCHPAD
               cLog::log (LOGERROR, fmt::format ("pointerUp - unknown type:{}", pointerInfo.pointerType));
 
-            windowData->mod_keys = translate_mod();
+            windowData->mod_keys = translateMod();
             windowData->mouse_button_status[MOUSE_BTN_1] = 0;
             kCall (mouse_btn_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 0);
             }
@@ -959,7 +960,7 @@ namespace {
         if (windowData) {
           cLog::log (LOGINFO, fmt::format ("pointerWheel"));
           windowData->mouse_wheel_y = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-          kCall (mouse_wheel_func, (mfb_key_mod)translate_mod(), 0.0f, windowData->mouse_wheel_y);
+          kCall (mouse_wheel_func, (mfb_key_mod)translateMod(), 0.0f, windowData->mouse_wheel_y);
           }
         else
           cLog::log (LOGERROR, fmt::format ("pointerWheel - no info"));
@@ -1012,7 +1013,7 @@ namespace {
 
 // interface
 //{{{
-struct mfb_window* mfbOpenEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+struct sMiniFBwindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   RECT rect = { 0 };
   int  x = 0, y = 0;
@@ -1109,7 +1110,7 @@ struct mfb_window* mfbOpenEx (const char* title, unsigned width, unsigned height
   windowData_win->wc.lpszClassName = title;
   RegisterClass (&windowData_win->wc);
 
-  calc_dst_factor (windowData, width, height);
+  calcDstFactor (windowData, width, height);
 
   windowData->window_width  = rect.right;
   windowData->window_height = rect.bottom;
@@ -1137,8 +1138,8 @@ struct mfb_window* mfbOpenEx (const char* title, unsigned width, unsigned height
   windowData_win->hdc = GetDC (windowData_win->window);
 
   createGLcontext (windowData);
-  windowData_win->timer = mfb_timer_create();
-  mfb_set_keyboardCallback ((struct mfb_window*) windowData, keyboard_default);
+  windowData_win->timer = timerCreate();
+  setKeyboardCallback ((struct sMiniFBwindow*)windowData, keyboardDefault);
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
@@ -1152,11 +1153,11 @@ struct mfb_window* mfbOpenEx (const char* title, unsigned width, unsigned height
   EnableMouseInPointer (true);
 
   windowData->is_initialized = true;
-  return (struct mfb_window*)windowData;
+  return (struct sMiniFBwindow*)windowData;
   }
 //}}}
 //{{{
-mfb_update_state mfbUpdateEx (struct mfb_window* window, void* buffer, unsigned width, unsigned height) {
+mfb_update_state updateEx (struct sMiniFBwindow* window, void* buffer, unsigned width, unsigned height) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
@@ -1169,6 +1170,7 @@ mfb_update_state mfbUpdateEx (struct mfb_window* window, void* buffer, unsigned 
 
   if (!buffer)
     return STATE_INVALID_BUFFER;
+
   windowData->draw_buffer = buffer;
   windowData->buffer_width = width;
   windowData->buffer_stride = width * 4;
@@ -1179,7 +1181,7 @@ mfb_update_state mfbUpdateEx (struct mfb_window* window, void* buffer, unsigned 
   }
 //}}}
 //{{{
-mfb_update_state mfbUpdateEvents (struct mfb_window* window) {
+mfb_update_state updateEvents (struct sMiniFBwindow* window) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
@@ -1205,7 +1207,7 @@ mfb_update_state mfbUpdateEvents (struct mfb_window* window) {
 
 // viewport
 //{{{
-void mfbGetMonitorScale (struct mfb_window* window, float* scale_x, float* scale_y) {
+void getMonitorScale (struct sMiniFBwindow* window, float* scale_x, float* scale_y) {
 
   HWND hWnd = 0x0;
 
@@ -1215,11 +1217,11 @@ void mfbGetMonitorScale (struct mfb_window* window, float* scale_x, float* scale
     hWnd = windowData_win->window;
     }
 
-  getMonitorScale (hWnd, scale_x, scale_y);
+  getWindowsMonitorScale (hWnd, scale_x, scale_y);
   }
 //}}}
 //{{{
-bool mfbSetViewport (struct mfb_window* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
+bool setViewport (struct sMiniFBwindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
 
   sWindowData* windowData = (sWindowData*)window;
   sWindowDataWindows* windowData_win = 0x0;
@@ -1236,14 +1238,14 @@ bool mfbSetViewport (struct mfb_window* window, unsigned offset_x, unsigned offs
   windowData_win = (sWindowDataWindows*)windowData->specific;
 
   float scale_x, scale_y;
-  getMonitorScale (windowData_win->window, &scale_x, &scale_y);
+  getWindowsMonitorScale (windowData_win->window, &scale_x, &scale_y);
   windowData->dst_offset_x = (uint32_t)(offset_x * scale_x);
   windowData->dst_offset_y = (uint32_t)(offset_y * scale_y);
 
   windowData->dst_width = (uint32_t)(width  * scale_x);
   windowData->dst_height = (uint32_t)(height * scale_y);
 
-  calc_dst_factor (windowData, windowData->window_width, windowData->window_height);
+  calcDstFactor (windowData, windowData->window_width, windowData->window_height);
 
   return true;
   }
@@ -1251,7 +1253,7 @@ bool mfbSetViewport (struct mfb_window* window, unsigned offset_x, unsigned offs
 
 // sync
 //{{{
-bool mfbWaitSync (struct mfb_window* window) {
+bool waitSync (struct sMiniFBwindow* window) {
 
   if (!window)
     return false;
@@ -1271,9 +1273,9 @@ bool mfbWaitSync (struct mfb_window* window) {
   double current;
 
   while (true) {
-    current = mfb_timer_now (windowData_win->timer);
+    current = timerNow (windowData_win->timer);
     if (current >= g_time_for_frame) {
-      mfb_timer_reset (windowData_win->timer);
+      timerReset (windowData_win->timer);
       return true;
       }
     else if (g_time_for_frame - current > 2.0 / 1000.0) {
@@ -1302,7 +1304,7 @@ bool mfbWaitSync (struct mfb_window* window) {
 
 // timer
 //{{{
-void mfb_timer_init() {
+void timerInit() {
 
   uint64_t frequency;
   QueryPerformanceFrequency ((LARGE_INTEGER*)&frequency);
@@ -1312,7 +1314,7 @@ void mfb_timer_init() {
   }
 //}}}
 //{{{
-uint64_t mfb_timer_tick() {
+uint64_t timerTick() {
 
   int64_t counter;
   QueryPerformanceCounter ((LARGE_INTEGER*) &counter);

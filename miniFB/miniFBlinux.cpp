@@ -9,7 +9,7 @@ extern double g_timer_resolution;
 //#define kClock CLOCK_REALTIME
 
 //{{{
-uint64_t mfb_timer_tick() {
+uint64_t timerTick() {
 
   struct timespec time;
   if (clock_gettime (kClock, &time) != 0)
@@ -19,7 +19,7 @@ uint64_t mfb_timer_tick() {
   }
 //}}}
 //{{{
-void mfb_timer_init() {
+void timerInit() {
 
   struct timespec res;
   if (clock_getres(kClock, &res) != 0)

@@ -46,7 +46,7 @@ namespace {
 
         destroyGLcontext (windowData);
 
-        mfb_timer_destroy (windowDataX11->timer);
+        timerDestroy (windowDataX11->timer);
         memset (windowDataX11, 0, sizeof(sWindowDataX11));
         free (windowDataX11);
         }
@@ -239,7 +239,7 @@ namespace {
   //}}}
 
   //{{{
-  void init_keycodes (sWindowDataX11* windowDataX11) {
+  void initKeycodes (sWindowDataX11* windowDataX11) {
 
     // Clear keys
     for (size_t i = 0; i < sizeof(g_keycodes) / sizeof(g_keycodes[0]); ++i)
@@ -258,7 +258,7 @@ namespace {
     }
   //}}}
   //{{{
-  int translate_key (int scancode) {
+  int translateKey (int scancode) {
 
     if (scancode < 0 || scancode > 255)
       return KB_KEY_UNKNOWN;
@@ -267,7 +267,7 @@ namespace {
     }
   //}}}
   //{{{
-  int translate_mod (int state) {
+  int translateMod (int state) {
 
     int mod_keys = 0;
 
@@ -288,9 +288,9 @@ namespace {
     }
   //}}}
   //{{{
-  int translate_mod_ex (int key, int state, int is_pressed) {
+  int translateModEx (int key, int state, int is_pressed) {
 
-    int mod_keys = translate_mod (state);
+    int mod_keys = translateMod (state);
 
     switch (key) {
       case KB_KEY_LEFT_SHIFT:
@@ -346,9 +346,9 @@ namespace {
       //{{{
       case KeyRelease:
         {
-        mfb_key key_code = (mfb_key)translate_key(event->xkey.keycode);
+        mfb_key key_code = (mfb_key)translateKey (event->xkey.keycode);
         int is_pressed = (event->type == KeyPress);
-        windowData->mod_keys = translate_mod_ex (key_code, event->xkey.state, is_pressed);
+        windowData->mod_keys = translateModEx (key_code, event->xkey.state, is_pressed);
 
         windowData->key_status[key_code] = is_pressed;
         kCall (keyboard_func, key_code, (mfb_key_mod)windowData->mod_keys, is_pressed);
@@ -380,7 +380,7 @@ namespace {
         {
         mfb_mouse_button button = (mfb_mouse_button)event->xbutton.button;
         int is_pressed = (event->type == ButtonPress);
-        windowData->mod_keys = translate_mod (event->xkey.state);
+        windowData->mod_keys = translateMod (event->xkey.state);
 
         // Swap mouse right and middle for parity with other platforms:
         // https://github.com/emoon/minifb/issues/65
@@ -443,7 +443,7 @@ namespace {
         {
         windowData->window_width  = event->xconfigure.width;
         windowData->window_height = event->xconfigure.height;
-        resize_dst (windowData, event->xconfigure.width, event->xconfigure.height);
+        resizeDst (windowData, event->xconfigure.width, event->xconfigure.height);
 
         resizeGL (windowData);
         kCall (resize_func, windowData->window_width, windowData->window_height);
@@ -481,7 +481,7 @@ namespace {
 
             // Obtain a confirmation of close
             if (!windowData->close_func ||
-                windowData->close_func ((struct mfb_window*)windowData))
+                windowData->close_func ((struct sMiniFBwindow*)windowData))
               destroy = true;
 
             if (destroy) {
@@ -513,7 +513,7 @@ namespace {
 
 // mfb interface
 //{{{
-struct mfb_window* mfbOpenEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+struct sMiniFBwindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   int depth, i, formatCount, convDepth = -1;
   XPixmapFormatValues* formats;
@@ -541,7 +541,7 @@ struct mfb_window* mfbOpenEx (const char* title, unsigned width, unsigned height
     return 0x0;
     }
 
-  init_keycodes (windowDataX11);
+  initKeycodes (windowDataX11);
   XAutoRepeatOff (windowDataX11->display);
 
   windowDataX11->screen = DefaultScreen (windowDataX11->display);
@@ -577,7 +577,7 @@ struct mfb_window* mfbOpenEx (const char* title, unsigned width, unsigned height
   windowData->buffer_width  = width;
   windowData->buffer_height = height;
   windowData->buffer_stride = width * 4;
-  calc_dst_factor (windowData, width, height);
+  calcDstFactor (windowData, width, height);
 
   int posX, posY;
   int windowWidth, windowHeight;
@@ -668,19 +668,19 @@ struct mfb_window* mfbOpenEx (const char* title, unsigned width, unsigned height
   XFlush (windowDataX11->display);
 
   windowDataX11->gc = DefaultGC (windowDataX11->display, windowDataX11->screen);
-  windowDataX11->timer = mfb_timer_create();
+  windowDataX11->timer = timerCreate();
 
-  mfb_set_keyboardCallback ((struct mfb_window *) windowData, keyboard_default);
+  setKeyboardCallback ((struct sMiniFBwindow*) windowData, keyboardDefault);
 
   cLog::log (LOGINFO, "using X11 API");
 
   windowData->is_initialized = true;
-  return (struct mfb_window*)windowData;
+  return (struct sMiniFBwindow*)windowData;
   }
 //}}}
 
 //{{{
-mfb_update_state mfbUpdateEx (struct mfb_window* window, void* buffer, unsigned width, unsigned height) {
+mfb_update_state updateEx (struct sMiniFBwindow* window, void* buffer, unsigned width, unsigned height) {
 
   if (window == 0x0)
     return STATE_INVALID_WINDOW;
@@ -708,7 +708,7 @@ mfb_update_state mfbUpdateEx (struct mfb_window* window, void* buffer, unsigned 
   }
 //}}}
 //{{{
-mfb_update_state mfbUpdateEvents (struct mfb_window* window) {
+mfb_update_state updateEvents (struct sMiniFBwindow* window) {
 
   if (window == 0x0)
     return STATE_INVALID_WINDOW;
@@ -729,7 +729,7 @@ mfb_update_state mfbUpdateEvents (struct mfb_window* window) {
 //}}}
 
 //{{{
-bool mfbWaitSync (struct mfb_window* window) {
+bool waitSync (struct sMiniFBwindow* window) {
 
   if (window == 0x0)
     return false;
@@ -750,9 +750,9 @@ bool mfbWaitSync (struct mfb_window* window) {
   double current;
   uint32_t millis = 1;
   while(1) {
-    current = mfb_timer_now (windowDataX11->timer);
+    current = timerNow (windowDataX11->timer);
     if (current >= g_time_for_frame * 0.96) {
-      mfb_timer_reset (windowDataX11->timer);
+      timerReset (windowDataX11->timer);
       return true;
       }
     else if (current >= g_time_for_frame * 0.8)
@@ -777,7 +777,7 @@ bool mfbWaitSync (struct mfb_window* window) {
 //}}}
 
 //{{{
-bool mfbSetViewport (struct mfb_window* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
+bool setViewport (struct sMiniFBwindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
 
   sWindowData* windowData = (sWindowData*)window;
 
@@ -790,13 +790,13 @@ bool mfbSetViewport (struct mfb_window* window, unsigned offset_x, unsigned offs
   windowData->dst_offset_y = offset_y;
   windowData->dst_width = width;
   windowData->dst_height = height;
-  calc_dst_factor (windowData, windowData->window_width, windowData->window_height);
+  calcDstFactor (windowData, windowData->window_width, windowData->window_height);
 
   return true;
   }
 //}}}
 //{{{
-void mfbGetMonitorScale (struct mfb_window* window, float* scale_x, float* scale_y) {
+void getMonitorScale (struct sMiniFBwindow* window, float* scale_x, float* scale_y) {
 
   float x = 96.0;
   float y = 96.0;

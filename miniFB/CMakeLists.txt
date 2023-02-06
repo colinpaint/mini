@@ -1,11 +1,9 @@
 project (miniFB)
 
-set (files miniFB.h miniFBcpp.h miniFBenums.h
-           miniFB.cpp miniFBcpp.cpp miniFBtimer.cpp
-           miniFBgl.h miniFBgl.cpp
+set (files miniFB.h miniFBenums.h windowData.h
+           miniFB.cpp
            miniFBinternal.h miniFBinternal.cpp
-           windowData.h
-           )
+           miniFBgl.h miniFBgl.cpp)
 
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
   set (platform windowDataWindows.h miniFBwindows.cpp pktDef.h winTab.h)

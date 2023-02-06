@@ -41,7 +41,7 @@
 
 // Only for 32 bits images
 //{{{
-void stretch_image (uint32_t* srcImage, uint32_t srcX, uint32_t srcY, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcPitch,
+void stretchImage (uint32_t* srcImage, uint32_t srcX, uint32_t srcY, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcPitch,
                     uint32_t* dstImage, uint32_t dstX, uint32_t dstY, uint32_t dstWidth, uint32_t dstHeight, uint32_t dstPitch) {
 
   if (!srcImage)
@@ -77,9 +77,8 @@ void stretch_image (uint32_t* srcImage, uint32_t srcX, uint32_t srcY, uint32_t s
     }
   }
 //}}}
-
 //{{{
-void calc_dst_factor (sWindowData *window_data, uint32_t width, uint32_t height) {
+void calcDstFactor (sWindowData *window_data, uint32_t width, uint32_t height) {
 
   if (window_data->dst_width == 0)
     window_data->dst_width = width;
@@ -95,11 +94,115 @@ void calc_dst_factor (sWindowData *window_data, uint32_t width, uint32_t height)
   }
 //}}}
 //{{{
-void resize_dst (sWindowData *window_data, uint32_t width, uint32_t height) {
+void resizeDst (sWindowData *window_data, uint32_t width, uint32_t height) {
 
   window_data->dst_offset_x = (uint32_t) (width  * window_data->factor_x);
   window_data->dst_offset_y = (uint32_t) (height * window_data->factor_y);
   window_data->dst_width    = (uint32_t) (width  * window_data->factor_width);
   window_data->dst_height   = (uint32_t) (height * window_data->factor_height);
   }
+//}}}
+
+double g_timer_frequency;
+double g_timer_resolution;
+double g_time_for_frame = 1.0 / 60.0;
+bool g_use_hardware_sync = false;
+
+extern uint64_t timerTick();
+extern void timerInit();
+
+// target
+//{{{
+void setTargetFps (uint32_t fps) {
+
+  if (fps == 0)
+    g_time_for_frame = 0;
+  else
+      g_time_for_frame = 1.0 / fps;
+  setTargetFpsAux();
+  }
+//}}}
+//{{{
+unsigned getTargetFps() {
+
+  if (g_time_for_frame == 0)
+    return 0;
+  else
+    return (unsigned) (1.0 / g_time_for_frame);
+  }
+//}}}
+
+// timer
+//{{{
+struct sMiniFBtimer* timerCreate() {
+    static int  once = 1;
+    sMiniFBtimer   *tmr;
+
+    if(once) {
+      once = 0;
+      timerInit();
+      }
+
+    tmr = (sMiniFBtimer*)malloc(sizeof(sMiniFBtimer));
+    timerReset (tmr);
+
+    return tmr;
+}
+//}}}
+//{{{
+void timerDestroy (struct sMiniFBtimer *tmr) {
+    if(tmr != 0x0) {
+        free(tmr);
+    }
+}
+//}}}
+//{{{
+void timerReset (struct sMiniFBtimer *tmr) {
+    if(tmr == 0x0)
+        return;
+
+    tmr->start_time    = timerTick();
+    tmr->delta_counter = tmr->start_time;
+    tmr->time          = 0;
+}
+//}}}
+
+//{{{
+double timerNow (struct sMiniFBtimer *tmr) {
+    uint64_t    counter;
+
+    if(tmr == 0x0)
+        return 0.0;
+
+    counter         = timerTick();
+    tmr->time      += (counter - tmr->start_time);
+    tmr->start_time = counter;
+
+    return tmr->time * g_timer_resolution;
+}
+//}}}
+//{{{
+double timerDelta (struct sMiniFBtimer *tmr) {
+    int64_t     counter;
+    uint64_t    delta;
+
+    if(tmr == 0x0)
+        return 0.0;
+
+    counter            = timerTick();
+    delta              = (counter - tmr->delta_counter);
+    tmr->delta_counter = counter;
+
+    return delta * g_timer_resolution;
+}
+//}}}
+//{{{
+double timerGetFrequency() {
+    return g_timer_frequency;
+}
+//}}}
+//{{{
+double timerGetResolution() {
+    return g_timer_resolution;
+}
 //}}}

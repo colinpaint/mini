@@ -151,7 +151,7 @@ namespace {
   }
 
 //{{{
-void set_target_fps_aux() {
+void setTargetFpsAux() {
 
   // Assuming the monitor refresh rate is 60 hz
   int interval = (int)((60.0 * g_time_for_frame) + 0.5);
@@ -330,7 +330,7 @@ bool createGLcontext (sWindowData* windowData) {
     // get extensions
     SwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress ("wglSwapIntervalEXT");
     GetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress ("wglGetSwapIntervalEXT");
-    set_target_fps_aux();
+    setTargetFpsAux();
 
   #else
     sWindowDataX11* windowDataX11 = (sWindowDataX11*) windowData->specific;
@@ -360,7 +360,7 @@ bool createGLcontext (sWindowData* windowData) {
     // get extensions
     if (CheckGLExtension ("GLX_EXT_swap_control")) {
       SwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress ((const GLubyte*)"glXSwapIntervalEXT");
-      set_target_fps_aux();
+      setTargetFpsAux();
       }
 
   #endif

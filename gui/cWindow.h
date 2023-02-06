@@ -564,7 +564,7 @@ private:
   inline static int mDayLightSeconds = 0;
   //}}}
 
-  struct mfb_window* mWindow = nullptr;
+  struct sMiniFBwindow* mWindow = nullptr;
 
   cPoint mMousePos = {0.f};
   bool mMousePress = false;

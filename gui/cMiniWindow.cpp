@@ -8,7 +8,7 @@
 #include "../common/utils.h"
 #include "../common/cLog.h"
 
-#include "../miniFB/MiniFBcpp.h"
+#include "../miniFB/MiniFB.h"
 
 using namespace std;
 using namespace chrono;
@@ -41,7 +41,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     cLog::log (LOGERROR, fmt::format ("No timezone correction for Linux yet"));
   #endif
 
-  mWindow = mfbOpenEx (title.c_str(), width, height, WF_RESIZABLE);
+  mWindow = openEx (title.c_str(), width, height, WF_RESIZABLE);
   if (!mWindow)
     return false;
 
@@ -53,14 +53,14 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // state callbacks
   //{{{
-  mfb_set_activeCallback ([&](struct mfb_window* window, bool isActive) {
+  setActiveCallback ([&](struct sMiniFBwindow* window, bool isActive) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("active {}", isActive));
       },
     mWindow);
   //}}}
   //{{{
-  mfb_set_resizeCallback ([&](struct mfb_window* window, int width, int height) {
+  setResizeCallback ([&](struct sMiniFBwindow* window, int width, int height) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("resize {} {}", width, height));
       uint32_t x = 0;
@@ -73,12 +73,12 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         y = (height - getHeight()) >> 1;
         setHeight (height);
         }
-      mfbSetViewport (window, x, y, width, height);
+      setViewport (window, x, y, width, height);
       },
     mWindow);
   //}}}
   //{{{
-  mfb_set_closeCallback ([&](struct mfb_window* window) {
+  setCloseCallback ([&](struct sMiniFBwindow* window) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("close"));
       return true; // false for don't close
@@ -88,21 +88,21 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // keyboard callbacks
   //{{{
-  mfb_set_keyboardCallback ([&](struct mfb_window* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
+  setKeyboardCallback ([&](struct sMiniFBwindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
 
       if (key == KB_KEY_ESCAPE)
-        mfbClose (window);
+        close (window);
 
       if (isPressed)
         if (!keyDown (key))
           cLog::log (LOGINFO, fmt::format ("keyboard key:{} pressed:{} mod:{}",
-                                           mfbGetKeyName (key), isPressed, (int)mod));
+                                           getKeyName (key), isPressed, (int)mod));
       },
 
     mWindow);
   //}}}
   //{{{
-  mfb_set_char_inputCallback ([&](struct mfb_window* window, uint32_t charCode) {
+  setCharInputCallback ([&](struct sMiniFBwindow* window, uint32_t charCode) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("char code:{}", charCode));
       },
@@ -111,7 +111,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // mouse callbacks
   //{{{
-  mfb_set_mouse_buttonCallback ([&](struct mfb_window* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed) {
+  setMouseButtonCallback ([&](struct sMiniFBwindow* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed) {
 
       (void)mod;
       //cLog::log (LOGINFO, fmt::format ("mouseButton {} button:{} pressed:{} at:{} {} mod:{}",
@@ -122,7 +122,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
       if (isPressed) {
         mMousePress = true;
         mMouseMoved = false;
-        mMousePressPos = cPoint ((float)mfbGetMouseX (window), (float)mfbGetMouseY (window));
+        mMousePressPos = cPoint ((float)getMouseX (window), (float)getMouseY (window));
         mMousePressRight = button != 0;
         mMouseLastPos = mMousePressPos;
         mMousePressUsed = mouseDown (mMousePressRight, mMousePressPos);
@@ -131,7 +131,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         cursorChanged();
         }
       else {
-        mMouseLastPos = cPoint (mfbGetMouseX (window), mfbGetMouseY (window));
+        mMouseLastPos = cPoint (getMouseX (window), getMouseY (window));
         if (mouseUp (mMousePressRight, mMouseMoved, mMouseLastPos))
           changed();
         mMousePress = false;
@@ -142,7 +142,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  mfb_set_mouse_moveCallback ([&](struct mfb_window* window, int x, int y) {
+  setMouseMoveCallback ([&](struct sMiniFBwindow* window, int x, int y) {
       (void)window;
       //cLog::log (LOGINFO, fmt::format ("mouseMove {} x:{} y:{}", window ? (const char*)mfb_get_user_data (window) : "", x, y));
       mMousePos.x = (float)x;
@@ -161,7 +161,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  mfb_set_mouse_scrollCallback ([&](struct mfb_window* window, mfb_key_mod mod, float deltaX, float deltaY) {
+  setMouseScrollCallback ([&](struct sMiniFBwindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
       // lambda
       (void)window;
       (void)mod;
@@ -205,7 +205,7 @@ void cWindow::uiLoop (bool useChanged, bool drawPerf,
   changed();
 
   int64_t frameUs = 0;
-  while (!mExit && (mfbUpdateEvents (mWindow) == STATE_OK)) {
+  while (!mExit && (updateEvents (mWindow) == STATE_OK)) {
     if (!useChanged || mChanged) {
       system_clock::time_point time = system_clock::now();
 
@@ -222,10 +222,10 @@ void cWindow::uiLoop (bool useChanged, bool drawPerf,
         }
 
       // update window with our texture
-      mfbUpdate (mWindow, getPixels());
+      update (mWindow, getPixels());
       frameUs = duration_cast<microseconds>(system_clock::now() - time).count();
       if (!useChanged)
-        mfbWaitSync (mWindow);
+        waitSync (mWindow);
       }
     else {
       this_thread::sleep_for (1ms);

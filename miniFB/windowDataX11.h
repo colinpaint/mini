@@ -11,5 +11,5 @@ struct sWindowDataX11 {
   GC          gc;
   GLXContext  context;
   uint32_t    text_id;
-  struct mfb_timer* timer;
+  struct sMiniFBtimer* timer;
   } ;
