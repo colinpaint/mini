@@ -265,6 +265,25 @@ namespace {
   #endif
 
   HMODULE mfb_shcore_dll = 0x0;
+  PFN_GetDpiForMonitor getDpiForMonitor = 0x0;
+  PFN_SetProcessDpiAwareness setProcessDpiAwareness = 0x0;
+  //{{{
+  // NOT Thread safe. Just convenient (Don't do this at home guys)
+  char* getErrorMessage() {
+
+    static char buffer[256];
+
+    buffer[0] = 0;
+    FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                   NULL,  // Not used with FORMAT_MESSAGE_FROM_SYSTEM
+                   GetLastError(),
+                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                   buffer,
+                   sizeof(buffer),
+                   NULL);
+    return buffer;
+    }
+  //}}}
   //{{{
   void loadFunctions() {
 
@@ -288,17 +307,14 @@ namespace {
     if (mfb_shcore_dll == 0x0) {
       mfb_shcore_dll = LoadLibraryA ("shcore.dll");
       if (mfb_shcore_dll != 0x0) {
-        mfb_SetProcessDpiAwareness =
+        setProcessDpiAwareness =
           (PFN_SetProcessDpiAwareness)GetProcAddress (mfb_shcore_dll, "SetProcessDpiAwareness");
-        mfb_GetDpiForMonitor =
+        getDpiForMonitor =
           (PFN_GetDpiForMonitor)GetProcAddress (mfb_shcore_dll, "GetDpiForMonitor");
         }
       }
     }
   //}}}
-
-  PFN_GetDpiForMonitor mfb_GetDpiForMonitor = 0x0;
-  PFN_SetProcessDpiAwareness mfb_SetProcessDpiAwareness = 0x0;
   //{{{
   void dpiAware() {
 
@@ -315,8 +331,8 @@ namespace {
         }
       }
 
-    else if (mfb_SetProcessDpiAwareness) {
-      if (mfb_SetProcessDpiAwareness(mfb_PROCESS_PER_MONITOR_DPI_AWARE) != S_OK)
+    else if (setProcessDpiAwareness) {
+      if (setProcessDpiAwareness(mfb_PROCESS_PER_MONITOR_DPI_AWARE) != S_OK)
         cLog::log (LOGERROR, fmt::format ("SetProcessDpiAwareness failed {}", getErrorMessage()));
       }
 
@@ -328,30 +344,13 @@ namespace {
     }
   //}}}
   //{{{
-  // NOT Thread safe. Just convenient (Don't do this at home guys)
-  char* getErrorMessage() {
-
-    static char buffer[256];
-
-    buffer[0] = 0;
-    FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                   NULL,  // Not used with FORMAT_MESSAGE_FROM_SYSTEM
-                   GetLastError(),
-                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                   buffer,
-                   sizeof(buffer),
-                   NULL);
-    return buffer;
-    }
-  //}}}
-  //{{{
   void getWindowsMonitorScale (HWND hWnd, float* scale_x, float* scale_y) {
 
     UINT x, y;
 
-    if (mfb_GetDpiForMonitor) {
+    if (getDpiForMonitor) {
       HMONITOR monitor = MonitorFromWindow (hWnd, MONITOR_DEFAULTTONEAREST);
-      mfb_GetDpiForMonitor (monitor, mfb_MDT_EFFECTIVE_DPI, &x, &y);
+      getDpiForMonitor (monitor, mfb_MDT_EFFECTIVE_DPI, &x, &y);
       }
 
     else {
