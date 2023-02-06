@@ -1116,11 +1116,11 @@ struct sMiniFBwindow* openEx (const char* title, unsigned width, unsigned height
   windowData->window_height = rect.bottom;
 
   windowData_win->window = CreateWindowEx (0,
-                                            title, title,
-                                            s_window_style,
-                                            x, y,
-                                            windowData->window_width, windowData->window_height,
-                                            0, 0, 0, 0);
+                                           title, title,
+                                           s_window_style,
+                                           x, y,
+                                           windowData->window_width, windowData->window_height,
+                                           0, 0, 0, 0);
   if (!windowData_win->window) {
     //{{{  error, return
     free (windowData);
