@@ -1,8 +1,7 @@
 // miniFB.h - main interface to miniFB
 #pragma once
-#include <cstdint>
-#include <functional>
 #include "miniFBenums.h"
+#include <functional>
 
 #define MFB_RGB(r,g,b) (((uint32_t)r) << 16) | (((uint32_t)g) << 8) | ((uint32_t)b)
 

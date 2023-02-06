@@ -560,35 +560,6 @@ namespace {
   //}}}
 
   //{{{
-  void destroyWindowData (sWindowData* windowData) {
-
-    if (windowData == 0x0)
-      return;
-
-    sWindowDataWindows* windowDataWindows = (sWindowDataWindows*)windowData->specific;
-
-    destroyGLcontext (windowData);
-
-    if (windowDataWindows->window != 0 && windowDataWindows->hdc != 0) {
-      ReleaseDC (windowDataWindows->window, windowDataWindows->hdc);
-      DestroyWindow (windowDataWindows->window);
-
-      #ifdef USE_WINTAB
-        winTabUnload();
-      #endif
-      }
-
-    windowDataWindows->window = 0;
-    windowDataWindows->hdc = 0;
-
-    timerDestroy(windowDataWindows->timer);
-    windowDataWindows->timer = 0x0;
-
-    windowData->draw_buffer = 0x0;
-    windowData->close = true;
-    }
-  //}}}
-  //{{{
   LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
     sWindowData* windowData = (sWindowData*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
@@ -1007,6 +978,35 @@ namespace {
       }
 
     return 0;
+    }
+  //}}}
+  //{{{
+  void destroyWindowData (sWindowData* windowData) {
+
+    if (windowData == 0x0)
+      return;
+
+    sWindowDataWindows* windowDataWindows = (sWindowDataWindows*)windowData->specific;
+
+    destroyGLcontext (windowData);
+
+    if (windowDataWindows->window && windowDataWindows->hdc) {
+      ReleaseDC (windowDataWindows->window, windowDataWindows->hdc);
+      DestroyWindow (windowDataWindows->window);
+
+      #ifdef USE_WINTAB
+        winTabUnload();
+      #endif
+      }
+
+    windowDataWindows->window = 0;
+    windowDataWindows->hdc = 0;
+
+    timerDestroy (windowDataWindows->timer);
+    windowDataWindows->timer = 0x0;
+
+    windowData->draw_buffer = 0x0;
+    windowData->close = true;
     }
   //}}}
   }

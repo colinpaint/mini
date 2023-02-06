@@ -20,16 +20,17 @@
 #include "miniFB.h"
 #include "miniFBinternal.h"
 #include "windowData.h"
+
 #include "miniFBgl.h"
 #include "windowDataX11.h"
 
 #include "../common/cLog.h"
 //}}}
 
-extern void stretch_image (uint32_t* srcImage, uint32_t srcX, uint32_t srcY,
-                           uint32_t srcWidth, uint32_t srcHeight, uint32_t srcPitch,
-                           uint32_t* dstImage, uint32_t dstX, uint32_t dstY,
-                           uint32_t dstWidth, uint32_t dstHeight, uint32_t dstPitch);
+extern void stretchImage (uint32_t* srcImage, uint32_t srcX, uint32_t srcY,
+                          uint32_t srcWidth, uint32_t srcHeight, uint32_t srcPitch,
+                          uint32_t* dstImage, uint32_t dstX, uint32_t dstY,
+                          uint32_t dstWidth, uint32_t dstHeight, uint32_t dstPitch);
 
 extern double g_time_for_frame;
 extern bool g_use_hardware_sync;

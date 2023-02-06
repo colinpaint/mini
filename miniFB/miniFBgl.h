@@ -1,5 +1,6 @@
 #pragma once
-#include "windowData.h"
+
+struct sWindowData;
 
 bool createGLcontext (sWindowData* windowData);
 void destroyGLcontext (sWindowData* windowData);

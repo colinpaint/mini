@@ -2,8 +2,8 @@
 #include "miniFB.h"
 
 #include <vector>
-#include "windowData.h"
 #include "miniFBinternal.h"
+#include "windowData.h"
 
 short int g_keycodes[512] = { 0 };
 

@@ -3,6 +3,7 @@
 #include "miniFBinternal.h"
 
 //#define kUseBilinearInterpolation
+// Only for 32 bits images
 //{{{
 //static uint32_t interpolate (uint32_t* srcImage, uint32_t x, uint32_t y,
                              //uint32_t srcOffsetX, uint32_t srcOffsetY, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcPitch) {
@@ -38,44 +39,42 @@
   //return (a << 24) + (r << 16) + (g << 8) + b;
   //}
 //}}}
-
-// Only for 32 bits images
 //{{{
-void stretchImage (uint32_t* srcImage, uint32_t srcX, uint32_t srcY, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcPitch,
-                    uint32_t* dstImage, uint32_t dstX, uint32_t dstY, uint32_t dstWidth, uint32_t dstHeight, uint32_t dstPitch) {
+//void stretchImage (uint32_t* srcImage, uint32_t srcX, uint32_t srcY, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcPitch,
+                    //uint32_t* dstImage, uint32_t dstX, uint32_t dstY, uint32_t dstWidth, uint32_t dstHeight, uint32_t dstPitch) {
 
-  if (!srcImage)
-    return;
-  if (!dstImage)
-    return;
+  //if (!srcImage)
+    //return;
+  //if (!dstImage)
+    //return;
 
-  const uint32_t deltaX = (srcWidth  << 16) / dstWidth;
-  const uint32_t deltaY = (srcHeight << 16) / dstHeight;
+  //const uint32_t deltaX = (srcWidth  << 16) / dstWidth;
+  //const uint32_t deltaY = (srcHeight << 16) / dstHeight;
 
-  srcImage += srcX + srcY * srcPitch;
-  dstImage += dstX + dstY * dstPitch;
+  //srcImage += srcX + srcY * srcPitch;
+  //dstImage += dstX + dstY * dstPitch;
 
-  uint32_t srcOffsetY = 0;
-  for (uint32_t y = 0; y < dstHeight; ++y) {
-    uint32_t srcOffsetX = 0;
-    for (uint32_t x = 0; x < dstWidth; ++x) {
-      #if defined(kUseBilinearInterpolation)
-        dstImage[x] = interpolate (srcImage, x+srcX, y+srcY, srcOffsetX, srcOffsetY, srcWidth, srcHeight, srcPitch);
-      #else
-        dstImage[x] = srcImage[srcOffsetX >> 16];
-      #endif
-        srcOffsetX += deltaX;
-      }
+  //uint32_t srcOffsetY = 0;
+  //for (uint32_t y = 0; y < dstHeight; ++y) {
+    //uint32_t srcOffsetX = 0;
+    //for (uint32_t x = 0; x < dstWidth; ++x) {
+      //#if defined(kUseBilinearInterpolation)
+        //dstImage[x] = interpolate (srcImage, x+srcX, y+srcY, srcOffsetX, srcOffsetY, srcWidth, srcHeight, srcPitch);
+      //#else
+        //dstImage[x] = srcImage[srcOffsetX >> 16];
+      //#endif
+        //srcOffsetX += deltaX;
+      //}
 
-    srcOffsetY += deltaY;
-    if (srcOffsetY >= 0x10000) {
-      srcImage += (srcOffsetY >> 16) * srcPitch;
-      srcOffsetY &= 0xffff;
-      }
+    //srcOffsetY += deltaY;
+    //if (srcOffsetY >= 0x10000) {
+      //srcImage += (srcOffsetY >> 16) * srcPitch;
+      //srcOffsetY &= 0xffff;
+      //}
 
-    dstImage += dstPitch;
-    }
-  }
+    //dstImage += dstPitch;
+    //}
+  //}
 //}}}
 //{{{
 void calcDstFactor (sWindowData *window_data, uint32_t width, uint32_t height) {
