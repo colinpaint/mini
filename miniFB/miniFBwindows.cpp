@@ -1195,8 +1195,6 @@ mfb_update_state updateEvents (struct sMiniFBwindow* window) {
   MSG msg;
   sWindowDataWindows* windowData_win = (sWindowDataWindows*)windowData->specific;
   while (!windowData->close && PeekMessage (&msg, windowData_win->window, 0, 0, PM_REMOVE)) {
-    //if(msg.message == WM_PAINT)
-    //    return STATE_OK;
     TranslateMessage (&msg);
     DispatchMessage (&msg);
     }
