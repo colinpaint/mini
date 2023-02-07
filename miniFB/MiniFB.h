@@ -5,57 +5,57 @@
 
 #define MFB_RGB(r,g,b) (((uint32_t)r) << 16) | (((uint32_t)g) << 8) | ((uint32_t)b)
 
-struct sMiniFBwindow* open (const char* title, unsigned width, unsigned height);
-struct sMiniFBwindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags);
+sMiniWindow* open (const char* title, unsigned width, unsigned height);
+sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags);
 
-mfb_update_state update (struct sMiniFBwindow* window, void* buffer);
-mfb_update_state updateEx (struct sMiniFBwindow* window, void* buffer, unsigned width, unsigned height);
-mfb_update_state updateEvents (struct sMiniFBwindow* window);
+mfb_update_state update (sMiniWindow* window, void* buffer);
+mfb_update_state updateEx (sMiniWindow* window, void* buffer, unsigned width, unsigned height);
+mfb_update_state updateEvents (sMiniWindow* window);
 
-void close (struct sMiniFBwindow* window);
+void close (sMiniWindow* window);
 
 // gets
-bool mfbIsWindowActive (struct sMiniFBwindow* window);
-unsigned getWindowWidth (struct sMiniFBwindow* window);
-unsigned getWindowHeight (struct sMiniFBwindow* window);
+bool mfbIsWindowActive (sMiniWindow* window);
+unsigned getWindowWidth (sMiniWindow* window);
+unsigned getWindowHeight (sMiniWindow* window);
 
-int getMouseX (struct sMiniFBwindow* window);          // Last mouse pos X
-int getMouseY (struct sMiniFBwindow* window);          // Last mouse pos Y
-int getMousePressure (struct sMiniFBwindow* window);   // Last mouse pressure
-int64_t getMouseTimestamp (struct sMiniFBwindow* window);  // Last mouse timestamp
+int getMouseX (sMiniWindow* window);          // Last mouse pos X
+int getMouseY (sMiniWindow* window);          // Last mouse pos Y
+int getMousePressure (sMiniWindow* window);   // Last mouse pressure
+int64_t getMouseTimestamp (sMiniWindow* window);  // Last mouse timestamp
 
-float getMouseScrollX (struct sMiniFBwindow* window); // Mouse wheel X as a sum. When you call this function it resets.
-float getMouseScrollY (struct sMiniFBwindow* window); // Mouse wheel Y as a sum. When you call this function it resets.
+float getMouseScrollX (sMiniWindow* window); // Mouse wheel X as a sum. When you call this function it resets.
+float getMouseScrollY (sMiniWindow* window); // Mouse wheel Y as a sum. When you call this function it resets.
 
-const uint8_t* getMouseButtonBuffer (struct sMiniFBwindow* window); // One byte for every button. Press (1), Release 0. (up to 8 buttons)
-const uint8_t* getKeyBuffer (struct sMiniFBwindow* window);          // One byte for every key. Press (1), Release 0.
+const uint8_t* getMouseButtonBuffer (sMiniWindow* window); // One byte for every button. Press (1), Release 0. (up to 8 buttons)
+const uint8_t* getKeyBuffer (sMiniWindow* window);          // One byte for every key. Press (1), Release 0.
 const char* getKeyName (mfb_key key);
 
-void getMonitorScale (struct sMiniFBwindow* window, float* scale_x, float* scale_y);
+void getMonitorScale (sMiniWindow* window, float* scale_x, float* scale_y);
 
 // sets
-void setUserData (struct sMiniFBwindow* window, void* user_data);
-void* getUserData (struct sMiniFBwindow* window);
+void setUserData (sMiniWindow* window, void* user_data);
+void* getUserData (sMiniWindow* window);
 
-bool setViewport (struct sMiniFBwindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
-bool setViewportBestFit (struct sMiniFBwindow* window, unsigned old_width, unsigned old_height);
+bool setViewport (sMiniWindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
+bool setViewportBestFit (sMiniWindow* window, unsigned old_width, unsigned old_height);
 
 // fps
 void setTargetFps (uint32_t fps);
 unsigned getTargetFps();
-bool waitSync (struct sMiniFBwindow* window);
+bool waitSync (sMiniWindow* window);
 
 // callbacks
-void setActiveCallback (struct sMiniFBwindow* window, mfb_active_func callback);
-void setResizeCallback (struct sMiniFBwindow* window, mfb_resize_func callback);
-void setCloseCallback (struct sMiniFBwindow* window, mfb_close_func callback);
+void setActiveCallback (sMiniWindow* window, mfb_active_func callback);
+void setResizeCallback (sMiniWindow* window, mfb_resize_func callback);
+void setCloseCallback (sMiniWindow* window, mfb_close_func callback);
 
-void setKeyboardCallback (struct sMiniFBwindow* window, mfb_keyboard_func callback);
-void setCharInputCallback (struct sMiniFBwindow* window, mfb_char_input_func callback);
+void setKeyboardCallback (sMiniWindow* window, mfb_keyboard_func callback);
+void setCharInputCallback (sMiniWindow* window, mfb_char_input_func callback);
 
-void setMouseButtonCallback (struct sMiniFBwindow* window, mfb_mouse_button_func callback);
-void setMouseMoveCallback (struct sMiniFBwindow* window, mfb_mouse_move_func callback);
-void setMouseScrollCallback (struct sMiniFBwindow* window, mfb_mouse_scroll_func callback);
+void setMouseButtonCallback (sMiniWindow* window, mfb_mouse_button_func callback);
+void setMouseMoveCallback (sMiniWindow* window, mfb_mouse_move_func callback);
+void setMouseScrollCallback (sMiniWindow* window, mfb_mouse_scroll_func callback);
 
 // timer
 struct sMiniFBtimer* timerCreate();
@@ -73,38 +73,38 @@ double timerGetResolution();
 // and
 //   mfb_set_XXXCallback(window, [](...) {})
 // have the same parameters.
-void setActiveCallback (std::function <void (struct sMiniFBwindow*, bool)> func, struct sMiniFBwindow* window);
-void setResizeCallback (std::function <void (struct sMiniFBwindow*, int, int)> func, struct sMiniFBwindow* window);
-void setCloseCallback (std::function <bool (struct sMiniFBwindow*)> func, struct sMiniFBwindow* window);
+void setActiveCallback (std::function <void (sMiniWindow*, bool)> func, sMiniWindow* window);
+void setResizeCallback (std::function <void (sMiniWindow*, int, int)> func, sMiniWindow* window);
+void setCloseCallback (std::function <bool (sMiniWindow*)> func, sMiniWindow* window);
 
-void setKeyboardCallback (std::function <void (struct sMiniFBwindow*, mfb_key, mfb_key_mod, bool)> func,
-                          struct sMiniFBwindow* window);
-void setCharInputCallback (std::function <void (struct sMiniFBwindow*, unsigned int)> func,
-                           struct sMiniFBwindow* window);
+void setKeyboardCallback (std::function <void (sMiniWindow*, mfb_key, mfb_key_mod, bool)> func,
+                          sMiniWindow* window);
+void setCharInputCallback (std::function <void (sMiniWindow*, unsigned int)> func,
+                           sMiniWindow* window);
 
-void setMouseButtonCallback (std::function <void (struct sMiniFBwindow*, mfb_mouse_button, mfb_key_mod, bool)> func,
-                             struct sMiniFBwindow* window);
-void setMouseMoveCallback (std::function <void (struct sMiniFBwindow*, int, int, int, int)>func,
-                           struct sMiniFBwindow* window);
-void setMouseScrollCallback (std::function <void (struct sMiniFBwindow*, mfb_key_mod, float, float)> func,
-                             struct sMiniFBwindow* window);
+void setMouseButtonCallback (std::function <void (sMiniWindow*, mfb_mouse_button, mfb_key_mod, bool)> func,
+                             sMiniWindow* window);
+void setMouseMoveCallback (std::function <void (sMiniWindow*, int, int, int, int)>func,
+                           sMiniWindow* window);
+void setMouseScrollCallback (std::function <void (sMiniWindow*, mfb_key_mod, float, float)> func,
+                             sMiniWindow* window);
 
-template <class T> void setActiveCallback (struct sMiniFBwindow* window, T* obj,
-                                           void (T::*method)(struct sMiniFBwindow*, bool));
-template <class T> void setResizeCallback (struct sMiniFBwindow* window, T* obj,
-                                           void (T::*method)(struct sMiniFBwindow*, int, int));
+template <class T> void setActiveCallback (sMiniWindow* window, T* obj,
+                                           void (T::*method)(sMiniWindow*, bool));
+template <class T> void setResizeCallback (sMiniWindow* window, T* obj,
+                                           void (T::*method)(sMiniWindow*, int, int));
 
-template <class T> void setKeyboardCallback (struct sMiniFBwindow* window, T* obj,
-                                             void (T::*method)(struct sMiniFBwindow*, mfb_key, mfb_key_mod, bool));
-template <class T> void setCharInputCallback (struct sMiniFBwindow* window, T* obj,
-                                              void (T::*method)(struct sMiniFBwindow*, unsigned int));
+template <class T> void setKeyboardCallback (sMiniWindow* window, T* obj,
+                                             void (T::*method)(sMiniWindow*, mfb_key, mfb_key_mod, bool));
+template <class T> void setCharInputCallback (sMiniWindow* window, T* obj,
+                                              void (T::*method)(sMiniWindow*, unsigned int));
 
-template <class T> void setMouseButtonCallback (struct sMiniFBwindow* window, T* obj,
-                                                void (T::*method)(struct sMiniFBwindow*, mfb_mouse_button, mfb_key_mod, bool));
-template <class T> void setMouseMoveCallback (struct sMiniFBwindow* window, T* obj,
-                                              void (T::*method)(struct sMiniFBwindow*, int, int, int, int));
-template <class T> void setMouseScrollCallback (struct sMiniFBwindow* window, T* obj,
-                                                void (T::*method)(struct sMiniFBwindow*, mfb_key_mod, float, float));
+template <class T> void setMouseButtonCallback (sMiniWindow* window, T* obj,
+                                                void (T::*method)(sMiniWindow*, mfb_mouse_button, mfb_key_mod, bool));
+template <class T> void setMouseMoveCallback (sMiniWindow* window, T* obj,
+                                              void (T::*method)(sMiniWindow*, int, int, int, int));
+template <class T> void setMouseScrollCallback (sMiniWindow* window, T* obj,
+                                                void (T::*method)(sMiniWindow*, mfb_key_mod, float, float));
 
 // To avoid clumsy hands
 //{{{
@@ -112,78 +112,78 @@ class mfbStub {
   mfbStub() : m_window(0x0) {}
 
   // friends
-  friend void setActiveCallback (std::function <void (struct sMiniFBwindow* window, bool)> func,
-                                      struct sMiniFBwindow* window);
-  friend void setResizeCallback (std::function <void (struct sMiniFBwindow*, int, int)> func,
-                                      struct sMiniFBwindow* window);
-  friend void setCloseCallback (std::function <bool (struct sMiniFBwindow*)> func,
-                                     struct sMiniFBwindow* window);
+  friend void setActiveCallback (std::function <void (sMiniWindow* window, bool)> func,
+                                      sMiniWindow* window);
+  friend void setResizeCallback (std::function <void (sMiniWindow*, int, int)> func,
+                                      sMiniWindow* window);
+  friend void setCloseCallback (std::function <bool (sMiniWindow*)> func,
+                                     sMiniWindow* window);
 
-  friend void setKeyboardCallback (std::function <void (struct sMiniFBwindow*, mfb_key, mfb_key_mod, bool)> func,
-                                         struct sMiniFBwindow* window);
-  friend void setCharInputCallback (std::function <void (struct sMiniFBwindow*, unsigned int)> func,
-                                          struct sMiniFBwindow* window);
+  friend void setKeyboardCallback (std::function <void (sMiniWindow*, mfb_key, mfb_key_mod, bool)> func,
+                                         sMiniWindow* window);
+  friend void setCharInputCallback (std::function <void (sMiniWindow*, unsigned int)> func,
+                                          sMiniWindow* window);
 
-  friend void setMouseButtonCallback (std::function <void (struct sMiniFBwindow*, mfb_mouse_button, mfb_key_mod, bool)> func,
-                                            struct sMiniFBwindow* window);
-  friend void setMouseMoveCallback (std::function <void (struct sMiniFBwindow*, int, int, int, int)> func,
-                                          struct sMiniFBwindow* window);
-  friend void setMouseScrollCallback (std::function <void (struct sMiniFBwindow*, mfb_key_mod, float, float)> func,
-                                            struct sMiniFBwindow* window);
+  friend void setMouseButtonCallback (std::function <void (sMiniWindow*, mfb_mouse_button, mfb_key_mod, bool)> func,
+                                            sMiniWindow* window);
+  friend void setMouseMoveCallback (std::function <void (sMiniWindow*, int, int, int, int)> func,
+                                          sMiniWindow* window);
+  friend void setMouseScrollCallback (std::function <void (sMiniWindow*, mfb_key_mod, float, float)> func,
+                                            sMiniWindow* window);
 
   // templates
-  template <class T> friend void setActiveCallback (struct sMiniFBwindow* window, T* obj,
-                                                         void (T::*method)(struct sMiniFBwindow*, bool));
-  template <class T> friend void setResizeCallback (struct sMiniFBwindow* window, T* obj,
-                                                         void (T::*method)(struct sMiniFBwindow*, int, int));
-  template <class T> friend void setCloseCallback (struct sMiniFBwindow* window, T* obj,
-                                                        bool (T::*method)(struct sMiniFBwindow* ));
+  template <class T> friend void setActiveCallback (sMiniWindow* window, T* obj,
+                                                         void (T::*method)(sMiniWindow*, bool));
+  template <class T> friend void setResizeCallback (sMiniWindow* window, T* obj,
+                                                         void (T::*method)(sMiniWindow*, int, int));
+  template <class T> friend void setCloseCallback (sMiniWindow* window, T* obj,
+                                                        bool (T::*method)(sMiniWindow* ));
 
-  template <class T> friend void setKeyboardCallback (struct sMiniFBwindow* window, T* obj,
-                                                           void (T::*method)(struct sMiniFBwindow*, mfb_key, mfb_key_mod, bool));
-  template <class T> friend void setCharInputCallback (struct sMiniFBwindow* window, T* obj,
-                                                             void (T::*method)(struct sMiniFBwindow*, unsigned int));
+  template <class T> friend void setKeyboardCallback (sMiniWindow* window, T* obj,
+                                                           void (T::*method)(sMiniWindow*, mfb_key, mfb_key_mod, bool));
+  template <class T> friend void setCharInputCallback (sMiniWindow* window, T* obj,
+                                                             void (T::*method)(sMiniWindow*, unsigned int));
 
-  template <class T> friend void setMouseButtonCallback (struct sMiniFBwindow* window, T* obj,
-                                                         void (T::*method)(struct sMiniFBwindow*, mfb_mouse_button, mfb_key_mod, bool));
-  template <class T> friend void setMouseMoveCallback (struct sMiniFBwindow* window, T* obj,
-                                                       void (T::*method)(struct sMiniFBwindow*, int, int, int, int));
-  template <class T> friend void setMouseScrollCallback (struct sMiniFBwindow* window, T* obj,
-                                                         void (T::*method)(struct sMiniFBwindow*, mfb_key_mod, float, float));
+  template <class T> friend void setMouseButtonCallback (sMiniWindow* window, T* obj,
+                                                         void (T::*method)(sMiniWindow*, mfb_mouse_button, mfb_key_mod, bool));
+  template <class T> friend void setMouseMoveCallback (sMiniWindow* window, T* obj,
+                                                       void (T::*method)(sMiniWindow*, int, int, int, int));
+  template <class T> friend void setMouseScrollCallback (sMiniWindow* window, T* obj,
+                                                         void (T::*method)(sMiniWindow*, mfb_key_mod, float, float));
 
   // statics
-  static mfbStub* GetInstance (struct sMiniFBwindow* window);
+  static mfbStub* GetInstance (sMiniWindow* window);
 
-  static void activeStub (struct sMiniFBwindow* window, bool isActive);
-  static void resizeStub (struct sMiniFBwindow* window, int width, int height);
-  static bool closeStub (struct sMiniFBwindow* window);
+  static void activeStub (sMiniWindow* window, bool isActive);
+  static void resizeStub (sMiniWindow* window, int width, int height);
+  static bool closeStub (sMiniWindow* window);
 
-  static void keyboardStub (struct sMiniFBwindow* window, mfb_key key, mfb_key_mod mod, bool isPressed);
-  static void charInputStub (struct sMiniFBwindow* window, unsigned int);
+  static void keyboardStub (sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed);
+  static void charInputStub (sMiniWindow* window, unsigned int);
 
-  static void mouseButtonStub (struct sMiniFBwindow* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed);
-  static void mouseMoveStub (struct sMiniFBwindow* window, int x, int y, int pressure, int timestamp);
-  static void scrollStub (struct sMiniFBwindow* window, mfb_key_mod mod, float deltaX, float deltaY);
+  static void mouseButtonStub (sMiniWindow* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed);
+  static void mouseMoveStub (sMiniWindow* window, int x, int y, int pressure, int timestamp);
+  static void scrollStub (sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY);
 
   // vars
-  struct sMiniFBwindow* m_window;
+  sMiniWindow* m_window;
 
-  std::function <void (struct sMiniFBwindow* window, bool)> m_active;
-  std::function <void (struct sMiniFBwindow* window, int, int)> m_resize;
-  std::function <bool (struct sMiniFBwindow* window)> m_close;
+  std::function <void (sMiniWindow* window, bool)> m_active;
+  std::function <void (sMiniWindow* window, int, int)> m_resize;
+  std::function <bool (sMiniWindow* window)> m_close;
 
-  std::function <void (struct sMiniFBwindow* window, mfb_key, mfb_key_mod, bool)> m_keyboard;
-  std::function <void (struct sMiniFBwindow* window, unsigned int)> m_char_input;
+  std::function <void (sMiniWindow* window, mfb_key, mfb_key_mod, bool)> m_keyboard;
+  std::function <void (sMiniWindow* window, unsigned int)> m_char_input;
 
-  std::function <void (struct sMiniFBwindow* window, mfb_mouse_button, mfb_key_mod, bool)> m_mouse_btn;
-  std::function <void (struct sMiniFBwindow* window, int, int, int, int)> m_mouse_move;
-  std::function <void (struct sMiniFBwindow* window, mfb_key_mod, float, float)> m_scroll;
+  std::function <void (sMiniWindow* window, mfb_mouse_button, mfb_key_mod, bool)> m_mouse_btn;
+  std::function <void (sMiniWindow* window, int, int, int, int)> m_mouse_move;
+  std::function <void (sMiniWindow* window, mfb_key_mod, float, float)> m_scroll;
   };
 //}}}
 
 //{{{
-template <class T> inline void setActiveCallback (struct sMiniFBwindow* window, T* obj,
-                                                       void (T::*method)(struct sMiniFBwindow* window, bool)) {
+template <class T> inline void setActiveCallback (sMiniWindow* window, T* obj,
+                                                       void (T::*method)(sMiniWindow* window, bool)) {
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
@@ -193,8 +193,8 @@ template <class T> inline void setActiveCallback (struct sMiniFBwindow* window, 
   }
 //}}}
 //{{{
-template <class T> inline void setResizeCallback (struct sMiniFBwindow* window, T* obj,
-                                                       void (T::*method)(struct sMiniFBwindow* window, int, int)) {
+template <class T> inline void setResizeCallback (sMiniWindow* window, T* obj,
+                                                       void (T::*method)(sMiniWindow* window, int, int)) {
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
@@ -204,8 +204,8 @@ template <class T> inline void setResizeCallback (struct sMiniFBwindow* window, 
   }
 //}}}
 //{{{
-template <class T> inline void setCloseCallback (struct sMiniFBwindow* window, T* obj,
-                                                      bool (T::*method)(struct sMiniFBwindow* window)) {
+template <class T> inline void setCloseCallback (sMiniWindow* window, T* obj,
+                                                      bool (T::*method)(sMiniWindow* window)) {
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
@@ -216,8 +216,8 @@ template <class T> inline void setCloseCallback (struct sMiniFBwindow* window, T
 //}}}
 
 //{{{
-template <class T> inline void setKeyboardCallback (struct sMiniFBwindow* window, T* obj,
-                                                         void (T::*method)(struct sMiniFBwindow* window, mfb_key, mfb_key_mod, bool)) {
+template <class T> inline void setKeyboardCallback (sMiniWindow* window, T* obj,
+                                                         void (T::*method)(sMiniWindow* window, mfb_key, mfb_key_mod, bool)) {
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance(window);
@@ -227,8 +227,8 @@ template <class T> inline void setKeyboardCallback (struct sMiniFBwindow* window
   }
 //}}}
 //{{{
-template <class T> inline void setCharInputCallback (struct sMiniFBwindow* window, T* obj,
-                                                           void (T::*method)(struct sMiniFBwindow* window, unsigned int)) {
+template <class T> inline void setCharInputCallback (sMiniWindow* window, T* obj,
+                                                           void (T::*method)(sMiniWindow* window, unsigned int)) {
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
@@ -239,8 +239,8 @@ template <class T> inline void setCharInputCallback (struct sMiniFBwindow* windo
 //}}}
 
 //{{{
-template <class T> inline void setMouseButtonCallback (struct sMiniFBwindow* window, T* obj,
-                                                             void (T::*method)(struct sMiniFBwindow* window, mfb_mouse_button, mfb_key_mod, bool)) {
+template <class T> inline void setMouseButtonCallback (sMiniWindow* window, T* obj,
+                                                             void (T::*method)(sMiniWindow* window, mfb_mouse_button, mfb_key_mod, bool)) {
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
@@ -250,8 +250,8 @@ template <class T> inline void setMouseButtonCallback (struct sMiniFBwindow* win
   }
 //}}}
 //{{{
-template <class T> inline void setMouseMoveCallback (struct sMiniFBwindow* window, T* obj,
-                                                     void (T::*method)(struct sMiniFBwindow* window, int, int, int, int)) {
+template <class T> inline void setMouseMoveCallback (sMiniWindow* window, T* obj,
+                                                     void (T::*method)(sMiniWindow* window, int, int, int, int)) {
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
@@ -261,8 +261,8 @@ template <class T> inline void setMouseMoveCallback (struct sMiniFBwindow* windo
   }
 //}}}
 //{{{
-template <class T> inline void setMouseScrollCallback (struct sMiniFBwindow* window, T* obj,
-                                                             void (T::*method)(struct sMiniFBwindow* window, mfb_key_mod, float, float)) {
+template <class T> inline void setMouseScrollCallback (sMiniWindow* window, T* obj,
+                                                             void (T::*method)(sMiniWindow* window, mfb_key_mod, float, float)) {
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);

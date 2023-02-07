@@ -53,14 +53,14 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // state callbacks
   //{{{
-  setActiveCallback ([&](struct sMiniFBwindow* window, bool isActive) {
+  setActiveCallback ([&](sMiniWindow* window, bool isActive) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("active {}", isActive));
       },
     mWindow);
   //}}}
   //{{{
-  setResizeCallback ([&](struct sMiniFBwindow* window, int width, int height) {
+  setResizeCallback ([&](struct sMiniWindow* window, int width, int height) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("resize {} {}", width, height));
       uint32_t x = 0;
@@ -78,7 +78,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setCloseCallback ([&](struct sMiniFBwindow* window) {
+  setCloseCallback ([&](sMiniWindow* window) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("close"));
       return true; // false for don't close
@@ -88,7 +88,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // keyboard callbacks
   //{{{
-  setKeyboardCallback ([&](struct sMiniFBwindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
+  setKeyboardCallback ([&](sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
 
       if (key == KB_KEY_ESCAPE)
         close (window);
@@ -102,7 +102,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setCharInputCallback ([&](struct sMiniFBwindow* window, uint32_t charCode) {
+  setCharInputCallback ([&](sMiniWindow* window, uint32_t charCode) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("char code:{}", charCode));
       },
@@ -111,7 +111,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // mouse callbacks
   //{{{
-  setMouseButtonCallback ([&](struct sMiniFBwindow* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed) {
+  setMouseButtonCallback ([&](sMiniWindow* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed) {
 
       (void)mod;
       //cLog::log (LOGINFO, fmt::format ("mouseButton {} button:{} pressed:{} at:{} {} mod:{}",
@@ -142,7 +142,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setMouseMoveCallback ([&](struct sMiniFBwindow* window, int x, int y, int pressure, int timestamp) {
+  setMouseMoveCallback ([&](sMiniWindow* window, int x, int y, int pressure, int timestamp) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}",
                                        x, y, pressure, timestamp));
@@ -163,7 +163,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setMouseScrollCallback ([&](struct sMiniFBwindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
+  setMouseScrollCallback ([&](sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
       // lambda
       (void)window;
       (void)mod;

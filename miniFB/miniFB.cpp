@@ -3,19 +3,19 @@
 
 #include <vector>
 #include "miniFBinternal.h"
-#include "windowData.h"
+#include "sWindowData.h"
 
 short int g_keycodes[512] = { 0 };
 
 //{{{
-struct sMiniFBwindow* open (const char* title, unsigned width, unsigned height) {
+sMiniWindow* open (const char* title, unsigned width, unsigned height) {
 
   return openEx (title, width, height, 0);
   }
 //}}}
 
 //{{{
-mfb_update_state update (struct sMiniFBwindow* window, void *buffer) {
+mfb_update_state update (sMiniWindow* window, void *buffer) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
@@ -24,35 +24,35 @@ mfb_update_state update (struct sMiniFBwindow* window, void *buffer) {
   }
 //}}}
 //{{{
-void setActiveCallback (struct sMiniFBwindow* window, mfb_active_func callback) {
+void setActiveCallback (sMiniWindow* window, mfb_active_func callback) {
 
   if (window)
     ((sWindowData*)(window))->active_func = callback;
   }
 //}}}
 //{{{
-void setResizeCallback (struct sMiniFBwindow* window, mfb_resize_func callback) {
+void setResizeCallback (sMiniWindow* window, mfb_resize_func callback) {
 
   if (window)
     ((sWindowData*)(window))->resize_func = callback;
   }
 //}}}
 //{{{
-void setCloseCallback (struct sMiniFBwindow* window, mfb_close_func callback) {
+void setCloseCallback (sMiniWindow* window, mfb_close_func callback) {
 
   if (window)
     ((sWindowData*)(window))->close_func = callback;
   }
 //}}}
 //{{{
-void setKeyboardCallback (struct sMiniFBwindow* window, mfb_keyboard_func callback) {
+void setKeyboardCallback (sMiniWindow* window, mfb_keyboard_func callback) {
 
   if (window)
     ((sWindowData*)(window))->keyboard_func = callback;
   }
 //}}}
 //{{{
-void setCharInputCallback (struct sMiniFBwindow* window, mfb_char_input_func callback) {
+void setCharInputCallback (sMiniWindow* window, mfb_char_input_func callback) {
 
   if (window)
     ((sWindowData*)(window))->char_input_func = callback;
@@ -60,59 +60,59 @@ void setCharInputCallback (struct sMiniFBwindow* window, mfb_char_input_func cal
 //}}}
 
 //{{{
-void setMouseButtonCallback (struct sMiniFBwindow* window, mfb_mouse_button_func callback) {
+void setMouseButtonCallback (sMiniWindow* window, mfb_mouse_button_func callback) {
 
   if (window)
     ((sWindowData*)(window))->mouse_btn_func = callback;
   }
 //}}}
 //{{{
-void setMouseMoveCallback (struct sMiniFBwindow* window, mfb_mouse_move_func callback) {
+void setMouseMoveCallback (sMiniWindow* window, mfb_mouse_move_func callback) {
 
   if (window)
     ((sWindowData*)(window))->mouse_move_func = callback;
   }
 //}}}
 //{{{
-void setMouseScrollCallback (struct sMiniFBwindow* window, mfb_mouse_scroll_func callback) {
+void setMouseScrollCallback (sMiniWindow* window, mfb_mouse_scroll_func callback) {
 
   if (window)
     ((sWindowData*)(window))->mouse_wheel_func = callback;
   }
 //}}}
 //{{{
-void mfb_set_user_data (struct sMiniFBwindow* window, void* user_data) {
+void mfb_set_user_data (sMiniWindow* window, void* user_data) {
 
   if (window)
     ((sWindowData*)(window))->user_data = user_data;
   }
 //}}}
 
-void* getUserData (struct sMiniFBwindow* window) { return window ? ((sWindowData*)(window))->user_data : 0; }
+void* getUserData (sMiniWindow* window) { return window ? ((sWindowData*)(window))->user_data : 0; }
 
 //{{{
-void close (struct sMiniFBwindow* window) {
+void close (sMiniWindow* window) {
 
   if (window)
     ((sWindowData*)(window))->close = true;
   }
 //}}}
 //{{{
-void keyboardDefault (struct sMiniFBwindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
+void keyboardDefault (sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
 
   (void)(mod);
   (void)(isPressed);
 
   if (key == KB_KEY_ESCAPE) {
     if (!((sWindowData*)(window))->close_func ||
-         ((sWindowData*)(window))->close_func ((struct sMiniFBwindow*)window))
+         ((sWindowData*)(window))->close_func ((sMiniWindow*)window))
       ((sWindowData*)(window))->close = true;
     }
   }
 //}}}
 
 //{{{
-bool setViewportBestFit (struct sMiniFBwindow* window, unsigned old_width, unsigned old_height) {
+bool setViewportBestFit (sMiniWindow* window, unsigned old_width, unsigned old_height) {
 
   if (window) {
     unsigned new_width  = ((sWindowData*)(window))->window_width;
@@ -141,50 +141,50 @@ bool setViewportBestFit (struct sMiniFBwindow* window, unsigned old_width, unsig
 //}}}
 
 //{{{
-bool mfbIsWindowActive (struct sMiniFBwindow* window)  {
+bool mfbIsWindowActive (sMiniWindow* window)  {
   return window ? ((sWindowData*)(window))->is_active : 0; }
 //}}}
 //{{{
-unsigned getWindowWidth (struct sMiniFBwindow* window)  {
+unsigned getWindowWidth (sMiniWindow* window)  {
   return window ? ((sWindowData*)(window))->window_width : 0; }
 //}}}
 //{{{
-unsigned getWindowHeight (struct sMiniFBwindow* window) {
+unsigned getWindowHeight (sMiniWindow* window) {
   return window ? ((sWindowData*)(window))->window_height : 0; }
 //}}}
 
 //{{{
-int getMouseX (struct sMiniFBwindow* window) {
+int getMouseX (sMiniWindow* window) {
   return window ? ((sWindowData*)(window))->mousePosX : 0; }
 //}}}
 //{{{
-int getMouseY (struct sMiniFBwindow* window) {
+int getMouseY (sMiniWindow* window) {
   return window ? ((sWindowData*)(window))->mousePosY : 0; }
 //}}}
 //{{{
-int getMousePressure (struct sMiniFBwindow* window) {
+int getMousePressure (sMiniWindow* window) {
   return window ? ((sWindowData*)(window))->mousePressure : 0; }
 //}}}
 //{{{
-int64_t getMouseTimestamp (struct sMiniFBwindow* window) {
+int64_t getMouseTimestamp (sMiniWindow* window) {
   return window ? ((sWindowData*)(window))->timestamp : 0; }
 //}}}
 
 //{{{
-float getMouseScrollX (struct sMiniFBwindow* window) {
+float getMouseScrollX (sMiniWindow* window) {
   return window ? ((sWindowData*)(window))->mouse_wheel_x : 0; }
 //}}}
 //{{{
-float getMouseScrollY (struct sMiniFBwindow* window) {
+float getMouseScrollY (sMiniWindow* window) {
   return window ? ((sWindowData*)(window))->mouse_wheel_y : 0; }
 //}}}
 
 //{{{
-const uint8_t* getMouseButtonBuffer (struct sMiniFBwindow* window) {
+const uint8_t* getMouseButtonBuffer (sMiniWindow* window) {
   return window ? ((sWindowData*)(window))->mouse_button_status : 0; }
 //}}}
 //{{{
-const uint8_t* getKeyBuffer (struct sMiniFBwindow* window)  {
+const uint8_t* getKeyBuffer (sMiniWindow* window)  {
   return window ? ((sWindowData*)(window))->key_status : 0; }
 //}}}
 
@@ -336,7 +336,7 @@ const char* getKeyName (mfb_key key) {
   }
 //}}}
 //{{{
-mfbStub* mfbStub::GetInstance (struct sMiniFBwindow *window) {
+mfbStub* mfbStub::GetInstance (sMiniWindow *window) {
 
   //{{{
   struct stub_vector {
@@ -350,7 +350,7 @@ mfbStub* mfbStub::GetInstance (struct sMiniFBwindow *window) {
       }
     //}}}
 
-    mfbStub* Get (struct sMiniFBwindow *window) {
+    mfbStub* Get (sMiniWindow *window) {
       for(mfbStub *instance : instances) {
         if(instance->m_window == window) {
           return instance;
@@ -370,21 +370,21 @@ mfbStub* mfbStub::GetInstance (struct sMiniFBwindow *window) {
 
 // stubs
 //{{{
-void mfbStub::activeStub (struct sMiniFBwindow* window, bool isActive) {
+void mfbStub::activeStub (sMiniWindow* window, bool isActive) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
   stub->m_active (window, isActive);
   }
 //}}}
 //{{{
-void mfbStub::resizeStub (struct sMiniFBwindow* window, int width, int height) {
+void mfbStub::resizeStub (sMiniWindow* window, int width, int height) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
   stub->m_resize (window, width, height);
   }
 //}}}
 //{{{
-bool mfbStub::closeStub (struct sMiniFBwindow* window) {
+bool mfbStub::closeStub (sMiniWindow* window) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
   return stub->m_close (window);
@@ -392,14 +392,14 @@ bool mfbStub::closeStub (struct sMiniFBwindow* window) {
 //}}}
 
 //{{{
-void mfbStub::keyboardStub (struct sMiniFBwindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
+void mfbStub::keyboardStub (sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
   stub->m_keyboard (window, key, mod, isPressed);
   }
 //}}}
 //{{{
-void mfbStub::charInputStub (struct sMiniFBwindow* window, unsigned int code) {
+void mfbStub::charInputStub (sMiniWindow* window, unsigned int code) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
   stub->m_char_input (window, code);
@@ -407,21 +407,21 @@ void mfbStub::charInputStub (struct sMiniFBwindow* window, unsigned int code) {
 //}}}
 
 //{{{
-void mfbStub::mouseButtonStub (struct sMiniFBwindow* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed) {
+void mfbStub::mouseButtonStub (sMiniWindow* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
   stub->m_mouse_btn (window, button, mod, isPressed);
   }
 //}}}
 //{{{
-void mfbStub::mouseMoveStub (struct sMiniFBwindow* window, int x, int y, int pressure, int timestamp) {
+void mfbStub::mouseMoveStub (sMiniWindow* window, int x, int y, int pressure, int timestamp) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
   stub->m_mouse_move (window, x, y, pressure, timestamp);
   }
 //}}}
 //{{{
-void mfbStub::scrollStub (struct sMiniFBwindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
+void mfbStub::scrollStub (sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
   stub->m_scroll (window, mod, deltaX, deltaY);
@@ -430,7 +430,7 @@ void mfbStub::scrollStub (struct sMiniFBwindow* window, mfb_key_mod mod, float d
 
 // set callbacks
 //{{{
-void setActiveCallback (std::function <void (struct sMiniFBwindow*, bool)> func, struct sMiniFBwindow* window) {
+void setActiveCallback (std::function <void (sMiniWindow*, bool)> func, sMiniWindow* window) {
 
   using namespace std::placeholders;
 
@@ -440,7 +440,7 @@ void setActiveCallback (std::function <void (struct sMiniFBwindow*, bool)> func,
   }
 //}}}
 //{{{
-void setResizeCallback (std::function <void (struct sMiniFBwindow*, int, int)> func, struct sMiniFBwindow* window) {
+void setResizeCallback (std::function <void (sMiniWindow*, int, int)> func, sMiniWindow* window) {
 
   using namespace std::placeholders;
 
@@ -450,7 +450,7 @@ void setResizeCallback (std::function <void (struct sMiniFBwindow*, int, int)> f
   }
 //}}}
 //{{{
-void setCloseCallback (std::function <bool (struct sMiniFBwindow*)> func, struct sMiniFBwindow* window) {
+void setCloseCallback (std::function <bool (sMiniWindow*)> func, sMiniWindow* window) {
 
   using namespace std::placeholders;
 
@@ -461,7 +461,7 @@ void setCloseCallback (std::function <bool (struct sMiniFBwindow*)> func, struct
 //}}}
 
 //{{{
-void setKeyboardCallback (std::function <void (struct sMiniFBwindow*, mfb_key, mfb_key_mod, bool)> func, struct sMiniFBwindow *window) {
+void setKeyboardCallback (std::function <void (sMiniWindow*, mfb_key, mfb_key_mod, bool)> func, sMiniWindow *window) {
 
   using namespace std::placeholders;
 
@@ -471,7 +471,7 @@ void setKeyboardCallback (std::function <void (struct sMiniFBwindow*, mfb_key, m
   }
 //}}}
 //{{{
-void setCharInputCallback (std::function <void (struct sMiniFBwindow*, unsigned int)> func, struct sMiniFBwindow* window) {
+void setCharInputCallback (std::function <void (sMiniWindow*, unsigned int)> func, sMiniWindow* window) {
 
   using namespace std::placeholders;
 
@@ -482,7 +482,7 @@ void setCharInputCallback (std::function <void (struct sMiniFBwindow*, unsigned 
 //}}}
 
 //{{{
-void setMouseButtonCallback (std::function <void (struct sMiniFBwindow*, mfb_mouse_button, mfb_key_mod, bool)> func, struct sMiniFBwindow *window) {
+void setMouseButtonCallback (std::function <void (sMiniWindow*, mfb_mouse_button, mfb_key_mod, bool)> func, sMiniWindow *window) {
 
   using namespace std::placeholders;
 
@@ -492,7 +492,7 @@ void setMouseButtonCallback (std::function <void (struct sMiniFBwindow*, mfb_mou
   }
 //}}}
 //{{{
-void setMouseMoveCallback (std::function <void (struct sMiniFBwindow*, int, int, int, int)> func, struct sMiniFBwindow* window) {
+void setMouseMoveCallback (std::function <void (sMiniWindow*, int, int, int, int)> func, sMiniWindow* window) {
 
   using namespace std::placeholders;
 
@@ -502,7 +502,7 @@ void setMouseMoveCallback (std::function <void (struct sMiniFBwindow*, int, int,
   }
 //}}}
 //{{{
-void setMouseScrollCallback (std::function <void (struct sMiniFBwindow*, mfb_key_mod, float, float)> func, struct sMiniFBwindow *window) {
+void setMouseScrollCallback (std::function <void (sMiniWindow*, mfb_key_mod, float, float)> func, sMiniWindow *window) {
 
   using namespace std::placeholders;
 

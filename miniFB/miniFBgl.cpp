@@ -4,10 +4,10 @@
 #include "miniFBinternal.h"
 
 #if defined(_WIN32) || defined(WIN32)
-  #include "windowDataWindows.h"
+  #include "sWindowDataWindows.h"
   #include <gl/gl.h>
 #else
-  #include "windowDataX11.h"
+  #include "sWindowDataX11.h"
   #include <GL/gl.h>
   #include <GL/glx.h>
 #endif

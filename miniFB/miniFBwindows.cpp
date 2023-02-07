@@ -5,9 +5,9 @@
 #include "miniFB.h"
 
 #include "miniFBinternal.h"
-#include "windowData.h"
+#include "sWindowData.h"
 
-#include "windowDataWindows.h"
+#include "sWindowDataWindows.h"
 #include <windowsx.h>
 
 #include "miniFBgl.h"
@@ -597,7 +597,7 @@ namespace {
           bool destroy = false;
 
           // Obtain a confirmation of close
-          if (!windowData->close_func || windowData->close_func ((struct sMiniFBwindow*)windowData))
+          if (!windowData->close_func || windowData->close_func ((sMiniWindow*)windowData))
             destroy = true;
 
           if (destroy) {
@@ -1010,7 +1010,7 @@ namespace {
 
 // interface
 //{{{
-struct sMiniFBwindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   RECT rect = { 0 };
   int x = 0;
@@ -1137,7 +1137,7 @@ struct sMiniFBwindow* openEx (const char* title, unsigned width, unsigned height
 
   createGLcontext (windowData);
   windowData_win->timer = timerCreate();
-  setKeyboardCallback ((struct sMiniFBwindow*)windowData, keyboardDefault);
+  setKeyboardCallback ((sMiniWindow*)windowData, keyboardDefault);
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
@@ -1151,11 +1151,11 @@ struct sMiniFBwindow* openEx (const char* title, unsigned width, unsigned height
   EnableMouseInPointer (true);
 
   windowData->is_initialized = true;
-  return (struct sMiniFBwindow*)windowData;
+  return (sMiniWindow*)windowData;
   }
 //}}}
 //{{{
-mfb_update_state updateEx (struct sMiniFBwindow* window, void* buffer, unsigned width, unsigned height) {
+mfb_update_state updateEx (sMiniWindow* window, void* buffer, unsigned width, unsigned height) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
@@ -1179,7 +1179,7 @@ mfb_update_state updateEx (struct sMiniFBwindow* window, void* buffer, unsigned 
   }
 //}}}
 //{{{
-mfb_update_state updateEvents (struct sMiniFBwindow* window) {
+mfb_update_state updateEvents (sMiniWindow* window) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
@@ -1203,7 +1203,7 @@ mfb_update_state updateEvents (struct sMiniFBwindow* window) {
 
 // viewport
 //{{{
-void getMonitorScale (struct sMiniFBwindow* window, float* scale_x, float* scale_y) {
+void getMonitorScale (sMiniWindow* window, float* scale_x, float* scale_y) {
 
   HWND hWnd = 0x0;
 
@@ -1217,7 +1217,7 @@ void getMonitorScale (struct sMiniFBwindow* window, float* scale_x, float* scale
   }
 //}}}
 //{{{
-bool setViewport (struct sMiniFBwindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
+bool setViewport (sMiniWindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
 
   sWindowData* windowData = (sWindowData*)window;
   sWindowDataWindows* windowData_win = 0x0;
@@ -1249,7 +1249,7 @@ bool setViewport (struct sMiniFBwindow* window, unsigned offset_x, unsigned offs
 
 // sync
 //{{{
-bool waitSync (struct sMiniFBwindow* window) {
+bool waitSync (sMiniWindow* window) {
 
   if (!window)
     return false;

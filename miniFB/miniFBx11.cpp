@@ -19,10 +19,10 @@
 
 #include "miniFB.h"
 #include "miniFBinternal.h"
-#include "windowData.h"
+#include "sWindowData.h"
 
 #include "miniFBgl.h"
-#include "windowDataX11.h"
+#include "sWindowDataX11.h"
 
 #include "../common/cLog.h"
 //}}}
@@ -372,7 +372,8 @@ namespace {
           //    kCall(char_input_func, codepoint);
           }
         }
-      break;
+
+        break;
       //}}}
 
       case ButtonPress:
@@ -427,29 +428,30 @@ namespace {
             windowData->mouse_button_status[(button - 4) & 0x07] = is_pressed;
             kCall (mouse_btn_func, (mfb_mouse_button) (button - 4), (mfb_key_mod) windowData->mod_keys, is_pressed);
             break;
+          }
         }
-      }
-      break;
+
+        break;
       //}}}
 
       //{{{
       case MotionNotify:
         windowData->mousePosX = event->xmotion.x;
         windowData->mousePosY = event->xmotion.y;
-        kCall (mouse_move_func, event->xmotion.x, event->xmotion.y);
+        kCall (mouse_move_func, windowData->mousePosX, windowData->mousePosY,
+                                windowData->mouse_button_status[Button1] * 1024, 0);
         break;
       //}}}
       //{{{
       case ConfigureNotify:
-        {
         windowData->window_width  = event->xconfigure.width;
         windowData->window_height = event->xconfigure.height;
         resizeDst (windowData, event->xconfigure.width, event->xconfigure.height);
 
         resizeGL (windowData);
         kCall (resize_func, windowData->window_width, windowData->window_height);
-        }
-      break;
+
+        break;
       //}}}
 
       case EnterNotify:
@@ -459,12 +461,14 @@ namespace {
       case FocusIn:
         windowData->is_active = true;
         kCall (active_func, true);
+
         break;
       //}}}
       //{{{
       case FocusOut:
         windowData->is_active = false;
         kCall (active_func, false);
+
         break;
       //}}}
 
@@ -475,14 +479,13 @@ namespace {
       //}}}
       //{{{
       case ClientMessage:
-        {
         if ((Atom)event->xclient.data.l[0] == s_delete_window_atom) {
           if (windowData) {
             bool destroy = false;
 
             // Obtain a confirmation of close
             if (!windowData->close_func ||
-                windowData->close_func ((struct sMiniFBwindow*)windowData))
+                windowData->close_func ((sMiniWindow*)windowData))
               destroy = true;
 
             if (destroy) {
@@ -491,9 +494,8 @@ namespace {
               }
             }
           }
-        }
 
-      break;
+        break;
       //}}}
       }
     }
@@ -514,7 +516,7 @@ namespace {
 
 // mfb interface
 //{{{
-struct sMiniFBwindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   int depth, i, formatCount, convDepth = -1;
   XPixmapFormatValues* formats;
@@ -671,17 +673,17 @@ struct sMiniFBwindow* openEx (const char* title, unsigned width, unsigned height
   windowDataX11->gc = DefaultGC (windowDataX11->display, windowDataX11->screen);
   windowDataX11->timer = timerCreate();
 
-  setKeyboardCallback ((struct sMiniFBwindow*) windowData, keyboardDefault);
+  setKeyboardCallback ((sMiniWindow*) windowData, keyboardDefault);
 
   cLog::log (LOGINFO, "using X11 API");
 
   windowData->is_initialized = true;
-  return (struct sMiniFBwindow*)windowData;
+  return (sMiniWindow*)windowData;
   }
 //}}}
 
 //{{{
-mfb_update_state updateEx (struct sMiniFBwindow* window, void* buffer, unsigned width, unsigned height) {
+mfb_update_state updateEx (sMiniWindow* window, void* buffer, unsigned width, unsigned height) {
 
   if (window == 0x0)
     return STATE_INVALID_WINDOW;
@@ -709,7 +711,7 @@ mfb_update_state updateEx (struct sMiniFBwindow* window, void* buffer, unsigned 
   }
 //}}}
 //{{{
-mfb_update_state updateEvents (struct sMiniFBwindow* window) {
+mfb_update_state updateEvents (sMiniWindow* window) {
 
   if (window == 0x0)
     return STATE_INVALID_WINDOW;
@@ -730,7 +732,7 @@ mfb_update_state updateEvents (struct sMiniFBwindow* window) {
 //}}}
 
 //{{{
-bool waitSync (struct sMiniFBwindow* window) {
+bool waitSync (sMiniWindow* window) {
 
   if (window == 0x0)
     return false;
@@ -778,7 +780,7 @@ bool waitSync (struct sMiniFBwindow* window) {
 //}}}
 
 //{{{
-bool setViewport (struct sMiniFBwindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
+bool setViewport (sMiniWindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
 
   sWindowData* windowData = (sWindowData*)window;
 
@@ -797,7 +799,7 @@ bool setViewport (struct sMiniFBwindow* window, unsigned offset_x, unsigned offs
   }
 //}}}
 //{{{
-void getMonitorScale (struct sMiniFBwindow* window, float* scale_x, float* scale_y) {
+void getMonitorScale (sMiniWindow* window, float* scale_x, float* scale_y) {
 
   float x = 96.0;
   float y = 96.0;
