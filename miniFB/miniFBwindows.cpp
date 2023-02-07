@@ -23,11 +23,11 @@ using namespace std;
   #include "pktDef.h"
 #endif
 
-extern short int gKeycodes[512];
 extern bool gUseHardwareSync;
 extern double gTimeForFrame;
 extern double gTimerFrequency;
 extern double gTimerResolution;
+extern short int gKeycodes[512];
 
 namespace {
   #ifdef USE_WINTAB
@@ -819,7 +819,9 @@ namespace {
                                          IS_POINTER_INRANGE_WPARAM(wParam) ? "inRange " : "",
                                          IS_POINTER_INCONTACT_WPARAM(wParam) ? "inContact " : "",
                                          GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) ));
+
         windowData_win->pointerInside = false;
+        kCall (pointer_leave_func);
 
         break;
       //}}}
@@ -1302,7 +1304,7 @@ void timerInit() {
   uint64_t frequency;
   QueryPerformanceFrequency ((LARGE_INTEGER*)&frequency);
 
-  gTimerFrequency  = (double) ((int64_t) frequency);
+  gTimerFrequency  = (double)((int64_t) frequency);
   gTimerResolution = 1.0 / gTimerFrequency;
   }
 //}}}

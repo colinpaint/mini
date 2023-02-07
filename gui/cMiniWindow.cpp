@@ -14,14 +14,6 @@ using namespace std;
 using namespace chrono;
 //}}}
 
-// cWindow
-//  !!! not sure i have found this case yet !!!!
-// miniFB misses the buttom release when off screen and tracking the mouse
-//case WM_MOUSELEAVE: {
-//  if (mouseProx (false, cPoint()))
-//    changed();
-//  mMouseTracking =  false;
-
 // actions
 void cWindow::resized() {}
 void cWindow::toggleFullScreen() {} // not yet
@@ -177,6 +169,14 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         changed();
 
       cursorChanged();
+      },
+    mWindow);
+  //}}}
+  //{{{
+  setPointerLeaveCallback ([&](sMiniWindow* window) {
+      // lambda
+      (void)window;
+      cLog::log (LOGINFO, fmt::format ("pointerLeave"));
       },
     mWindow);
   //}}}

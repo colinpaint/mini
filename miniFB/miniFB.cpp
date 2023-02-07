@@ -44,6 +44,7 @@ void setCloseCallback (sMiniWindow* window, mfb_close_func callback) {
     ((sWindowData*)(window))->close_func = callback;
   }
 //}}}
+
 //{{{
 void setKeyCallback (sMiniWindow* window, mfb_key_func callback) {
 
@@ -80,6 +81,14 @@ void setPointerWheelCallback (sMiniWindow* window, mfb_pointer_wheel_func callba
     ((sWindowData*)(window))->pointer_wheel_func = callback;
   }
 //}}}
+//{{{
+void setPointerLeaveCallback (sMiniWindow* window, mfb_pointer_leave_func callback) {
+
+  if (window)
+    ((sWindowData*)(window))->pointer_leave_func = callback;
+  }
+//}}}
+
 //{{{
 void mfb_set_user_data (sMiniWindow* window, void* user_data) {
 
@@ -410,7 +419,7 @@ void mfbStub::charStub (sMiniWindow* window, unsigned int code) {
 void mfbStub::pointerButtonStub (sMiniWindow* window, mfb_pointer_button button, mfb_key_mod mod, bool isPressed) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_pointer_btn (window, button, mod, isPressed);
+  stub->m_pointer_button (window, button, mod, isPressed);
   }
 //}}}
 //{{{
@@ -421,10 +430,17 @@ void mfbStub::pointerMoveStub (sMiniWindow* window, int x, int y, int pressure, 
   }
 //}}}
 //{{{
-void mfbStub::wheelStub (sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
+void mfbStub::pointerWheelStub (sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_wheel (window, mod, deltaX, deltaY);
+  stub->m_pointer_wheel (window, mod, deltaX, deltaY);
+  }
+//}}}
+//{{{
+void mfbStub::pointerLeaveStub (sMiniWindow* window) {
+
+  mfbStub* stub = mfbStub::GetInstance (window);
+  stub->m_pointer_leave (window);
   }
 //}}}
 
@@ -487,7 +503,7 @@ void setPointerButtonCallback (std::function <void (sMiniWindow*, mfb_pointer_bu
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_pointer_btn = std::bind (func, _1, _2, _3, _4);
+  stub->m_pointer_button = std::bind (func, _1, _2, _3, _4);
   setPointerButtonCallback (window, mfbStub::pointerButtonStub);
   }
 //}}}
@@ -507,7 +523,17 @@ void setPointerWheelCallback (std::function <void (sMiniWindow*, mfb_key_mod, fl
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_wheel = std::bind (func, _1, _2, _3, _4);
-  setPointerWheelCallback (window, mfbStub::wheelStub);
+  stub->m_pointer_wheel = std::bind (func, _1, _2, _3, _4);
+  setPointerWheelCallback (window, mfbStub::pointerWheelStub);
+  }
+//}}}
+//{{{
+void setPointerLeaveCallback (std::function <void (sMiniWindow*)> func, sMiniWindow *window) {
+
+  using namespace std::placeholders;
+
+  mfbStub* stub = mfbStub::GetInstance (window);
+  stub->m_pointer_leave = std::bind (func, _1);
+  setPointerLeaveCallback (window, mfbStub::pointerLeaveStub);
   }
 //}}}
