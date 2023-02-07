@@ -368,11 +368,6 @@ mfbStub* mfbStub::GetInstance (struct sMiniFBwindow *window) {
   }
 //}}}
 
-void setActiveHandler (struct sMiniFBwindow* window, std::function <void (bool)> handler) {
-  std::function <void (bool isActive)> mHandler = handler;
-  ((sWindowData*)(window))->mActiveHandler = handler;
-  }
-
 // stubs
 //{{{
 void mfbStub::activeStub (struct sMiniFBwindow *window, bool isActive) {

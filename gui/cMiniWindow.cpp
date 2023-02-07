@@ -53,18 +53,6 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // state callbacks
   //{{{
-  setActiveHandler (mWindow, [&](bool isActive) {
-      //(void)window;
-      cLog::log (LOGINFO, fmt::format ("active {}", isActive));
-      });
-  //}}}
-  //{{{
-  //setActiveHandler (mWindow, [&](sWindowData* window, bool isActive) {
-      //(void)window;
-      //cLog::log (LOGINFO, fmt::format ("active {}", isActive));
-      //});
-  //}}}
-  //{{{
   setActiveCallback ([&](struct sMiniFBwindow* window, bool isActive) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("active {}", isActive));
