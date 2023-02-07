@@ -7,12 +7,12 @@ struct sWindowData {
   void* specific;
   void* user_data;
 
-  mfb_active_func       active_func;
-  mfb_resize_func       resize_func;
-  mfb_close_func        close_func;
-  mfb_keyboard_func     keyboard_func;
-  mfb_char_input_func   char_input_func;
-  mfb_pointer_button_func pointer_btn_func;
+  mfb_active_func         active_func;
+  mfb_resize_func         resize_func;
+  mfb_close_func          close_func;
+  mfb_key_func            key_func;
+  mfb_char_func           char_func;
+  mfb_pointer_button_func pointer_button_func;
   mfb_pointer_move_func   pointer_move_func;
   mfb_pointer_wheel_func  pointer_wheel_func;
 
@@ -41,7 +41,7 @@ struct sWindowData {
 
   float    pointerWheelX;
   float    pointerWheelY;
-  uint8_t  pointer_button_status[8];
+  uint8_t  pointerButtonStatus[8];
 
   bool     is_active;
   bool     is_initialized;
@@ -50,4 +50,7 @@ struct sWindowData {
 
   uint8_t  key_status[512];
   uint32_t mod_keys;
+
+  uint32_t    text_id;
+  sMiniFBtimer* timer;
   };

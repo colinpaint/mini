@@ -4,11 +4,9 @@
 #include <windows.h>
 
 struct sWindowDataWindows {
-  HWND                 window;
-  WNDCLASS             wc;
-  HDC                  hdc;
-  HGLRC                hGLRC;
-  uint32_t             text_id;
-  struct sMiniFBtimer* timer;
-  bool                 pointerInside;
+  HWND           window;
+  WNDCLASS       wc;
+  HDC            hdc;
+  HGLRC          hGLRC;
+  bool           pointerInside;
   };

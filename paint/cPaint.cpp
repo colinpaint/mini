@@ -17,14 +17,14 @@ cPaintLayer::cPaintLayer (const std::string& name, const cColor& color, cPoint p
     : cLayer(name, color, {0.f,0.f}), mWidth(width) {
 
   setRadius (width);
-  addPoint (pos);
+  addPoint (pos, 0 ,0);
   }
 //}}}
 //{{{
-void cPaintLayer::addPoint (cPoint pos) {
+void cPaintLayer::addPoint (cPoint pos, int pressure, int timestamp) {
 
-   if (mLine.empty() || ((pos - mLine.back()).magnitude() > mWidth))
-     mLine.push_back (pos);
+   if (mLine.empty() || ((pos - mLine.back().mPos).magnitude() > mWidth))
+     mLine.push_back (sBrushPoint (pos, pressure, timestamp));
    }
 //}}}
 //{{{
@@ -86,9 +86,9 @@ void cPaintLayer::draw (cWindow& window) {
     return;
 
   bool first = true;
-  for (auto& pos : mLine) {
-    paint (window, kYellow, mPos + pos, first);
-    mExtent |= mPos + pos;
+  for (auto& brushPoint : mLine) {
+    paint (window, kYellow, mPos + brushPoint.mPos, brushPoint.mPressure, first);
+    mExtent |= mPos + brushPoint.mPos;
     first = false;
     }
   }
@@ -123,8 +123,9 @@ void cPaintLayer::setRadius (float radius) {
   }
 //}}}
 //{{{
-void cPaintLayer::stamp (cWindow& window, const cColor& color, cPoint pos) {
+void cPaintLayer::stamp (cWindow& window, const cColor& color, cPoint pos, int pressure) {
 // stamp brushShape into image
+  (void)pressure;
 
   // !!!! does this behave correctly as we go negative !!!
   int32_t xInt = static_cast<int32_t>(pos.x);
@@ -143,13 +144,13 @@ void cPaintLayer::stamp (cWindow& window, const cColor& color, cPoint pos) {
   }
 //}}}
 //{{{
-void cPaintLayer::paint (cWindow& window, const cColor& color, cPoint pos, bool first) {
+void cPaintLayer::paint (cWindow& window, const cColor& color, cPoint pos, int pressure, bool first) {
 
   cColor color1 = color;
   color1.a = 0.5f;
 
   if (first)
-    stamp (window, color1, pos);
+    stamp (window, color1, pos, pressure);
   else {
     // draw stamps from mPrevPos to pos
     cPoint diff = pos - mPrevPos;
@@ -161,7 +162,7 @@ void cPaintLayer::paint (cWindow& window, const cColor& color, cPoint pos, bool 
 
       unsigned numStamps = static_cast<unsigned>(length / overlap);
       for (unsigned i = 0; i < numStamps; i++)
-        stamp (window, color1, mPrevPos + inc);
+        stamp (window, color1, mPrevPos + inc, pressure);
       }
     }
   }
@@ -171,15 +172,15 @@ void cPaintLayer::paint (cWindow& window, const cColor& color, cPoint pos, bool 
 //{{{
 cStrokeLayer::cStrokeLayer (const std::string& name, const cColor& color, cPoint pos, float width)
     : cLayer(name, color, {0.f,0.f}), mWidth(width) {
-  addPoint (pos);
+  addPoint (pos, 0,0);
   }
 //}}}
 
 //{{{
-void cStrokeLayer::addPoint (cPoint pos) {
+void cStrokeLayer::addPoint (cPoint pos, int pressure, int timestamp) {
 
-   if (mLine.empty() || ((pos - mLine.back()).magnitude() > mWidth))
-     mLine.push_back (pos);
+   if (mLine.empty() || ((pos - mLine.back().mPos).magnitude() > mWidth))
+     mLine.push_back (sBrushPoint (pos, pressure, timestamp));
    }
 //}}}
 
@@ -247,26 +248,26 @@ void cStrokeLayer::draw (cWindow& window) {
 
   cPoint lastPos;
   bool first = true;
-  for (auto& pos : mLine) {
+  for (auto& brushPoint : mLine) {
     if (first)
       first = false;
     else
-      window.drawLine (mProx ? kLightBlue : mColor, mPos + lastPos, mPos+pos, mWidth);
-    lastPos = pos;
+      window.drawLine (mProx ? kLightBlue : mColor, mPos + lastPos, mPos + brushPoint.mPos, mWidth);
+    lastPos = brushPoint.mPos;
 
-    mExtent |= mPos + pos;
+    mExtent |= mPos + brushPoint.mPos;
     }
 
   first = true;
-  for (auto& pos : mLine) {
+  for (auto& brushPoint : mLine) {
     if (first) {
       first = false;
       }
     else {
-      cPoint perp = (pos - lastPos).perp() * 16.f;
-      window.drawLine (kWhite, mPos + pos - perp, mPos + pos + perp, 1.f);
+      cPoint perp = (brushPoint.mPos - lastPos).perp() * 16.f;
+      window.drawLine (kWhite, mPos + brushPoint.mPos - perp, mPos + brushPoint.mPos + perp, 1.f);
       }
-    lastPos = pos;
+    lastPos = brushPoint.mPos;
     }
   }
 //}}}
@@ -568,7 +569,7 @@ bool cPaint::down (cPoint pos) {
 bool cPaint::move (cPoint pos, cPoint inc, int pressure, int timestamp) {
 
   if (mPainting || mStroking)
-    mPickedLayer->addPoint (pos);
+    mPickedLayer->addPoint (pos, pressure, timestamp);
   else if (mPickedLayer)
     mPickedLayer->move (pos, inc, pressure, timestamp);
 

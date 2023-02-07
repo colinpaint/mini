@@ -59,8 +59,8 @@ void setActiveCallback (sMiniWindow* window, mfb_active_func callback);
 void setResizeCallback (sMiniWindow* window, mfb_resize_func callback);
 void setCloseCallback (sMiniWindow* window, mfb_close_func callback);
 
-void setKeyboardCallback (sMiniWindow* window, mfb_keyboard_func callback);
-void setCharInputCallback (sMiniWindow* window, mfb_char_input_func callback);
+void setKeyCallback (sMiniWindow* window, mfb_key_func callback);
+void setCharCallback (sMiniWindow* window, mfb_char_func callback);
 
 void setPointerButtonCallback (sMiniWindow* window, mfb_pointer_button_func callback);
 void setPointerMoveCallback (sMiniWindow* window, mfb_pointer_move_func callback);
@@ -71,8 +71,8 @@ void setActiveCallback (std::function <void (sMiniWindow*, bool)> func, sMiniWin
 void setResizeCallback (std::function <void (sMiniWindow*, int, int)> func, sMiniWindow* window);
 void setCloseCallback (std::function <bool (sMiniWindow*)> func, sMiniWindow* window);
 
-void setKeyboardCallback (std::function <void (sMiniWindow*, mfb_key, mfb_key_mod, bool)> func, sMiniWindow* window);
-void setCharInputCallback (std::function <void (sMiniWindow*, unsigned int)> func, sMiniWindow* window);
+void setKeyCallback (std::function <void (sMiniWindow*, mfb_key, mfb_key_mod, bool)> func, sMiniWindow* window);
+void setCharCallback (std::function <void (sMiniWindow*, unsigned int)> func, sMiniWindow* window);
 
 void setPointerButtonCallback (std::function <void (sMiniWindow*, mfb_pointer_button, mfb_key_mod, bool)> func, sMiniWindow* window);
 void setPointerMoveCallback (std::function <void (sMiniWindow*, int, int, int, int)>func, sMiniWindow* window);
@@ -84,10 +84,10 @@ template <class T> void setActiveCallback (sMiniWindow* window, T* obj,
 template <class T> void setResizeCallback (sMiniWindow* window, T* obj,
                                            void (T::*method)(sMiniWindow*, int, int));
 
-template <class T> void setKeyboardCallback (sMiniWindow* window, T* obj,
-                                             void (T::*method)(sMiniWindow*, mfb_key, mfb_key_mod, bool));
-template <class T> void setCharInputCallback (sMiniWindow* window, T* obj,
-                                              void (T::*method)(sMiniWindow*, unsigned int));
+template <class T> void setKeyCallback (sMiniWindow* window, T* obj,
+                                        void (T::*method)(sMiniWindow*, mfb_key, mfb_key_mod, bool));
+template <class T> void setCharCallback (sMiniWindow* window, T* obj,
+                                         void (T::*method)(sMiniWindow*, unsigned int));
 
 template <class T> void setPointerButtonCallback (sMiniWindow* window, T* obj,
                                                   void (T::*method)(sMiniWindow*, mfb_pointer_button, mfb_key_mod, bool));
@@ -105,10 +105,10 @@ class mfbStub {
   friend void setResizeCallback (std::function <void (sMiniWindow*, int, int)> func, sMiniWindow* window);
   friend void setCloseCallback (std::function <bool (sMiniWindow*)> func, sMiniWindow* window);
 
-  friend void setKeyboardCallback (std::function <void (sMiniWindow*, mfb_key, mfb_key_mod, bool)> func,
-                                   sMiniWindow* window);
-  friend void setCharInputCallback (std::function <void (sMiniWindow*, unsigned int)> func,
-                                    sMiniWindow* window);
+  friend void setKeyCallback (std::function <void (sMiniWindow*, mfb_key, mfb_key_mod, bool)> func,
+                              sMiniWindow* window);
+  friend void setCharCallback (std::function <void (sMiniWindow*, unsigned int)> func,
+                               sMiniWindow* window);
 
   friend void setPointerButtonCallback (std::function <void (sMiniWindow*, mfb_pointer_button, mfb_key_mod, bool)> func,
                                       sMiniWindow* window);
@@ -125,10 +125,10 @@ class mfbStub {
   template <class T> friend void setCloseCallback (sMiniWindow* window, T* obj,
                                                    bool (T::*method)(sMiniWindow* ));
 
-  template <class T> friend void setKeyboardCallback (sMiniWindow* window, T* obj,
-                                                      void (T::*method)(sMiniWindow*, mfb_key, mfb_key_mod, bool));
-  template <class T> friend void setCharInputCallback (sMiniWindow* window, T* obj,
-                                                       void (T::*method)(sMiniWindow*, unsigned int));
+  template <class T> friend void setKeyCallback (sMiniWindow* window, T* obj,
+                                                 void (T::*method)(sMiniWindow*, mfb_key, mfb_key_mod, bool));
+  template <class T> friend void setCharCallback (sMiniWindow* window, T* obj,
+                                                  void (T::*method)(sMiniWindow*, unsigned int));
 
   template <class T> friend void setPointerButtonCallback (sMiniWindow* window, T* obj,
                                                          void (T::*method)(sMiniWindow*, mfb_pointer_button, mfb_key_mod, bool));
@@ -144,8 +144,8 @@ class mfbStub {
   static void resizeStub (sMiniWindow* window, int width, int height);
   static bool closeStub (sMiniWindow* window);
 
-  static void keyboardStub (sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed);
-  static void charInputStub (sMiniWindow* window, unsigned int);
+  static void keyStub (sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed);
+  static void charStub (sMiniWindow* window, unsigned int);
 
   static void pointerButtonStub (sMiniWindow* window, mfb_pointer_button button, mfb_key_mod mod, bool isPressed);
   static void pointerMoveStub (sMiniWindow* window, int x, int y, int pressure, int timestamp);
@@ -158,8 +158,8 @@ class mfbStub {
   std::function <void (sMiniWindow* window, int, int)> m_resize;
   std::function <bool (sMiniWindow* window)> m_close;
 
-  std::function <void (sMiniWindow* window, mfb_key, mfb_key_mod, bool)> m_keyboard;
-  std::function <void (sMiniWindow* window, unsigned int)> m_char_input;
+  std::function <void (sMiniWindow* window, mfb_key, mfb_key_mod, bool)> m_key;
+  std::function <void (sMiniWindow* window, unsigned int)> m_char;
 
   std::function <void (sMiniWindow* window, mfb_pointer_button, mfb_key_mod, bool)> m_pointer_btn;
   std::function <void (sMiniWindow* window, int, int, int, int)> m_pointer_move;
@@ -202,25 +202,25 @@ template <class T> inline void setCloseCallback (sMiniWindow* window, T* obj,
 //}}}
 
 //{{{
-template <class T> inline void setKeyboardCallback (sMiniWindow* window, T* obj,
-                                                    void (T::*method)(sMiniWindow* window, mfb_key, mfb_key_mod, bool)) {
+template <class T> inline void setKeyCallback (sMiniWindow* window, T* obj,
+                                               void (T::*method)(sMiniWindow* window, mfb_key, mfb_key_mod, bool)) {
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance(window);
-  stub->m_keyboard = std::bind(method, obj, _1, _2, _3, _4);
+  stub->m_key = std::bind(method, obj, _1, _2, _3, _4);
 
-  setKeyboardCallback (window, mfbStub::keyboardStub);
+  setKeyCallback (window, mfbStub::keyStub);
   }
 //}}}
 //{{{
-template <class T> inline void setCharInputCallback (sMiniWindow* window, T* obj,
-                                                     void (T::*method)(sMiniWindow* window, unsigned int)) {
+template <class T> inline void setCharCallback (sMiniWindow* window, T* obj,
+                                                void (T::*method)(sMiniWindow* window, unsigned int)) {
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_char_input = std::bind (method, obj, _1, _2);
+  stub->m_char = std::bind (method, obj, _1, _2);
 
-  setCharInputCallback (window, mfbStub::charInputStub);
+  setCharCallback (window, mfbStub::charStub);
   }
 //}}}
 

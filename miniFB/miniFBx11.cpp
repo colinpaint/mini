@@ -41,18 +41,10 @@ namespace {
   //{{{
   void destroyWindowData (sWindowData* windowData)  {
 
-    if (windowData != 0x0) {
-      if (windowData->specific != 0x0) {
-        sWindowDataX11* windowDataX11 = (sWindowDataX11*)windowData->specific;
-
-        destroyGLcontext (windowData);
-
-        timerDestroy (windowDataX11->timer);
-        memset (windowDataX11, 0, sizeof(sWindowDataX11));
-        free (windowDataX11);
-        }
-
-      memset (windowData, 0, sizeof(sWindowData));
+    if (windowData) {
+      destroyGLcontext (windowData);
+      timerDestroy (windowData->timer);
+      free (windowData->specific);
       free (windowData);
       }
     }
@@ -352,19 +344,19 @@ namespace {
         windowData->mod_keys = translateModEx (key_code, event->xkey.state, is_pressed);
 
         windowData->key_status[key_code] = is_pressed;
-        kCall (keyboard_func, key_code, (mfb_key_mod)windowData->mod_keys, is_pressed);
+        kCall (key_func, key_code, (mfb_key_mod)windowData->mod_keys, is_pressed);
 
         if (event->type == KeyPress) {
           KeySym keysym;
           XLookupString (&event->xkey, NULL, 0, &keysym, NULL);
           if ((keysym >= 0x0020 && keysym <= 0x007e) ||
               (keysym >= 0x00a0 && keysym <= 0x00ff)) {
-            kCall (char_input_func, keysym);
+            kCall (char_func, keysym);
             }
           else if ((keysym & 0xff000000) == 0x01000000)
             keysym = keysym & 0x00ffffff;
 
-          kCall (char_input_func, keysym);
+          kCall (char_func, keysym);
           // TODO: Investigate a bit more the xkbcommon api
           // This does not seem to be working properly
           // unsigned int codepoint = xkb_state_key_get_utf32(state, keysym);
@@ -400,8 +392,8 @@ namespace {
           case Button1:
           case Button2:
           case Button3:
-            windowData->pointer_button_status[button & 0x07] = is_pressed;
-            kCall (pointer_btn_func, button, (mfb_key_mod) windowData->mod_keys, is_pressed);
+            windowData->pointerButtonStatus[button & 0x07] = is_pressed;
+            kCall (pointer_button_func, button, (mfb_key_mod) windowData->mod_keys, is_pressed);
             break;
 
           case Button4:
@@ -425,8 +417,8 @@ namespace {
             break;
 
           default:
-            windowData->pointer_button_status[(button - 4) & 0x07] = is_pressed;
-            kCall (pointer_btn_func, (mfb_pointer_button) (button - 4), (mfb_key_mod) windowData->mod_keys, is_pressed);
+            windowData->pointerButtonStatus[(button - 4) & 0x07] = is_pressed;
+            kCall (pointer_button_func, (mfb_pointer_button) (button - 4), (mfb_key_mod) windowData->mod_keys, is_pressed);
             break;
           }
         }
@@ -439,7 +431,7 @@ namespace {
         windowData->pointerPosX = event->xmotion.x;
         windowData->pointerPosY = event->xmotion.y;
         kCall (pointer_move_func, windowData->pointerPosX, windowData->pointerPosY,
-                                windowData->pointer_button_status[Button1] * 1024, 0);
+                                  windowData->pointerButtonStatus[Button1] * 1024, 0);
         break;
       //}}}
       //{{{
@@ -671,9 +663,9 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
   XFlush (windowDataX11->display);
 
   windowDataX11->gc = DefaultGC (windowDataX11->display, windowDataX11->screen);
-  windowDataX11->timer = timerCreate();
+  windowData->timer = timerCreate();
 
-  setKeyboardCallback ((sMiniWindow*) windowData, keyboardDefault);
+  setKeyCallback ((sMiniWindow*)windowData, keyDefault);
 
   cLog::log (LOGINFO, "using X11 API");
 
@@ -753,9 +745,9 @@ bool waitSync (sMiniWindow* window) {
   double current;
   uint32_t millis = 1;
   while(1) {
-    current = timerNow (windowDataX11->timer);
+    current = timerNow (windowData->timer);
     if (current >= g_time_for_frame * 0.96) {
-      timerReset (windowDataX11->timer);
+      timerReset (windowData->timer);
       return true;
       }
     else if (current >= g_time_for_frame * 0.8)

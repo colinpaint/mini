@@ -650,7 +650,7 @@ namespace {
             return 0;
 
           windowData->key_status[key_code] = (uint8_t)is_pressed;
-          kCall (keyboard_func, key_code, (mfb_key_mod)windowData->mod_keys, is_pressed);
+          kCall (key_func, key_code, (mfb_key_mod)windowData->mod_keys, is_pressed);
           }
 
         break;
@@ -679,7 +679,7 @@ namespace {
               codepoint = (WCHAR) wParam;
 
             highSurrogate = 0;
-            kCall (char_input_func, codepoint);
+            kCall (char_func, codepoint);
             }
           }
         }
@@ -695,7 +695,7 @@ namespace {
             return 1;
             }
 
-          kCall (char_input_func, (unsigned int) wParam);
+          kCall (char_func, (unsigned int) wParam);
           }
 
         break;
@@ -841,8 +841,8 @@ namespace {
               cLog::log (LOGERROR, fmt::format ("pointerDown - unknown type:{}", pointerInfo.pointerType));
 
             windowData->mod_keys = translateMod();
-            windowData->pointer_button_status[MOUSE_BTN_1] = 1;
-            kCall (pointer_btn_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 1);
+            windowData->pointerButtonStatus[MOUSE_BTN_1] = 1;
+            kCall (pointer_button_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 1);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerDown - no info"));
@@ -865,8 +865,8 @@ namespace {
               cLog::log (LOGERROR, fmt::format ("pointerUp - unknown type:{}", pointerInfo.pointerType));
 
             windowData->mod_keys = translateMod();
-            windowData->pointer_button_status[MOUSE_BTN_1] = 0;
-            kCall (pointer_btn_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 0);
+            windowData->pointerButtonStatus[MOUSE_BTN_1] = 0;
+            kCall (pointer_button_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 0);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerUp - no info"));
@@ -889,7 +889,7 @@ namespace {
               windowData->pointerPosX = clientPos.x;
               windowData->pointerPosY = clientPos.y;
               kCall (pointer_move_func, windowData->pointerPosX, windowData->pointerPosY,
-                                      windowData->pointer_button_status[MOUSE_BTN_1] * 1024, 0);
+                                      windowData->pointerButtonStatus[MOUSE_BTN_1] * 1024, 0);
               }
             else if (pointerInfo.pointerType == PT_PEN) {
               POINTER_PEN_INFO pointerPenInfos[10];
@@ -999,8 +999,8 @@ namespace {
     windowDataWindows->window = 0;
     windowDataWindows->hdc = 0;
 
-    timerDestroy (windowDataWindows->timer);
-    windowDataWindows->timer = 0x0;
+    timerDestroy (windowData->timer);
+    windowData->timer = 0x0;
 
     windowData->draw_buffer = 0x0;
     windowData->close = true;
@@ -1136,8 +1136,8 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
   windowData_win->hdc = GetDC (windowData_win->window);
 
   createGLcontext (windowData);
-  windowData_win->timer = timerCreate();
-  setKeyboardCallback ((sMiniWindow*)windowData, keyboardDefault);
+  windowData->timer = timerCreate();
+  setKeyCallback ((sMiniWindow*)windowData, keyDefault);
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
@@ -1269,9 +1269,9 @@ bool waitSync (sMiniWindow* window) {
   double current;
 
   while (true) {
-    current = timerNow (windowData_win->timer);
+    current = timerNow (windowData->timer);
     if (current >= g_time_for_frame) {
-      timerReset (windowData_win->timer);
+      timerReset (windowData->timer);
       return true;
       }
     else if (g_time_for_frame - current > 2.0 / 1000.0) {

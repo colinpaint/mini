@@ -45,17 +45,17 @@ void setCloseCallback (sMiniWindow* window, mfb_close_func callback) {
   }
 //}}}
 //{{{
-void setKeyboardCallback (sMiniWindow* window, mfb_keyboard_func callback) {
+void setKeyCallback (sMiniWindow* window, mfb_key_func callback) {
 
   if (window)
-    ((sWindowData*)(window))->keyboard_func = callback;
+    ((sWindowData*)(window))->key_func = callback;
   }
 //}}}
 //{{{
-void setCharInputCallback (sMiniWindow* window, mfb_char_input_func callback) {
+void setCharCallback (sMiniWindow* window, mfb_char_func callback) {
 
   if (window)
-    ((sWindowData*)(window))->char_input_func = callback;
+    ((sWindowData*)(window))->char_func = callback;
   }
 //}}}
 
@@ -63,7 +63,7 @@ void setCharInputCallback (sMiniWindow* window, mfb_char_input_func callback) {
 void setPointerButtonCallback (sMiniWindow* window, mfb_pointer_button_func callback) {
 
   if (window)
-    ((sWindowData*)(window))->pointer_btn_func = callback;
+    ((sWindowData*)(window))->pointer_button_func = callback;
   }
 //}}}
 //{{{
@@ -98,7 +98,7 @@ void close (sMiniWindow* window) {
   }
 //}}}
 //{{{
-void keyboardDefault (sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
+void keyDefault (sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
 
   (void)(mod);
   (void)(isPressed);
@@ -181,7 +181,7 @@ float getPointerWheelY (sMiniWindow* window) {
 
 //{{{
 const uint8_t* getPointerButtonBuffer (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->pointer_button_status : 0; }
+  return window ? ((sWindowData*)(window))->pointerButtonStatus : 0; }
 //}}}
 //{{{
 const uint8_t* getKeyBuffer (sMiniWindow* window)  {
@@ -392,17 +392,17 @@ bool mfbStub::closeStub (sMiniWindow* window) {
 //}}}
 
 //{{{
-void mfbStub::keyboardStub (sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
+void mfbStub::keyStub (sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_keyboard (window, key, mod, isPressed);
+  stub->m_key (window, key, mod, isPressed);
   }
 //}}}
 //{{{
-void mfbStub::charInputStub (sMiniWindow* window, unsigned int code) {
+void mfbStub::charStub (sMiniWindow* window, unsigned int code) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_char_input (window, code);
+  stub->m_char (window, code);
   }
 //}}}
 
@@ -461,23 +461,23 @@ void setCloseCallback (std::function <bool (sMiniWindow*)> func, sMiniWindow* wi
 //}}}
 
 //{{{
-void setKeyboardCallback (std::function <void (sMiniWindow*, mfb_key, mfb_key_mod, bool)> func, sMiniWindow *window) {
+void setKeyCallback (std::function <void (sMiniWindow*, mfb_key, mfb_key_mod, bool)> func, sMiniWindow *window) {
 
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance(window);
-  stub->m_keyboard = std::bind (func, _1, _2, _3, _4);
-  setKeyboardCallback (window, mfbStub::keyboardStub);
+  stub->m_key = std::bind (func, _1, _2, _3, _4);
+  setKeyCallback (window, mfbStub::keyStub);
   }
 //}}}
 //{{{
-void setCharInputCallback (std::function <void (sMiniWindow*, unsigned int)> func, sMiniWindow* window) {
+void setCharCallback (std::function <void (sMiniWindow*, unsigned int)> func, sMiniWindow* window) {
 
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_char_input = std::bind (func, _1, _2);
-  setCharInputCallback (window, mfbStub::charInputStub);
+  stub->m_char = std::bind (func, _1, _2);
+  setCharCallback (window, mfbStub::charStub);
   }
 //}}}
 

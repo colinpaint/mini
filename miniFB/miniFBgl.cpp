@@ -196,12 +196,6 @@ void setTargetFpsAux() {
 //{{{
 void initGL (sWindowData* windowData) {
 
-  #if defined(_WIN32) || defined(WIN32)
-    sWindowDataWindows* windowData_ex = (sWindowDataWindows*)windowData->specific;
-  #else
-    sWindowDataX11* windowData_ex = (sWindowDataX11*)windowData->specific;
-  #endif
-
   glViewport (0, 0, windowData->window_width, windowData->window_height);
 
   glMatrixMode (GL_PROJECTION);
@@ -216,9 +210,9 @@ void initGL (sWindowData* windowData) {
 
   glEnable (GL_TEXTURE_2D);
 
-  glGenTextures (1, &windowData_ex->text_id);
+  glGenTextures (1, &windowData->text_id);
   //glActiveTexture (TEXTURE0);
-  glBindTexture (GL_TEXTURE_2D, windowData_ex->text_id);
+  glBindTexture (GL_TEXTURE_2D, windowData->text_id);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -269,7 +263,7 @@ void redrawGL (sWindowData* windowData, const void* pixels) {
 
   // clear
   //glClear (GL_COLOR_BUFFER_BIT);
-  glBindTexture (GL_TEXTURE_2D, windowData_ex->text_id);
+  glBindTexture (GL_TEXTURE_2D, windowData->text_id);
   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA,
                 windowData->buffer_width, windowData->buffer_height,
                 0, format, GL_UNSIGNED_BYTE, pixels);

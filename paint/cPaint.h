@@ -6,6 +6,15 @@
 #include "../gui/cWindow.h"
 
 //{{{
+struct sBrushPoint {
+  cPoint mPos;
+  int mPressure;
+  int mTimestamp;
+
+  sBrushPoint (cPoint pos, int pressure, int timestamp) : mPos(pos), mPressure(pressure), mTimestamp(timestamp) {}
+  };
+//}}}
+//{{{
 class cLayer {
 public:
   cLayer (const std::string& name, const cColor& color, cPoint pos)
@@ -16,7 +25,7 @@ public:
   void setName (const std::string& name) { mName = name; }
 
   virtual std::string getType() const = 0;
-  virtual void addPoint (cPoint pos) = 0;
+  virtual void addPoint (cPoint pos, int pressure, int timestamp) = 0;
 
   virtual bool pick (cPoint pos) = 0;
 
@@ -46,7 +55,7 @@ public:
   virtual ~cPaintLayer() {}
 
   virtual std::string getType() const final { return "paint"; }
-  virtual void addPoint (cPoint pos) final;
+  virtual void addPoint (cPoint pos, int pressure, int timestamp) final;
 
   virtual bool pick (cPoint pos) final;
 
@@ -66,7 +75,17 @@ protected:
   static inline constexpr int kMaxSubPixel = 4;
 
   float mWidth = 1.f;
-  std::vector<cPoint> mLine;
+
+  //{{{
+  struct sBrushPoint {
+    cPoint mPos;
+    int mPressure;
+    int mTimestamp;
+
+    sBrushPoint (cPoint pos, int pressure, int timestamp) : mPos(pos), mPressure(pressure), mTimestamp(timestamp) {}
+    };
+  //}}}
+  std::vector<sBrushPoint> mLine;
   cRect mExtent = {0,0,0,0};
 
   std::array <cAlphaTexture, kMaxSubPixel * kMaxSubPixel> mBrushShapes;
@@ -81,8 +100,8 @@ protected:
 private:
   uint8_t getPaintShape (float i, float j, float radius, float pressure);
   void setRadius (float radius);
-  void stamp (cWindow& window, const cColor& color, cPoint pos);
-  void paint (cWindow& window, const cColor& color, cPoint pos, bool first);
+  void stamp (cWindow& window, const cColor& color, cPoint pos, int pressure);
+  void paint (cWindow& window, const cColor& color, cPoint pos, int pressure, bool first);
   };
 //}}}
 //{{{
@@ -92,7 +111,7 @@ public:
   virtual ~cStrokeLayer() {}
 
   virtual std::string getType() const final { return "stroke"; }
-  virtual void addPoint (cPoint pos) final;
+  virtual void addPoint (cPoint pos, int pressure, int timestamp) final;
 
   virtual bool pick (cPoint pos) final;
 
@@ -110,7 +129,7 @@ public:
 
 protected:
   float mWidth = 1.f;
-  std::vector<cPoint> mLine;
+  std::vector<sBrushPoint> mLine;
   cRect mExtent = {0,0,0,0};
   };
 //}}}
@@ -122,7 +141,7 @@ public:
   virtual ~cRectangleLayer() {}
 
   virtual std::string getType() const final { return "rectangle"; }
-  virtual void addPoint (cPoint pos) final { (void)pos; }
+  virtual void addPoint (cPoint pos, int pressure, int timestamp) final { (void)pos; (void)pressure; (void)timestamp; }
 
   virtual bool pick (cPoint pos) final;
 
@@ -150,7 +169,7 @@ public:
   virtual ~cEllipseLayer() {}
 
   virtual std::string getType() const final { return "circle"; }
-  virtual void addPoint (cPoint pos) final { (void)pos; }
+  virtual void addPoint (cPoint pos, int pressure, int timestamp) final { (void)pos;  (void)pressure; (void)timestamp; }
 
   virtual bool pick (cPoint pos) final;
 
@@ -179,7 +198,7 @@ public:
   virtual ~cTextLayer() {}
 
   virtual std::string getType() const final { return "text"; }
-  virtual void addPoint (cPoint pos) final { (void)pos; }
+  virtual void addPoint (cPoint pos, int pressure, int timestamp) final { (void)pos; (void)pressure; (void)timestamp;  }
 
   virtual bool pick (cPoint pos) final;
 
@@ -209,7 +228,7 @@ public:
   virtual ~cTextureLayer() {}
 
   virtual std::string getType() const final { return "texture"; }
-  virtual void addPoint (cPoint pos) final { (void)pos; }
+  virtual void addPoint (cPoint pos, int pressure, int timestamp) final { (void)pos; (void)pressure; (void)timestamp; }
 
   virtual bool pick (cPoint pos) final;
 

@@ -88,7 +88,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // keyboard callbacks
   //{{{
-  setKeyboardCallback ([&](sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
+  setKeyCallback ([&](sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
 
       if (key == KB_KEY_ESCAPE)
         close (window);
@@ -102,7 +102,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setCharInputCallback ([&](sMiniWindow* window, uint32_t charCode) {
+  setCharCallback ([&](sMiniWindow* window, uint32_t charCode) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("char code:{}", charCode));
       },
@@ -144,12 +144,11 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   //{{{
   setPointerMoveCallback ([&](sMiniWindow* window, int x, int y, int pressure, int timestamp) {
       (void)window;
-      cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}",
-                                       x, y, pressure, timestamp));
+
+      //cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}", x, y, pressure, timestamp));
 
       mMousePos.x = (float)x;
       mMousePos.y = (float)y;
-
       if (mMousePress) {
         mMouseMoved = true;
         if (mouseMove (mMousePressRight, mMousePos, mMousePos - mMouseLastPos, pressure, timestamp))
@@ -160,6 +159,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         changed();
       cursorChanged();
       },
+
     mWindow);
   //}}}
   //{{{

@@ -11,6 +11,4 @@ struct sWindowDataX11 {
   int         screen;
   GC          gc;
   GLXContext  context;
-  uint32_t    text_id;
-  struct sMiniFBtimer* timer;
   } ;

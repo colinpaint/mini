@@ -6,11 +6,11 @@ enum mfb_update_state { STATE_OK             =  0,
                         STATE_INVALID_WINDOW = -2,
                         STATE_INVALID_BUFFER = -3,
                         STATE_INTERNAL_ERROR = -4
-                        };
+                      };
 
 enum mfb_pointer_button { MOUSE_BTN_0, // No mouse button
-                        MOUSE_BTN_1, MOUSE_BTN_2, MOUSE_BTN_3,
-                        MOUSE_BTN_4, MOUSE_BTN_5, MOUSE_BTN_6, MOUSE_BTN_7
+                          MOUSE_BTN_1, MOUSE_BTN_2, MOUSE_BTN_3,
+                          MOUSE_BTN_4, MOUSE_BTN_5, MOUSE_BTN_6, MOUSE_BTN_7
                         };
 
 #define MOUSE_LEFT   MOUSE_BTN_1
@@ -23,14 +23,14 @@ enum mfb_key_mod { KB_MOD_SHIFT     = 0x0001,
                    KB_MOD_SUPER     = 0x0008,
                    KB_MOD_CAPS_LOCK = 0x0010,
                    KB_MOD_NUM_LOCK  = 0x0020
-                   };
+                 };
 
 enum sMiniWindow_flags { WF_RESIZABLE          = 0x01,
-                           WF_FULLSCREEN         = 0x02,
-                           WF_FULLSCREEN_DESKTOP = 0x04,
-                           WF_BORDERLESS         = 0x08,
-                           WF_ALWAYS_ON_TOP      = 0x10
-                           };
+                         WF_FULLSCREEN         = 0x02,
+                         WF_FULLSCREEN_DESKTOP = 0x04,
+                         WF_BORDERLESS         = 0x08,
+                         WF_ALWAYS_ON_TOP      = 0x10
+                       };
 //{{{
 enum mfb_key {
   KB_KEY_UNKNOWN       = -1,
@@ -169,8 +169,8 @@ typedef void(*mfb_active_func)(sMiniWindow* window, bool isActive);
 typedef void(*mfb_resize_func)(sMiniWindow* window, int width, int height);
 typedef bool(*mfb_close_func)(sMiniWindow* window);
 
-typedef void(*mfb_keyboard_func)(sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed);
-typedef void(*mfb_char_input_func)(sMiniWindow* window, unsigned int code);
+typedef void(*mfb_key_func)(sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed);
+typedef void(*mfb_char_func)(sMiniWindow* window, unsigned int code);
 
 typedef void(*mfb_pointer_button_func)(sMiniWindow* window, mfb_pointer_button button, mfb_key_mod mod, bool isPressed);
 typedef void(*mfb_pointer_move_func)(sMiniWindow* window, int x, int y, int pressure, int timestamp);
