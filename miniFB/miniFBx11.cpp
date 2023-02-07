@@ -1,4 +1,4 @@
-// X11MiniFB.c
+// miniFBx11.cpp
 //{{{  includes
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,17 +46,6 @@ namespace {
   int32_t gRangeX = 0;
   int32_t gRangeY = 0;
   int32_t gMaxPressure = 0;
-  //{{{
-  void freeWindow (sWindowData* windowData)  {
-
-    if (windowData) {
-      destroyGLcontext (windowData);
-      timerDestroy (windowData->timer);
-      free (windowData->specific);
-      free (windowData);
-      }
-    }
-  //}}}
 
   //{{{
   int translateKeyCodeB (int keySym) {
@@ -242,13 +231,13 @@ namespace {
   //{{{
   void initKeycodes (sWindowDataX11* windowDataX11) {
 
-    // Clear keys
+    // clear keys
     for (size_t i = 0; i < sizeof(gKeycodes) / sizeof(gKeycodes[0]); ++i)
       gKeycodes[i] = KB_KEY_UNKNOWN;
 
-    // Valid key code range is  [8,255], according to the Xlib manual
+    // valid key code range is  [8,255], according to the Xlib manual
     for (size_t i = 8; i <= 255; ++i) {
-      // Try secondary keysym, for numeric keypad keys
+      // try secondary keysym, for numeric keypad keys
       int keySym  = XkbKeycodeToKeysym (windowDataX11->display, i, 0, 1);
       gKeycodes[i] = translateKeyCodeB (keySym);
       if (gKeycodes[i] == KB_KEY_UNKNOWN) {
@@ -433,6 +422,7 @@ namespace {
 
         break;
       //}}}
+
       //{{{
       case MotionNotify:
         windowData->pointerPosX = event->xmotion.x;
@@ -525,6 +515,17 @@ namespace {
       XEvent event;
       XNextEvent (windowDataX11->display, &event);
       processEvent (windowData, &event);
+      }
+    }
+  //}}}
+  //{{{
+  void freeWindow (sWindowData* windowData)  {
+
+    if (windowData) {
+      destroyGLcontext (windowData);
+      timerDestroy (windowData->timer);
+      free (windowData->specific);
+      free (windowData);
       }
     }
   //}}}
