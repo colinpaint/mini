@@ -2,8 +2,8 @@
 #include <time.h>
 #include "miniFB.h"
 
-extern double g_timer_frequency;
-extern double g_timer_resolution;
+extern double gTimerFrequency;
+extern double gTimerResolution;
 
 //#define kClock CLOCK_REALTIME
 #define kClock CLOCK_MONOTONIC
@@ -22,11 +22,11 @@ uint64_t timerTick() {
 void timerInit() {
 
   struct timespec res;
-  if (clock_getres(kClock, &res) != 0)
-    g_timer_frequency = 1e+9;
+  if (clock_getres (kClock, &res) != 0)
+    gTimerFrequency = 1e+9;
   else
-    g_timer_frequency = res.tv_sec + res.tv_nsec * 1e+9;
+    gTimerFrequency = res.tv_sec + res.tv_nsec * 1e+9;
 
-  g_timer_resolution = 1.0 / g_timer_frequency;
+  gTimerResolution = 1.0 / gTimerFrequency;
   }
 //}}}

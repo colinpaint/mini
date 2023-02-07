@@ -17,8 +17,8 @@
 using namespace std;
 //}}}
 
-extern bool g_use_hardware_sync;
-extern double g_time_for_frame;
+extern bool gUseHardwareSync;
+extern double gTimeForFrame;
 
 #if defined(RGB)
   #undef RGB
@@ -150,7 +150,7 @@ namespace {
 void setTargetFpsAux() {
 
   // Assuming the monitor refresh rate is 60 hz
-  int interval = (int)((60.0 * g_time_for_frame) + 0.5);
+  int interval = (int)((60.0 * gTimeForFrame) + 0.5);
 
   #if defined(_WIN32) || defined(WIN32)
     if (SwapIntervalEXT) {
@@ -165,7 +165,7 @@ void setTargetFpsAux() {
       else if (!success)
         cLog::log (LOGERROR, fmt::format ("Cannot set target swap interval"));
 
-      g_use_hardware_sync = true;
+      gUseHardwareSync = true;
       }
 
   #else
@@ -186,7 +186,7 @@ void setTargetFpsAux() {
                                           currentInterval, maxInterval));
         }
 
-      g_use_hardware_sync = true;
+      gUseHardwareSync = true;
       }
 
   #endif

@@ -5,7 +5,7 @@
 #include "miniFBinternal.h"
 #include "sWindowData.h"
 
-short int g_keycodes[512] = { 0 };
+short int gKeycodes[512] = { 0 };
 
 //{{{
 sMiniWindow* open (const char* title, unsigned width, unsigned height) {

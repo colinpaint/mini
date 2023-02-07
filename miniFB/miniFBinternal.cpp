@@ -102,10 +102,10 @@ void resizeDst (sWindowData *window_data, uint32_t width, uint32_t height) {
   }
 //}}}
 
-double g_timer_frequency;
-double g_timer_resolution;
-double g_time_for_frame = 1.0 / 60.0;
-bool g_use_hardware_sync = false;
+double gTimerFrequency;
+double gTimerResolution;
+double gTimeForFrame = 1.0 / 60.0;
+bool gUseHardwareSync = false;
 
 extern uint64_t timerTick();
 extern void timerInit();
@@ -115,19 +115,19 @@ extern void timerInit();
 void setTargetFps (uint32_t fps) {
 
   if (fps == 0)
-    g_time_for_frame = 0;
+    gTimeForFrame = 0;
   else
-      g_time_for_frame = 1.0 / fps;
+      gTimeForFrame = 1.0 / fps;
   setTargetFpsAux();
   }
 //}}}
 //{{{
 unsigned getTargetFps() {
 
-  if (g_time_for_frame == 0)
+  if (gTimeForFrame == 0)
     return 0;
   else
-    return (unsigned) (1.0 / g_time_for_frame);
+    return (unsigned) (1.0 / gTimeForFrame);
   }
 //}}}
 
@@ -149,59 +149,48 @@ struct sMiniFBtimer* timerCreate() {
 }
 //}}}
 //{{{
-void timerDestroy (struct sMiniFBtimer *tmr) {
-    if(tmr != 0x0) {
-        free(tmr);
-    }
-}
+void timerDestroy (struct sMiniFBtimer* timer) {
+  free (timer);
+  }
 //}}}
 //{{{
-void timerReset (struct sMiniFBtimer *tmr) {
-    if(tmr == 0x0)
-        return;
+void timerReset (struct sMiniFBtimer* timer) {
 
-    tmr->start_time    = timerTick();
-    tmr->delta_counter = tmr->start_time;
-    tmr->time          = 0;
-}
+  if(timer == 0x0)
+     return;
+
+  timer->start_time    = timerTick();
+  timer->delta_counter = timer->start_time;
+  timer->time          = 0;
+  }
 //}}}
 
 //{{{
-double timerNow (struct sMiniFBtimer *tmr) {
-    uint64_t    counter;
+double timerNow (struct sMiniFBtimer* timer) {
 
-    if(tmr == 0x0)
-        return 0.0;
+  if (timer == 0x0)
+    return 0.0;
 
-    counter         = timerTick();
-    tmr->time      += (counter - tmr->start_time);
-    tmr->start_time = counter;
+  uint64_t counter = timerTick();
+  timer->time += (counter - timer->start_time);
+  timer->start_time = counter;
 
-    return tmr->time * g_timer_resolution;
-}
+  return timer->time * gTimerResolution;
+  }
 //}}}
 //{{{
-double timerDelta (struct sMiniFBtimer *tmr) {
-    int64_t     counter;
-    uint64_t    delta;
+double timerDelta (struct sMiniFBtimer* timer) {
 
-    if(tmr == 0x0)
-        return 0.0;
+  if (timer == 0x0)
+    return 0.0;
 
-    counter            = timerTick();
-    delta              = (counter - tmr->delta_counter);
-    tmr->delta_counter = counter;
+  int64_t counter = timerTick();
+  uint64_t delta = (counter - timer->delta_counter);
+  timer->delta_counter = counter;
 
-    return delta * g_timer_resolution;
-}
+  return delta * gTimerResolution;
+  }
 //}}}
-//{{{
-double timerGetFrequency() {
-    return g_timer_frequency;
-}
-//}}}
-//{{{
-double timerGetResolution() {
-    return g_timer_resolution;
-}
-//}}}
+
+double timerGetFrequency() { return gTimerFrequency; }
+double timerGetResolution() { return gTimerResolution; }

@@ -32,9 +32,9 @@ extern void stretchImage (uint32_t* srcImage, uint32_t srcX, uint32_t srcY,
                           uint32_t* dstImage, uint32_t dstX, uint32_t dstY,
                           uint32_t dstWidth, uint32_t dstHeight, uint32_t dstPitch);
 
-extern double g_time_for_frame;
-extern bool g_use_hardware_sync;
-extern short int g_keycodes[512];
+extern double gTimeForFrame;
+extern bool gUseHardwareSync;
+extern short int gKeycodes[512];
 
 namespace {
   Atom s_delete_window_atom;
@@ -235,17 +235,17 @@ namespace {
   void initKeycodes (sWindowDataX11* windowDataX11) {
 
     // Clear keys
-    for (size_t i = 0; i < sizeof(g_keycodes) / sizeof(g_keycodes[0]); ++i)
-      g_keycodes[i] = KB_KEY_UNKNOWN;
+    for (size_t i = 0; i < sizeof(gKeycodes) / sizeof(gKeycodes[0]); ++i)
+      gKeycodes[i] = KB_KEY_UNKNOWN;
 
     // Valid key code range is  [8,255], according to the Xlib manual
     for (size_t i = 8; i <= 255; ++i) {
       // Try secondary keysym, for numeric keypad keys
       int keySym  = XkbKeycodeToKeysym (windowDataX11->display, i, 0, 1);
-      g_keycodes[i] = translateKeyCodeB (keySym);
-      if (g_keycodes[i] == KB_KEY_UNKNOWN) {
+      gKeycodes[i] = translateKeyCodeB (keySym);
+      if (gKeycodes[i] == KB_KEY_UNKNOWN) {
         keySym = XkbKeycodeToKeysym (windowDataX11->display, i, 0, 0);
-        g_keycodes[i] = translateKeyCodeA (keySym);
+        gKeycodes[i] = translateKeyCodeA (keySym);
         }
       }
     }
@@ -256,7 +256,7 @@ namespace {
     if (scancode < 0 || scancode > 255)
       return KB_KEY_UNKNOWN;
 
-    return g_keycodes[scancode];
+    return gKeycodes[scancode];
     }
   //}}}
   //{{{
@@ -735,7 +735,7 @@ bool waitSync (sMiniWindow* window) {
     return false;
     }
 
-  if (g_use_hardware_sync)
+  if (gUseHardwareSync)
     return true;
 
   sWindowDataX11* windowDataX11 = (sWindowDataX11*)windowData->specific;
@@ -746,11 +746,11 @@ bool waitSync (sMiniWindow* window) {
   uint32_t millis = 1;
   while(1) {
     current = timerNow (windowData->timer);
-    if (current >= g_time_for_frame * 0.96) {
+    if (current >= gTimeForFrame * 0.96) {
       timerReset (windowData->timer);
       return true;
       }
-    else if (current >= g_time_for_frame * 0.8)
+    else if (current >= gTimeForFrame * 0.8)
       millis = 0;
 
     usleep (millis * 1000);
