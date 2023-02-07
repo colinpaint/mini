@@ -715,13 +715,12 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     }
     //}}}
 
-  //{{{  fiddle with inputDevice list
+  //{{{  look at inputDevice list
   cLog::log (LOGINFO, fmt::format ("X11 input devices"));
   for (int32_t i = 0; i < count; i++) {
-    cLog::log (LOGINFO, fmt::format ("- device:{}:{}", i, devices[i].name));
-
-    if (!strstr (devices[i].name, "stylus") &&
-        !strstr (devices[i].name, "eraser")) { continue; }
+    cLog::log (LOGINFO, fmt::format ("- device:{} name:{} id:{}", i, devices[i].name, devices[i].id));
+    if (!strstr (devices[i].name, "stylus") && !strstr (devices[i].name, "eraser"))
+      continue; 
 
     gDevice = XOpenDevice (windowDataX11->display, devices[i].id);
     XAnyClassPtr classPtr = devices[i].inputclassinfo;
@@ -758,7 +757,11 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
             gNumEventClasses++;
             }
           }
-        break;
+          break;
+
+        default:
+          cLog::log (LOGINFO, fmt::format ("  - class {}", classPtr->c_class));
+          break;
         }
       classPtr = (XAnyClassPtr)((uint8_t*)classPtr + classPtr->length);
       }
@@ -773,7 +776,6 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
   return (sMiniWindow*)windowData;
   }
 //}}}
-
 //{{{
 mfb_update_state updateEx (sMiniWindow* window, void* buffer, unsigned width, unsigned height) {
 
