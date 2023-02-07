@@ -927,8 +927,8 @@ namespace {
       case WM_POINTERWHEEL:
         if (windowData) {
           cLog::log (LOGINFO, fmt::format ("pointerWheel"));
-          windowData->pointer_wheel_y = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-          kCall (pointer_wheel_func, (mfb_key_mod)translateMod(), 0.0f, windowData->pointer_wheel_y);
+          windowData->pointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
+          kCall (pointer_wheel_func, (mfb_key_mod)translateMod(), 0.0f, windowData->pointerWheelY);
           }
         else
           cLog::log (LOGERROR, fmt::format ("pointerWheel - no info"));

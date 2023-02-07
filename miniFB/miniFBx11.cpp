@@ -405,23 +405,23 @@ namespace {
             break;
 
           case Button4:
-            windowData->pointer_wheel_y = 1.0f;
-            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, 0.0f, windowData->pointer_wheel_y);
+            windowData->pointerWheelY = 1.0f;
+            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, 0.0f, windowData->pointerWheelY);
             break;
 
           case Button5:
-            windowData->pointer_wheel_y = -1.0f;
-            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, 0.0f, windowData->pointer_wheel_y);
+            windowData->pointerWheelY = -1.0f;
+            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, 0.0f, windowData->pointerWheelY);
             break;
 
           case 6:
-            windowData->pointer_wheel_x = 1.0f;
-            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, windowData->pointer_wheel_x, 0.0f);
+            windowData->pointerWheelX = 1.0f;
+            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, windowData->pointerWheelX, 0.0f);
             break;
 
           case 7:
-            windowData->pointer_wheel_x = -1.0f;
-            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, windowData->pointer_wheel_x, 0.0f);
+            windowData->pointerWheelX = -1.0f;
+            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, windowData->pointerWheelX, 0.0f);
             break;
 
           default:

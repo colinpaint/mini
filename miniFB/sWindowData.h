@@ -39,8 +39,8 @@ struct sWindowData {
   int32_t  pointerPressure;
   int32_t  timestamp;
 
-  float    pointer_wheel_x;
-  float    pointer_wheel_y;
+  float    pointerWheelX;
+  float    pointerWheelY;
   uint8_t  pointer_button_status[8];
 
   bool     is_active;

@@ -172,11 +172,11 @@ int64_t getPointerTimestamp (sMiniWindow* window) {
 
 //{{{
 float getPointerWheelX (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->pointer_wheel_x : 0; }
+  return window ? ((sWindowData*)(window))->pointerWheelX : 0; }
 //}}}
 //{{{
 float getPointerWheelY (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->pointer_wheel_y : 0; }
+  return window ? ((sWindowData*)(window))->pointerWheelY : 0; }
 //}}}
 
 //{{{
