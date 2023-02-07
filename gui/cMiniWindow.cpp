@@ -163,20 +163,19 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setMouseScrollCallback ([&](sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
+  setMouseWheelCallback ([&](sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
       // lambda
       (void)window;
       (void)mod;
       (void)deltaX;
-      //cLog::log (LOGINFO, fmt::format ("mouseScroll {} x:{} y:{} mod:", window ? (const char*)mfb_get_user_data (window) : "",
+      //cLog::log (LOGINFO, fmt::format ("mouseWheel {} x:{} y:{} mod:", window ? (const char*)mfb_get_user_data (window) : "",
       //                                 deltaX, deltaY, (int)mod));
 
       mScale *= (deltaY > 0.f) ? 1.05f : 1.f / 1.05f;
-
-      cLog::log (LOGINFO, fmt::format ("mouseScroll problem - deltaY:{} int(deltaY):{}", deltaY, int(deltaY)));
-
+      cLog::log (LOGINFO, fmt::format ("mouseWheel problem - deltaY:{} int(deltaY):{}", deltaY, int(deltaY)));
       if (mouseWheel ((int)deltaY, mMousePos))
         changed();
+
       cursorChanged();
       },
     mWindow);

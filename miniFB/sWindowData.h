@@ -1,3 +1,4 @@
+// sWindowData - sMiniWindow is opaque pointer to this
 #pragma once
 #include "miniFBenums.h"
 #include <functional>
@@ -13,7 +14,7 @@ struct sWindowData {
   mfb_char_input_func   char_input_func;
   mfb_mouse_button_func mouse_btn_func;
   mfb_mouse_move_func   mouse_move_func;
-  mfb_mouse_scroll_func mouse_wheel_func;
+  mfb_mouse_wheel_func  mouse_wheel_func;
 
   uint32_t window_width;
   uint32_t window_height;

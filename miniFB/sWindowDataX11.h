@@ -1,3 +1,4 @@
+// sWindowDataX11 - specific is opaque pointer
 #pragma once
 #include "miniFBenums.h"
 #include <stdint.h>

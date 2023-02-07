@@ -174,4 +174,4 @@ typedef void(*mfb_char_input_func)(sMiniWindow* window, unsigned int code);
 
 typedef void(*mfb_mouse_button_func)(sMiniWindow* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed);
 typedef void(*mfb_mouse_move_func)(sMiniWindow* window, int x, int y, int pressure, int timestamp);
-typedef void(*mfb_mouse_scroll_func)(sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY);
+typedef void(*mfb_mouse_wheel_func)(sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY);

@@ -74,7 +74,7 @@ void setMouseMoveCallback (sMiniWindow* window, mfb_mouse_move_func callback) {
   }
 //}}}
 //{{{
-void setMouseScrollCallback (sMiniWindow* window, mfb_mouse_scroll_func callback) {
+void setMouseWheelCallback (sMiniWindow* window, mfb_mouse_wheel_func callback) {
 
   if (window)
     ((sWindowData*)(window))->mouse_wheel_func = callback;
@@ -171,11 +171,11 @@ int64_t getMouseTimestamp (sMiniWindow* window) {
 //}}}
 
 //{{{
-float getMouseScrollX (sMiniWindow* window) {
+float getMouseWheelX (sMiniWindow* window) {
   return window ? ((sWindowData*)(window))->mouse_wheel_x : 0; }
 //}}}
 //{{{
-float getMouseScrollY (sMiniWindow* window) {
+float getMouseWheelY (sMiniWindow* window) {
   return window ? ((sWindowData*)(window))->mouse_wheel_y : 0; }
 //}}}
 
@@ -421,10 +421,10 @@ void mfbStub::mouseMoveStub (sMiniWindow* window, int x, int y, int pressure, in
   }
 //}}}
 //{{{
-void mfbStub::scrollStub (sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
+void mfbStub::wheelStub (sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_scroll (window, mod, deltaX, deltaY);
+  stub->m_wheel (window, mod, deltaX, deltaY);
   }
 //}}}
 
@@ -502,12 +502,12 @@ void setMouseMoveCallback (std::function <void (sMiniWindow*, int, int, int, int
   }
 //}}}
 //{{{
-void setMouseScrollCallback (std::function <void (sMiniWindow*, mfb_key_mod, float, float)> func, sMiniWindow *window) {
+void setMouseWheelCallback (std::function <void (sMiniWindow*, mfb_key_mod, float, float)> func, sMiniWindow *window) {
 
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_scroll = std::bind (func, _1, _2, _3, _4);
-  setMouseScrollCallback (window, mfbStub::scrollStub);
+  stub->m_wheel = std::bind (func, _1, _2, _3, _4);
+  setMouseWheelCallback (window, mfbStub::wheelStub);
   }
 //}}}

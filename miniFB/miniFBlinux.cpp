@@ -1,12 +1,12 @@
-// MiniFB_linux.cpp
+// miniFB_linux.cpp
 #include <time.h>
 #include "miniFB.h"
 
 extern double g_timer_frequency;
 extern double g_timer_resolution;
 
-#define kClock CLOCK_MONOTONIC
 //#define kClock CLOCK_REALTIME
+#define kClock CLOCK_MONOTONIC
 
 //{{{
 uint64_t timerTick() {
