@@ -142,9 +142,11 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setMouseMoveCallback ([&](struct sMiniFBwindow* window, int x, int y) {
+  setMouseMoveCallback ([&](struct sMiniFBwindow* window, int x, int y, int pressure, int timestamp) {
       (void)window;
-      //cLog::log (LOGINFO, fmt::format ("mouseMove {} x:{} y:{}", window ? (const char*)mfb_get_user_data (window) : "", x, y));
+      cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}",
+                                       x, y, pressure, timestamp));
+
       mMousePos.x = (float)x;
       mMousePos.y = (float)y;
 

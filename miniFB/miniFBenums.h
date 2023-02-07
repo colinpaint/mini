@@ -168,5 +168,5 @@ typedef bool(*mfb_close_func)(struct sMiniFBwindow* window);
 typedef void(*mfb_keyboard_func)(struct sMiniFBwindow* window, mfb_key key, mfb_key_mod mod, bool isPressed);
 typedef void(*mfb_char_input_func)(struct sMiniFBwindow* window, unsigned int code);
 typedef void(*mfb_mouse_button_func)(struct sMiniFBwindow* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed);
-typedef void(*mfb_mouse_move_func)(struct sMiniFBwindow* window, int x, int y);
+typedef void(*mfb_mouse_move_func)(struct sMiniFBwindow* window, int x, int y, int pressure, int timestamp);
 typedef void(*mfb_mouse_scroll_func)(struct sMiniFBwindow* window, mfb_key_mod mod, float deltaX, float deltaY);

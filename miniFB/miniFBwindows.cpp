@@ -258,15 +258,15 @@ namespace {
   typedef HRESULT(WINAPI* PFN_SetProcessDpiAwareness)(mfb_PROCESS_DPI_AWARENESS);
   typedef HRESULT(WINAPI* PFN_GetDpiForMonitor)(HMONITOR, mfb_MONITOR_DPI_TYPE, UINT *, UINT *);
   //}}}
-  HMODULE gUser32dll = 0x0;
-  PFN_GetDpiForWindow gGetDpiForWindow = 0x0;
-  PFN_EnableNonClientDpiScaling gEnableNonClientDpiScaling = 0x0;
-  PFN_SetProcessDPIAware gSetProcessDPIAware = 0x0;
-  PFN_SetProcessDpiAwarenessContext gSetProcessDpiAwarenessContext = 0x0;
+  HMODULE gUser32dll = 0;
+  PFN_GetDpiForWindow gGetDpiForWindow = 0;
+  PFN_EnableNonClientDpiScaling gEnableNonClientDpiScaling = 0;
+  PFN_SetProcessDPIAware gSetProcessDPIAware = 0;
+  PFN_SetProcessDpiAwarenessContext gSetProcessDpiAwarenessContext = 0;
 
-  HMODULE gShCoreDll = 0x0;
-  PFN_GetDpiForMonitor gGetDpiForMonitor = 0x0;
-  PFN_SetProcessDpiAwareness gSetProcessDpiAwareness = 0x0;
+  HMODULE gShCoreDll = 0;
+  PFN_GetDpiForMonitor gGetDpiForMonitor = 0;
+  PFN_SetProcessDpiAwareness gSetProcessDpiAwareness = 0;
   //{{{
   // NOT Thread safe. Just convenient (Don't do this at home guys)
   char* getErrorMessage() {
@@ -884,8 +884,8 @@ namespace {
               ScreenToClient (hWnd, &clientPos);
               windowData->mousePosX = clientPos.x;
               windowData->mousePosY = clientPos.y;
-
-              kCall (mouse_move_func, windowData->mousePosX, windowData->mousePosY);
+              kCall (mouse_move_func, windowData->mousePosX, windowData->mousePosY, 
+                                      windowData->mouse_button_status[MOUSE_BTN_1] * 1024, 0);
               }
             else if (pointerInfo.pointerType == PT_PEN) {
               POINTER_PEN_INFO pointerPenInfos[10];
@@ -899,7 +899,9 @@ namespace {
                   windowData->mousePressure = pointerPenInfos[i-1].pressure;
                   windowData->timestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
 
-                  kCall (mouse_move_func, windowData->mousePosX, windowData->mousePosY);
+                  kCall (mouse_move_func,
+                         windowData->mousePosX, windowData->mousePosY,
+                         windowData->mousePressure, windowData->timestamp);
 
                   //cLog::log (LOGINFO, fmt::format ("pointerUpdate pen {} {},{} press:{} time:{}",
                   //                                 i, windowData->mousePosX, windowData->mousePosY,

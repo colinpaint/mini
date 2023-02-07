@@ -36,7 +36,7 @@ struct sWindowData {
   int32_t  mousePosX;
   int32_t  mousePosY;
   int32_t  mousePressure;
-  int64_t  timestamp;
+  int32_t  timestamp;
 
   float    mouse_wheel_x;
   float    mouse_wheel_y;
