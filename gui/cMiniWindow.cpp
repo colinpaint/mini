@@ -173,10 +173,10 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setPointerLeaveCallback ([&](sMiniWindow* window) {
+  setPointerLeaveCallback ([&](sMiniWindow* window, bool leave) {
       // lambda
       (void)window;
-      cLog::log (LOGINFO, fmt::format ("pointerLeave"));
+      cLog::log (LOGINFO, fmt::format ("pointerLeave {}", leave));
       },
     mWindow);
   //}}}

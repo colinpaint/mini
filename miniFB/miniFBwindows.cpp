@@ -736,81 +736,10 @@ namespace {
         //}}}
       #endif
 
-      //{{{  pointer info
-      //POINTER_INFO
-      //POINTER_INPUT_TYPE         pointerType;
-      //UINT32                     pointerId;
-      //UINT32                     frameId;
-      //POINTER_FLAGS              pointerFlags;
-      //HANDLE                     sourceDevice;
-      //HWND                       hwndTarget;
-      //POINT                      ptPixelLocation;
-      //POINT                      ptHimetricLocation;
-      //POINT                      ptPixelLocationRaw;
-      //POINT                      ptHimetricLocationRaw;
-      //DWORD                      dwTime;
-      //UINT32                     historyCount;
-      //INT32                      InputData;
-      //DWORD                      dwKeyStates;
-      //UINT64                     PerformanceCount;
-      //POINTER_BUTTON_CHANGE_TYPE ButtonChangeType;
-
-      ////POINTER_INPUT
-        //PT_POINTER = 1,
-        //PT_TOUCH = 2,
-        //PT_PEN = 3,
-        //PT_MOUSE = 4,
-        //PT_TOUCHPAD = 5
-
-      ////POINTER_FLAG
-      //POINTER_FLAG_NONE 0x00000000
-      //POINTER_FLAG_NEW 0x00000001
-      //POINTER_FLAG_INRANGE 0x00000002
-      //POINTER_FLAG_INCONTACT 0x00000004
-      //POINTER_FLAG_FIRSTBUTTON 0x00000010
-      //POINTER_FLAG_SECONDBUTTON 0x00000020
-      //POINTER_FLAG_THIRDBUTTON 0x00000040
-      //POINTER_FLAG_FOURTHBUTTON 0x00000080
-      //POINTER_FLAG_FIFTHBUTTON 0x00000100
-      //POINTER_FLAG_PRIMARY 0x00002000
-      //POINTER_FLAG_CONFIDENCE 0x000004000
-      //POINTER_FLAG_CANCELED 0x000008000
-      //POINTER_FLAG_DOWN 0x00010000
-      //POINTER_FLAG_UPDATE 0x00020000
-      //POINTER_FLAG_UP 0x00040000
-      //POINTER_FLAG_WHEEL 0x00080000
-      //POINTER_FLAG_HWHEEL 0x00100000
-      //POINTER_FLAG_CAPTURECHANGED 0x00200000
-      //POINTER_FLAG_HASTRANSFORM 0x00400000
-
-      ////POINTER_BUTTON_CHANGE_TYPE {
-        //POINTER_CHANGE_NONE,
-        //POINTER_CHANGE_FIRSTBUTTON_DOWN,
-        //POINTER_CHANGE_FIRSTBUTTON_UP,
-        //POINTER_CHANGE_SECONDBUTTON_DOWN,
-        //POINTER_CHANGE_SECONDBUTTON_UP,
-        //POINTER_CHANGE_THIRDBUTTON_DOWN,
-        //POINTER_CHANGE_THIRDBUTTON_UP,
-        //POINTER_CHANGE_FOURTHBUTTON_DOWN,
-        //POINTER_CHANGE_FOURTHBUTTON_UP,
-        //POINTER_CHANGE_FIFTHBUTTON_DOWN,
-        //POINTER_CHANGE_FIFTHBUTTON_UP
-      //}}}
-      //{{{  pointerPenInfo
-      //BOOL GetPointerPenInfo ([in]UINT32 pointerId, [out] POINTER_PEN_INFO* penInfo)
-
-      ////POINTER_PEN_INFO
-        //POINTER_INFO pointerInfo;
-        //PEN_FLAGS    penFlags;
-        //PEN_MASK     penMask;
-        //UINT32       pressure;
-        //UINT32       rotation;
-        //INT32        tiltX;
-        //INT32        tiltY;
-      //}}}
       //{{{
       case WM_POINTERENTER:
         cLog::log (LOGINFO, fmt::format ("pointerEnter {:x} {:x}", wParam, lParam));
+        kCall (pointer_leave_func, false);
         break;
       //}}}
       //{{{
@@ -821,7 +750,7 @@ namespace {
                                          GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) ));
 
         windowData_win->pointerInside = false;
-        kCall (pointer_leave_func);
+        kCall (pointer_leave_func, true);
 
         break;
       //}}}
@@ -875,6 +804,78 @@ namespace {
       //}}}
       //{{{
       case WM_POINTERUPDATE:
+        //{{{  pointer info
+        //POINTER_INFO
+        //POINTER_INPUT_TYPE         pointerType;
+        //UINT32                     pointerId;
+        //UINT32                     frameId;
+        //POINTER_FLAGS              pointerFlags;
+        //HANDLE                     sourceDevice;
+        //HWND                       hwndTarget;
+        //POINT                      ptPixelLocation;
+        //POINT                      ptHimetricLocation;
+        //POINT                      ptPixelLocationRaw;
+        //POINT                      ptHimetricLocationRaw;
+        //DWORD                      dwTime;
+        //UINT32                     historyCount;
+        //INT32                      InputData;
+        //DWORD                      dwKeyStates;
+        //UINT64                     PerformanceCount;
+        //POINTER_BUTTON_CHANGE_TYPE ButtonChangeType;
+
+        ////POINTER_INPUT
+          //PT_POINTER = 1,
+          //PT_TOUCH = 2,
+          //PT_PEN = 3,
+          //PT_MOUSE = 4,
+          //PT_TOUCHPAD = 5
+
+        ////POINTER_FLAG
+        //POINTER_FLAG_NONE 0x00000000
+        //POINTER_FLAG_NEW 0x00000001
+        //POINTER_FLAG_INRANGE 0x00000002
+        //POINTER_FLAG_INCONTACT 0x00000004
+        //POINTER_FLAG_FIRSTBUTTON 0x00000010
+        //POINTER_FLAG_SECONDBUTTON 0x00000020
+        //POINTER_FLAG_THIRDBUTTON 0x00000040
+        //POINTER_FLAG_FOURTHBUTTON 0x00000080
+        //POINTER_FLAG_FIFTHBUTTON 0x00000100
+        //POINTER_FLAG_PRIMARY 0x00002000
+        //POINTER_FLAG_CONFIDENCE 0x000004000
+        //POINTER_FLAG_CANCELED 0x000008000
+        //POINTER_FLAG_DOWN 0x00010000
+        //POINTER_FLAG_UPDATE 0x00020000
+        //POINTER_FLAG_UP 0x00040000
+        //POINTER_FLAG_WHEEL 0x00080000
+        //POINTER_FLAG_HWHEEL 0x00100000
+        //POINTER_FLAG_CAPTURECHANGED 0x00200000
+        //POINTER_FLAG_HASTRANSFORM 0x00400000
+
+        ////POINTER_BUTTON_CHANGE_TYPE {
+          //POINTER_CHANGE_NONE,
+          //POINTER_CHANGE_FIRSTBUTTON_DOWN,
+          //POINTER_CHANGE_FIRSTBUTTON_UP,
+          //POINTER_CHANGE_SECONDBUTTON_DOWN,
+          //POINTER_CHANGE_SECONDBUTTON_UP,
+          //POINTER_CHANGE_THIRDBUTTON_DOWN,
+          //POINTER_CHANGE_THIRDBUTTON_UP,
+          //POINTER_CHANGE_FOURTHBUTTON_DOWN,
+          //POINTER_CHANGE_FOURTHBUTTON_UP,
+          //POINTER_CHANGE_FIFTHBUTTON_DOWN,
+          //POINTER_CHANGE_FIFTHBUTTON_UP
+        //}}}
+        //{{{  pointerPenInfo
+        //BOOL GetPointerPenInfo ([in]UINT32 pointerId, [out] POINTER_PEN_INFO* penInfo)
+
+        ////POINTER_PEN_INFO
+          //POINTER_INFO pointerInfo;
+          //PEN_FLAGS    penFlags;
+          //PEN_MASK     penMask;
+          //UINT32       pressure;
+          //UINT32       rotation;
+          //INT32        tiltX;
+          //INT32        tiltY;
+        //}}}
         if (windowData) {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
@@ -977,7 +978,7 @@ namespace {
     }
   //}}}
   //{{{
-  void destroyWindowData (sWindowData* windowData) {
+  void freeWindow (sWindowData* windowData) {
 
     if (!windowData)
       return;
@@ -1161,7 +1162,7 @@ mfb_update_state updateEx (sMiniWindow* window, void* buffer, unsigned width, un
 
   sWindowData* windowData = (sWindowData*)window;
   if (windowData->close) {
-    destroyWindowData (windowData);
+    freeWindow (windowData);
     return STATE_EXIT;
     }
 
@@ -1185,7 +1186,7 @@ mfb_update_state updateEvents (sMiniWindow* window) {
 
   sWindowData* windowData = (sWindowData*)window;
   if (windowData->close) {
-    destroyWindowData (windowData);
+    freeWindow (windowData);
     return STATE_EXIT;
     }
 
@@ -1256,7 +1257,7 @@ bool waitSync (sMiniWindow* window) {
   sWindowData* windowData = (sWindowData*)window;
   if (windowData->close) {
     //{{{  return false
-    destroyWindowData (windowData);
+    freeWindow (windowData);
     return false;
     }
     //}}}
@@ -1285,7 +1286,7 @@ bool waitSync (sMiniWindow* window) {
 
         if (windowData->close) {
           //{{{  return false
-          destroyWindowData (windowData);
+          freeWindow (windowData);
           return false;
           }
           //}}}
