@@ -1,6 +1,7 @@
 // miniFB.h - main interface to miniFB
 #pragma once
 #include "miniFBenums.h"
+#include "windowData.h"
 #include <functional>
 
 #define MFB_RGB(r,g,b) (((uint32_t)r) << 16) | (((uint32_t)g) << 8) | ((uint32_t)b)
@@ -46,6 +47,10 @@ unsigned getTargetFps();
 bool waitSync (struct sMiniFBwindow* window);
 
 // callbacks
+
+void setActiveHandler (struct sMiniFBwindow* window, std::function <void (bool)> handler);
+//void setActiveHandler (struct sMiniFBwindow* window, std::function <void (sWindowData*, bool)> handler);
+
 void setActiveCallback (struct sMiniFBwindow* window, mfb_active_func callback);
 void setResizeCallback (struct sMiniFBwindow* window, mfb_resize_func callback);
 void setCloseCallback (struct sMiniFBwindow* window, mfb_close_func callback);

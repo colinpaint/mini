@@ -1,5 +1,6 @@
 #pragma once
 #include "miniFBenums.h"
+#include <functional>
 
 struct sWindowData {
   void* specific;
@@ -13,6 +14,17 @@ struct sWindowData {
   mfb_mouse_button_func mouse_btn_func;
   mfb_mouse_move_func   mouse_move_func;
   mfb_mouse_scroll_func mouse_wheel_func;
+
+  std::function <void (bool isActive)> mActiveHandler;
+
+  std::function <void (sWindowData*, bool)> mActiveFunc;
+  std::function <void (sWindowData*, int, int)> mResizeFunc;
+  std::function <bool (sWindowData*)> mCloseFunc;
+  std::function <void (sWindowData*, mfb_key, mfb_key_mod, bool)> mKeyboardFunc;
+  std::function <void (sWindowData*, unsigned int)> mCharInputFunc;
+  std::function <void (sWindowData*, mfb_mouse_button, mfb_key_mod, bool)> mMouseButtonFunc;
+  std::function <void (sWindowData*, int, int)> mMouseMoveFunc;
+  std::function <void (sWindowData*, mfb_key_mod, float, float)> mMouseScrollFunc;
 
   uint32_t window_width;
   uint32_t window_height;
