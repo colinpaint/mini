@@ -227,7 +227,7 @@ namespace {
     //}}}
   #endif
 
-  //{{{  DPI typedefs
+  //{{{  dpi
   // Copied (and modified) from Windows Kit 10 to avoid setting _WIN32_WINNT to a higher version
   typedef enum mfb_PROCESS_DPI_AWARENESS {
     mfb_PROCESS_DPI_UNAWARE = 0,
@@ -254,19 +254,20 @@ namespace {
   typedef BOOL(WINAPI* PFN_SetProcessDPIAware)(void);
   typedef BOOL(WINAPI* PFN_SetProcessDpiAwarenessContext)(HANDLE);
 
-  // shcore.dll
-  typedef HRESULT(WINAPI* PFN_SetProcessDpiAwareness)(mfb_PROCESS_DPI_AWARENESS);
-  typedef HRESULT(WINAPI* PFN_GetDpiForMonitor)(HMONITOR, mfb_MONITOR_DPI_TYPE, UINT *, UINT *);
-  //}}}
   HMODULE gUser32dll = 0;
   PFN_GetDpiForWindow gGetDpiForWindow = 0;
   PFN_EnableNonClientDpiScaling gEnableNonClientDpiScaling = 0;
   PFN_SetProcessDPIAware gSetProcessDPIAware = 0;
   PFN_SetProcessDpiAwarenessContext gSetProcessDpiAwarenessContext = 0;
 
+  // shcore.dll
+  typedef HRESULT(WINAPI* PFN_SetProcessDpiAwareness)(mfb_PROCESS_DPI_AWARENESS);
+  typedef HRESULT(WINAPI* PFN_GetDpiForMonitor)(HMONITOR, mfb_MONITOR_DPI_TYPE, UINT *, UINT *);
+
   HMODULE gShCoreDll = 0;
   PFN_GetDpiForMonitor gGetDpiForMonitor = 0;
   PFN_SetProcessDpiAwareness gSetProcessDpiAwareness = 0;
+
   //{{{
   // NOT Thread safe. Just convenient (Don't do this at home guys)
   char* getErrorMessage() {
@@ -284,28 +285,7 @@ namespace {
     return buffer;
     }
   //}}}
-  //{{{
-  void loadFunctions() {
 
-    if (gUser32dll == 0x0) {
-      gUser32dll = LoadLibraryA ("user32.dll");
-      if (gUser32dll != 0x0) {
-        gSetProcessDPIAware = (PFN_SetProcessDPIAware)GetProcAddress (gUser32dll, "SetProcessDPIAware");
-        gSetProcessDpiAwarenessContext = (PFN_SetProcessDpiAwarenessContext)GetProcAddress (gUser32dll, "SetProcessDpiAwarenessContext");
-        gGetDpiForWindow = (PFN_GetDpiForWindow)GetProcAddress (gUser32dll, "GetDpiForWindow");
-        gEnableNonClientDpiScaling = (PFN_EnableNonClientDpiScaling)GetProcAddress (gUser32dll, "EnableNonClientDpiScaling");
-        }
-      }
-
-    if (gShCoreDll == 0x0) {
-      gShCoreDll = LoadLibraryA ("shcore.dll");
-      if (gShCoreDll != 0x0) {
-        gSetProcessDpiAwareness = (PFN_SetProcessDpiAwareness)GetProcAddress (gShCoreDll, "SetProcessDpiAwareness");
-        gGetDpiForMonitor = (PFN_GetDpiForMonitor)GetProcAddress (gShCoreDll, "GetDpiForMonitor");
-        }
-      }
-    }
-  //}}}
   //{{{
   void dpiAware() {
 
@@ -363,6 +343,30 @@ namespace {
         *scale_y = 1;
       }
     }
+  //}}}
+
+  //{{{
+  void loadFunctions() {
+
+    if (!gUser32dll) {
+      gUser32dll = LoadLibraryA ("user32.dll");
+      if (gUser32dll) {
+        gSetProcessDPIAware = (PFN_SetProcessDPIAware)GetProcAddress (gUser32dll, "SetProcessDPIAware");
+        gSetProcessDpiAwarenessContext = (PFN_SetProcessDpiAwarenessContext)GetProcAddress (gUser32dll, "SetProcessDpiAwarenessContext");
+        gGetDpiForWindow = (PFN_GetDpiForWindow)GetProcAddress (gUser32dll, "GetDpiForWindow");
+        gEnableNonClientDpiScaling = (PFN_EnableNonClientDpiScaling)GetProcAddress (gUser32dll, "EnableNonClientDpiScaling");
+        }
+      }
+
+    if (gShCoreDll) {
+      gShCoreDll = LoadLibraryA ("shcore.dll");
+      if (!gShCoreDll) {
+        gSetProcessDpiAwareness = (PFN_SetProcessDpiAwareness)GetProcAddress (gShCoreDll, "SetProcessDpiAwareness");
+        gGetDpiForMonitor = (PFN_GetDpiForMonitor)GetProcAddress (gShCoreDll, "GetDpiForMonitor");
+        }
+      }
+    }
+  //}}}
   //}}}
 
   //{{{
@@ -884,7 +888,7 @@ namespace {
               ScreenToClient (hWnd, &clientPos);
               windowData->mousePosX = clientPos.x;
               windowData->mousePosY = clientPos.y;
-              kCall (mouse_move_func, windowData->mousePosX, windowData->mousePosY, 
+              kCall (mouse_move_func, windowData->mousePosX, windowData->mousePosY,
                                       windowData->mouse_button_status[MOUSE_BTN_1] * 1024, 0);
               }
             else if (pointerInfo.pointerType == PT_PEN) {
