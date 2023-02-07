@@ -34,10 +34,12 @@ bool cTiledMapOverviewBox::down (bool right, cPoint pos)  {
   }
 //}}}
 //{{{
-bool cTiledMapOverviewBox::move (bool right, cPoint pos, cPoint inc) {
+bool cTiledMapOverviewBox::move (bool right, cPoint pos, cPoint inc, int pressure, int timestamp) {
 
   (void)right;
   (void)inc;
+  (void)pressure;
+  (void)timestamp;
 
   setLatLon (pos);
   return true;

@@ -58,10 +58,12 @@ bool cPaintBox::down (bool right, cPoint pos) {
   }
 //}}}
 //{{{
-bool cPaintBox::move (bool right, cPoint pos, cPoint inc) {
+bool cPaintBox::move (bool right, cPoint pos, cPoint inc, int pressure, int timestamp) {
   (void) right;
+  (void) pressure;
+  (void) timestamp;
 
-  mPaint.move (pos, inc);
+  mPaint.move (pos, inc, pressure, timestamp);
 
   return true;
   }

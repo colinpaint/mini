@@ -10,5 +10,5 @@ struct sWindowDataWindows {
   HGLRC                hGLRC;
   uint32_t             text_id;
   struct sMiniFBtimer* timer;
-  bool                 mouse_inside;
+  bool                 pointerInside;
   };

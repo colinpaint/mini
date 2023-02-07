@@ -25,7 +25,7 @@ public:
   virtual void proxLift() = 0;
 
   virtual void down (cPoint pos) = 0;
-  virtual void move (cPoint pos, cPoint inc) = 0;
+  virtual void move (cPoint pos, cPoint inc, int pressure, int timestamp) = 0;
   virtual void up (cPoint pos, bool mouseMoved) = 0;
 
   virtual void wheel (int delta, cPoint pos) = 0;
@@ -55,7 +55,7 @@ public:
   virtual void proxLift () final;
 
   virtual void down (cPoint pos) final;
-  virtual void move (cPoint pos, cPoint inc) final;
+  virtual void move (cPoint pos, cPoint inc, int pressure, int timestamp) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
 
   virtual void wheel (int delta, cPoint pos) final;
@@ -101,7 +101,7 @@ public:
   virtual void proxLift () final;
 
   virtual void down (cPoint pos) final;
-  virtual void move (cPoint pos, cPoint inc) final;
+  virtual void move (cPoint pos, cPoint inc, int pressure, int timestamp) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
 
   virtual void wheel (int delta, cPoint pos) final;
@@ -131,7 +131,7 @@ public:
   virtual void proxLift () final;
 
   virtual void down (cPoint pos) final;
-  virtual void move (cPoint pos, cPoint inc) final;
+  virtual void move (cPoint pos, cPoint inc, int pressure, int timestamp) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
 
   virtual void wheel (int delta, cPoint pos) final;
@@ -159,7 +159,7 @@ public:
   virtual void proxLift () final;
 
   virtual void down (cPoint pos) final;
-  virtual void move (cPoint pos, cPoint inc) final;
+  virtual void move (cPoint pos, cPoint inc, int pressure, int timestamp) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
 
   virtual void wheel (int delta, cPoint pos) final;
@@ -188,7 +188,7 @@ public:
   virtual void proxLift () final;
 
   virtual void down (cPoint pos) final;
-  virtual void move (cPoint pos, cPoint inc) final;
+  virtual void move (cPoint pos, cPoint inc, int pressure, int timestamp) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
 
   virtual void wheel (int delta, cPoint pos) final;
@@ -218,7 +218,7 @@ public:
   virtual void proxLift () final;
 
   virtual void down (cPoint pos) final;
-  virtual void move (cPoint pos, cPoint inc) final;
+  virtual void move (cPoint pos, cPoint inc, int pressure, int timestamp) final;
   virtual void up (cPoint pos, bool mouseMoved) final;
 
   virtual void wheel (int delta, cPoint pos) final;
@@ -247,7 +247,7 @@ public:
   bool proxLift();
 
   bool down (cPoint pos);
-  bool move (cPoint pos, cPoint inc);
+  bool move (cPoint pos, cPoint inc, int pressure, int timestamp);
   bool up (cPoint pos, bool mouseMoved);
 
   bool wheel (int delta, cPoint pos);

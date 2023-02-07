@@ -76,10 +76,12 @@ bool cSongLoaderBox::down (bool right, cPoint pos) {
   }
 //}}}
 //{{{
-bool cSongLoaderBox::move (bool right, cPoint pos, cPoint inc) {
+bool cSongLoaderBox::move (bool right, cPoint pos, cPoint inc, int pressure, int timestamp) {
 
   (void)right;
   (void)pos;
+  (void)pressure;
+  (void)timestamp;
 
   cSong* song = mSongLoader.getSong();
   if (song) {

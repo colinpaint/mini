@@ -143,10 +143,12 @@ public:
     }
   //}}}
   //{{{
-  virtual bool move (bool right, cPoint pos, cPoint inc) final {
+  virtual bool move (bool right, cPoint pos, cPoint inc, int pressure, int timestamp) final {
 
     (void)right;
     (void)pos;
+    (void)pressure;
+    (void)timestamp;
 
     mMoveInc += inc.y;
     if (abs(mMoveInc) > 2)
@@ -490,11 +492,13 @@ public:
     }
   //}}}
   //{{{
-  bool move (bool right, cPoint pos, cPoint inc) final {
+  bool move (bool right, cPoint pos, cPoint inc, int pressure, int timestamp) final {
 
     (void)right;
     (void)pos;
     (void)inc;
+    (void)pressure;
+    (void)timestamp;
 
     setValue (mValue + (inc.x * mScaleX)  + (inc.y * mScaleY));
     return true;
@@ -541,10 +545,12 @@ public:
     }
   //}}}
   //{{{
-  virtual bool move (bool right, cPoint pos, cPoint inc) final {
+  virtual bool move (bool right, cPoint pos, cPoint inc, int pressure, int timestamp) final {
 
     (void)right;
     (void)pos;
+    (void)pressure;
+    (void)timestamp;
 
     mRect.left += inc.x;
     mRect.right += inc.x;
@@ -611,10 +617,11 @@ public:
     }
   //}}}
   //{{{
-  virtual bool move (bool right, cPoint pos, cPoint inc) final {
-
+  virtual bool move (bool right, cPoint pos, cPoint inc, int pressure, int timestamp) final {
     (void)right;
     (void)pos;
+    (void)pressure;
+    (void)timestamp;
 
     mRect.left += inc.x;
     mRect.right += inc.x;
@@ -722,6 +729,7 @@ public:
   //}}}
   virtual ~cWindowBox() = default;
 
+  //{{{
   virtual bool down (bool right, cPoint pos) final {
     (void)right;
     (void)pos;
@@ -731,11 +739,13 @@ public:
       mWindow.setExit();
     return true;
     }
-
+  //}}}
+  //{{{
   virtual void resize() final {
     layout();
     mEnable = mWindow.getFullScreen();
     }
+  //}}}
 
   virtual void draw() final {
     cRect r(mRect);

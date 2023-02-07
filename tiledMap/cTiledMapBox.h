@@ -8,7 +8,7 @@ public:
   cTiledMapBox(cWindow& window, float width, float height, cTiledMap& tiledMap);
   virtual ~cTiledMapBox() = default;
 
-  virtual bool move (bool right, cPoint pos, cPoint inc) final;
+  virtual bool move (bool right, cPoint pos, cPoint inc, int pressure, int timestamp) final;
   virtual bool wheel (int delta, cPoint pos) final;
   virtual void draw() final;
 

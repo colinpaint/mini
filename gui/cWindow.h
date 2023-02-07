@@ -202,15 +202,48 @@ public:
     //}}}
     virtual bool keyDown (int key) { (void)key; return false; }
 
-    virtual bool prox (bool inClient, cPoint pos) { (void)inClient; (void)pos; return false; }
+    //{{{
+    virtual bool prox (bool inClient, cPoint pos) { 
+      (void)inClient; 
+      (void)pos; 
+      return false; 
+      }
+    //}}}
     virtual bool proxExit() { return true; }
     virtual bool proxLift() { return true; }
 
-    virtual bool down (bool right, cPoint pos)  { (void)right; (void)pos; return true; }
-    virtual bool move (bool right, cPoint pos, cPoint inc)  { (void)right; (void)pos; (void)inc; return false; }
-    virtual bool up (bool right, bool mouseMoved, cPoint pos) { (void)right; (void)mouseMoved; (void)pos; return true; }
-
-    virtual bool wheel (int delta, cPoint pos)  { (void)delta; (void)pos; return true; }
+    //{{{
+    virtual bool down (bool right, cPoint pos)  { 
+      (void)right; 
+      (void)pos; 
+      return true; 
+      }
+    //}}}
+    //{{{
+    virtual bool move (bool right, cPoint pos, cPoint inc, int pressure, int timestamp) { 
+      (void)right; 
+      (void)pos; 
+      (void)inc; 
+      (void)pressure;
+      (void)timestamp;
+      return false; 
+      }
+    //}}}
+    //{{{
+    virtual bool up (bool right, bool mouseMoved, cPoint pos) { 
+      (void)right; 
+      (void)mouseMoved; 
+      (void)pos; 
+      return true; 
+      }
+    //}}}
+    //{{{
+    virtual bool wheel (int delta, cPoint pos)  { 
+      (void)delta; 
+      (void)pos; 
+      return true; 
+      }
+    //}}}
 
     virtual void draw() = 0;
 
@@ -504,8 +537,8 @@ private:
     }
   //}}}
   //{{{
-  bool mouseMove (bool right, cPoint pos, cPoint inc) {
-    return mPressedBox && mPressedBox->move (right, pos - mPressedBox->getTL(), inc);
+  bool mouseMove (bool right, cPoint pos, cPoint inc, int pressure, int timestamp) {
+    return mPressedBox && mPressedBox->move (right, pos - mPressedBox->getTL(), inc, pressure, timestamp);
     }
   //}}}
   //{{{

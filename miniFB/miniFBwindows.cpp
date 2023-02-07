@@ -822,7 +822,7 @@ namespace {
                                          IS_POINTER_INRANGE_WPARAM(wParam) ? "inRange " : "",
                                          IS_POINTER_INCONTACT_WPARAM(wParam) ? "inContact " : "",
                                          GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) ));
-        windowData_win->mouse_inside = false;
+        windowData_win->pointerInside = false;
 
         break;
       //}}}
@@ -882,7 +882,7 @@ namespace {
             if (pointerInfo.pointerType == PT_MOUSE) {
               //cLog::log (LOGINFO, fmt::format ("pointerUpdate mouse type:{} flags:{:x} time:{}",
               //                                 pointerInfo.pointerType, pointerInfo.pointerFlags, pointerInfo.dwTime));
-              windowData_win->mouse_inside = true;
+              windowData_win->pointerInside = true;
 
               POINT clientPos = pointerInfo.ptPixelLocation;
               ScreenToClient (hWnd, &clientPos);
@@ -895,7 +895,7 @@ namespace {
               POINTER_PEN_INFO pointerPenInfos[10];
               uint32_t entriesCount = 10;
               if (GetPointerPenInfoHistory (GET_POINTERID_WPARAM (wParam), &entriesCount, pointerPenInfos)) {
-                windowData_win->mouse_inside = true;
+                windowData_win->pointerInside = true;
                 for (uint32_t i = entriesCount; i > 0; i--) {
                   ScreenToClient (hWnd, &pointerPenInfos[i-1].pointerInfo.ptPixelLocation);
                   windowData->pointerPosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;

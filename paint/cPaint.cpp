@@ -57,8 +57,11 @@ void cPaintLayer::down (cPoint pos) {
   }
 //}}}
 //{{{
-void cPaintLayer::move (cPoint pos, cPoint inc) {
+void cPaintLayer::move (cPoint pos, cPoint inc, int pressure, int timestamp) {
   (void)pos;
+  (void)pressure;
+  (void)timestamp;
+
   mPos += inc;
   }
 //}}}
@@ -212,8 +215,11 @@ void cStrokeLayer::down (cPoint pos) {
   }
 //}}}
 //{{{
-void cStrokeLayer::move (cPoint pos, cPoint inc) {
+void cStrokeLayer::move (cPoint pos, cPoint inc, int pressure, int timestamp) {
   (void)pos;
+  (void)pressure;
+  (void)timestamp;
+
   mPos += inc;
   }
 //}}}
@@ -294,8 +300,11 @@ void cRectangleLayer::down (cPoint pos) {
   }
 //}}}
 //{{{
-void cRectangleLayer::move (cPoint pos, cPoint inc) {
+void cRectangleLayer::move (cPoint pos, cPoint inc, int pressure, int timestamp) {
   (void)pos;
+  (void)pressure;
+  (void)timestamp;
+
   mPos += inc;
   }
 //}}}
@@ -347,8 +356,11 @@ void cEllipseLayer::down (cPoint pos) {
   }
 //}}}
 //{{{
-void cEllipseLayer::move (cPoint pos, cPoint inc) {
+void cEllipseLayer::move (cPoint pos, cPoint inc, int pressure, int timestamp) {
   (void)pos;
+  (void)pressure;
+  (void)timestamp;
+
   mPos += inc;
   }
 //}}}
@@ -401,8 +413,11 @@ void cTextLayer::down (cPoint pos) {
   }
 //}}}
 //{{{
-void cTextLayer::move (cPoint pos, cPoint inc) {
+void cTextLayer::move (cPoint pos, cPoint inc, int pressure, int timestamp) {
   (void)pos;
+  (void)pressure;
+  (void)timestamp;
+
   mPos += inc;
   }
 //}}}
@@ -454,8 +469,11 @@ void cTextureLayer::down (cPoint pos) {
   }
 //}}}
 //{{{
-void cTextureLayer::move (cPoint pos, cPoint inc) {
+void cTextureLayer::move (cPoint pos, cPoint inc, int pressure, int timestamp) {
   (void)pos;
+  (void)pressure;
+  (void)timestamp;
+
   mPos += inc;
   }
 //}}}
@@ -547,12 +565,12 @@ bool cPaint::down (cPoint pos) {
   }
 //}}}
 //{{{
-bool cPaint::move (cPoint pos, cPoint inc) {
+bool cPaint::move (cPoint pos, cPoint inc, int pressure, int timestamp) {
 
   if (mPainting || mStroking)
     mPickedLayer->addPoint (pos);
   else if (mPickedLayer)
-    mPickedLayer->move (pos, inc);
+    mPickedLayer->move (pos, inc, pressure, timestamp);
 
   return true;
   }

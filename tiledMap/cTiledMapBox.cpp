@@ -22,10 +22,12 @@ cTiledMapBox::cTiledMapBox (cWindow& window, float width, float height, cTiledMa
 //}}}
 
 //{{{
-bool cTiledMapBox::move (bool right, cPoint pos, cPoint inc) {
+bool cTiledMapBox::move (bool right, cPoint pos, cPoint inc, int pressure, int timestamp) {
 
   (void)right;
   (void)pos;
+  (void)pressure;
+  (void)timestamp;
 
   mTiledMap.incPix (int(-inc.x), int(-inc.y), mWindow.getShift());
   return true;

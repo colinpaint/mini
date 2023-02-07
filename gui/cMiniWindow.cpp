@@ -152,7 +152,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
       if (mMousePress) {
         mMouseMoved = true;
-        if (mouseMove (mMousePressRight, mMousePos, mMousePos - mMouseLastPos))
+        if (mouseMove (mMousePressRight, mMousePos, mMousePos - mMouseLastPos, pressure, timestamp))
           changed();
         mMouseLastPos = mMousePos;
         }
