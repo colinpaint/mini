@@ -16,43 +16,6 @@
 
 using namespace std;
 //}}}
-//{{{  typedefs
-// Copied (and modified) from Windows Kit 10 to avoid setting _WIN32_WINNT to a higher version
-typedef enum mfb_PROCESS_DPI_AWARENESS {
-  mfb_PROCESS_DPI_UNAWARE = 0,
-  mfb_PROCESS_SYSTEM_DPI_AWARE = 1,
-  mfb_PROCESS_PER_MONITOR_DPI_AWARE = 2
-  } mfb_PROCESS_DPI_AWARENESS;
-
-typedef enum mfb_MONITOR_DPI_TYPE {
-  mfb_MDT_EFFECTIVE_DPI = 0,
-  mfb_MDT_ANGULAR_DPI   = 1,
-  mfb_MDT_RAW_DPI       = 2,
-  mfb_MDT_DEFAULT       = mfb_MDT_EFFECTIVE_DPI
-  } mfb_MONITOR_DPI_TYPE;
-
-#define mfb_DPI_AWARENESS_CONTEXT_UNAWARE              ((HANDLE) -1)
-#define mfb_DPI_AWARENESS_CONTEXT_SYSTEM_AWARE         ((HANDLE) -2)
-#define mfb_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE    ((HANDLE) -3)
-#define mfb_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((HANDLE) -4)
-#define mfb_DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED    ((HANDLE) -5)
-
-// user32.dll
-typedef BOOL(WINAPI *PFN_SetProcessDPIAware)(void);
-typedef BOOL(WINAPI *PFN_SetProcessDpiAwarenessContext)(HANDLE);
-typedef UINT(WINAPI *PFN_GetDpiForWindow)(HWND);
-typedef BOOL(WINAPI *PFN_EnableNonClientDpiScaling)(HWND);
-
-HMODULE                           mfb_user32_dll                    = 0x0;
-PFN_SetProcessDPIAware            mfb_SetProcessDPIAware            = 0x0;
-PFN_SetProcessDpiAwarenessContext mfb_SetProcessDpiAwarenessContext = 0x0;
-PFN_GetDpiForWindow               mfb_GetDpiForWindow               = 0x0;
-PFN_EnableNonClientDpiScaling     mfb_EnableNonClientDpiScaling     = 0x0;
-
-// shcore.dll
-typedef HRESULT(WINAPI *PFN_SetProcessDpiAwareness)(mfb_PROCESS_DPI_AWARENESS);
-typedef HRESULT(WINAPI *PFN_GetDpiForMonitor)(HMONITOR, mfb_MONITOR_DPI_TYPE, UINT *, UINT *);
-//}}}
 
 #ifdef USE_WINTAB
   #include "winTab.h"
@@ -264,9 +227,46 @@ namespace {
     //}}}
   #endif
 
-  HMODULE mfb_shcore_dll = 0x0;
-  PFN_GetDpiForMonitor getDpiForMonitor = 0x0;
-  PFN_SetProcessDpiAwareness setProcessDpiAwareness = 0x0;
+  //{{{  DPI typedefs
+  // Copied (and modified) from Windows Kit 10 to avoid setting _WIN32_WINNT to a higher version
+  typedef enum mfb_PROCESS_DPI_AWARENESS {
+    mfb_PROCESS_DPI_UNAWARE = 0,
+    mfb_PROCESS_SYSTEM_DPI_AWARE = 1,
+    mfb_PROCESS_PER_MONITOR_DPI_AWARE = 2
+    } mfb_PROCESS_DPI_AWARENESS;
+
+  typedef enum mfb_MONITOR_DPI_TYPE {
+    mfb_MDT_EFFECTIVE_DPI = 0,
+    mfb_MDT_ANGULAR_DPI   = 1,
+    mfb_MDT_RAW_DPI       = 2,
+    mfb_MDT_DEFAULT       = mfb_MDT_EFFECTIVE_DPI
+    } mfb_MONITOR_DPI_TYPE;
+
+  #define mfb_DPI_AWARENESS_CONTEXT_UNAWARE              ((HANDLE) -1)
+  #define mfb_DPI_AWARENESS_CONTEXT_SYSTEM_AWARE         ((HANDLE) -2)
+  #define mfb_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE    ((HANDLE) -3)
+  #define mfb_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((HANDLE) -4)
+  #define mfb_DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED    ((HANDLE) -5)
+
+  // user32.dll
+  typedef UINT(WINAPI* PFN_GetDpiForWindow)(HWND);
+  typedef BOOL(WINAPI* PFN_EnableNonClientDpiScaling)(HWND);
+  typedef BOOL(WINAPI* PFN_SetProcessDPIAware)(void);
+  typedef BOOL(WINAPI* PFN_SetProcessDpiAwarenessContext)(HANDLE);
+
+  // shcore.dll
+  typedef HRESULT(WINAPI* PFN_SetProcessDpiAwareness)(mfb_PROCESS_DPI_AWARENESS);
+  typedef HRESULT(WINAPI* PFN_GetDpiForMonitor)(HMONITOR, mfb_MONITOR_DPI_TYPE, UINT *, UINT *);
+  //}}}
+  HMODULE gUser32dll = 0x0;
+  PFN_GetDpiForWindow gGetDpiForWindow = 0x0;
+  PFN_EnableNonClientDpiScaling gEnableNonClientDpiScaling = 0x0;
+  PFN_SetProcessDPIAware gSetProcessDPIAware = 0x0;
+  PFN_SetProcessDpiAwarenessContext gSetProcessDpiAwarenessContext = 0x0;
+
+  HMODULE gShCoreDll = 0x0;
+  PFN_GetDpiForMonitor gGetDpiForMonitor = 0x0;
+  PFN_SetProcessDpiAwareness gSetProcessDpiAwareness = 0x0;
   //{{{
   // NOT Thread safe. Just convenient (Don't do this at home guys)
   char* getErrorMessage() {
@@ -287,30 +287,21 @@ namespace {
   //{{{
   void loadFunctions() {
 
-    if (mfb_user32_dll == 0x0) {
-      mfb_user32_dll = LoadLibraryA ("user32.dll");
-      if (mfb_user32_dll != 0x0) {
-        mfb_SetProcessDPIAware =
-          (PFN_SetProcessDPIAware)GetProcAddress (mfb_user32_dll, "SetProcessDPIAware");
-
-        mfb_SetProcessDpiAwarenessContext =
-          (PFN_SetProcessDpiAwarenessContext)GetProcAddress (mfb_user32_dll, "SetProcessDpiAwarenessContext");
-
-        mfb_GetDpiForWindow =
-          (PFN_GetDpiForWindow)GetProcAddress (mfb_user32_dll, "GetDpiForWindow");
-
-        mfb_EnableNonClientDpiScaling =
-          (PFN_EnableNonClientDpiScaling)GetProcAddress (mfb_user32_dll, "EnableNonClientDpiScaling");
+    if (gUser32dll == 0x0) {
+      gUser32dll = LoadLibraryA ("user32.dll");
+      if (gUser32dll != 0x0) {
+        gSetProcessDPIAware = (PFN_SetProcessDPIAware)GetProcAddress (gUser32dll, "SetProcessDPIAware");
+        gSetProcessDpiAwarenessContext = (PFN_SetProcessDpiAwarenessContext)GetProcAddress (gUser32dll, "SetProcessDpiAwarenessContext");
+        gGetDpiForWindow = (PFN_GetDpiForWindow)GetProcAddress (gUser32dll, "GetDpiForWindow");
+        gEnableNonClientDpiScaling = (PFN_EnableNonClientDpiScaling)GetProcAddress (gUser32dll, "EnableNonClientDpiScaling");
         }
       }
 
-    if (mfb_shcore_dll == 0x0) {
-      mfb_shcore_dll = LoadLibraryA ("shcore.dll");
-      if (mfb_shcore_dll != 0x0) {
-        setProcessDpiAwareness =
-          (PFN_SetProcessDpiAwareness)GetProcAddress (mfb_shcore_dll, "SetProcessDpiAwareness");
-        getDpiForMonitor =
-          (PFN_GetDpiForMonitor)GetProcAddress (mfb_shcore_dll, "GetDpiForMonitor");
+    if (gShCoreDll == 0x0) {
+      gShCoreDll = LoadLibraryA ("shcore.dll");
+      if (gShCoreDll != 0x0) {
+        gSetProcessDpiAwareness = (PFN_SetProcessDpiAwareness)GetProcAddress (gShCoreDll, "SetProcessDpiAwareness");
+        gGetDpiForMonitor = (PFN_GetDpiForMonitor)GetProcAddress (gShCoreDll, "GetDpiForMonitor");
         }
       }
     }
@@ -318,12 +309,12 @@ namespace {
   //{{{
   void dpiAware() {
 
-    if (mfb_SetProcessDpiAwarenessContext) {
-      if (!mfb_SetProcessDpiAwarenessContext (mfb_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)) {
+    if (gSetProcessDpiAwarenessContext) {
+      if (!gSetProcessDpiAwarenessContext (mfb_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)) {
         uint32_t error = GetLastError();
         if (error == ERROR_INVALID_PARAMETER) {
           error = NO_ERROR;
-          if (!mfb_SetProcessDpiAwarenessContext (mfb_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE))
+          if (!gSetProcessDpiAwarenessContext (mfb_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE))
             error = GetLastError();
           }
         if (error != NO_ERROR)
@@ -331,13 +322,13 @@ namespace {
         }
       }
 
-    else if (setProcessDpiAwareness) {
-      if (setProcessDpiAwareness(mfb_PROCESS_PER_MONITOR_DPI_AWARE) != S_OK)
+    else if (gSetProcessDpiAwareness) {
+      if (gSetProcessDpiAwareness(mfb_PROCESS_PER_MONITOR_DPI_AWARE) != S_OK)
         cLog::log (LOGERROR, fmt::format ("SetProcessDpiAwareness failed {}", getErrorMessage()));
       }
 
-    else if (mfb_SetProcessDPIAware) {
-      if (!mfb_SetProcessDPIAware())
+    else if (gSetProcessDPIAware) {
+      if (!gSetProcessDPIAware())
         cLog::log (LOGERROR, fmt::format ("SetProcessDPIAware failed {}", getErrorMessage()));
       }
 
@@ -348,9 +339,9 @@ namespace {
 
     UINT x, y;
 
-    if (getDpiForMonitor) {
+    if (gGetDpiForMonitor) {
       HMONITOR monitor = MonitorFromWindow (hWnd, MONITOR_DEFAULTTONEAREST);
-      getDpiForMonitor (monitor, mfb_MDT_EFFECTIVE_DPI, &x, &y);
+      gGetDpiForMonitor (monitor, mfb_MDT_EFFECTIVE_DPI, &x, &y);
       }
 
     else {
@@ -568,8 +559,8 @@ namespace {
     switch (message) {
       //{{{
       case WM_NCCREATE:
-        if (mfb_EnableNonClientDpiScaling)
-          mfb_EnableNonClientDpiScaling (hWnd);
+        if (gEnableNonClientDpiScaling)
+          gEnableNonClientDpiScaling (hWnd);
 
         return DefWindowProc (hWnd, message, wParam, lParam);
       //}}}
