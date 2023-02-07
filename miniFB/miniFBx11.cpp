@@ -39,13 +39,13 @@ extern short int gKeycodes[512];
 
 namespace {
   Atom gDeleteWindowAtom;
-  XDevice* gDevice;
-  uint32_t gMotionType;
+  XDevice* gDevice = nullptr;
+  uint32_t gMotionType = 0;
   XEventClass gEventClasses[1024];
-  uint32_t gNumEventClasses;
-  int32_t gRangeX;
-  int32_t gRangeY;
-  int32_t gMaxPressure;
+  uint32_t gNumEventClasses = 0;
+  int32_t gRangeX = 0;
+  int32_t gRangeY = 0;
+  int32_t gMaxPressure = 0;
   //{{{
   void freeWindow (sWindowData* windowData)  {
 
@@ -455,13 +455,16 @@ namespace {
         break;
       //}}}
 
+      //{{{
       case EnterNotify:
         kCall (pointer_leave_func, false);
         break;
-
+      //}}}
+      //{{{
       case LeaveNotify:
         kCall (pointer_leave_func, true);
         break;
+      //}}}
 
       //{{{
       case FocusIn:
@@ -499,6 +502,18 @@ namespace {
 
         break;
       //}}}
+
+      default:
+        if (event->type == (int)gMotionType) {
+          XDeviceMotionEvent* motionEvent = (XDeviceMotionEvent*)(event);
+          int posX = motionEvent->x;
+          int posY = motionEvent->y;
+          int pressure = motionEvent->axis_data[2];
+          cLog::log (LOGINFO, fmt::format ("tablet event {} {} {}", posX, posY, pressure));
+          }
+        else
+          cLog::log (LOGINFO, fmt::format ("unused event {}", event->type));
+        break;
       }
     }
   //}}}
@@ -506,7 +521,6 @@ namespace {
   void processEvents (sWindowData* windowData) {
 
     sWindowDataX11* windowDataX11 = (sWindowDataX11*)windowData->specific;
-
     while (!windowData->close && XPending (windowDataX11->display)) {
       XEvent event;
       XNextEvent (windowDataX11->display, &event);
@@ -719,8 +733,8 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
   cLog::log (LOGINFO, fmt::format ("X11 input devices"));
   for (int32_t i = 0; i < count; i++) {
     cLog::log (LOGINFO, fmt::format ("- device:{} name:{} id:{}", i, devices[i].name, devices[i].id));
-    if (!strstr (devices[i].name, "stylus") && !strstr (devices[i].name, "eraser"))
-      continue; 
+    if (!strstr (devices[i].name, "stylus")) // && !strstr (devices[i].name, "eraser"))
+      continue;
 
     gDevice = XOpenDevice (windowDataX11->display, devices[i].id);
     XAnyClassPtr classPtr = devices[i].inputclassinfo;
