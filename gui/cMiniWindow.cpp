@@ -111,7 +111,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // mouse callbacks
   //{{{
-  setMouseButtonCallback ([&](sMiniWindow* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed) {
+  setPointerButtonCallback ([&](sMiniWindow* window, mfb_pointer_button button, mfb_key_mod mod, bool isPressed) {
 
       (void)mod;
       //cLog::log (LOGINFO, fmt::format ("mouseButton {} button:{} pressed:{} at:{} {} mod:{}",
@@ -122,7 +122,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
       if (isPressed) {
         mMousePress = true;
         mMouseMoved = false;
-        mMousePressPos = cPoint ((float)getMouseX (window), (float)getMouseY (window));
+        mMousePressPos = cPoint ((float)getPointerX (window), (float)getPointerY (window));
         mMousePressRight = button != 0;
         mMouseLastPos = mMousePressPos;
         mMousePressUsed = mouseDown (mMousePressRight, mMousePressPos);
@@ -131,7 +131,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         cursorChanged();
         }
       else {
-        mMouseLastPos = cPoint (getMouseX (window), getMouseY (window));
+        mMouseLastPos = cPoint (getPointerX (window), getPointerY (window));
         if (mouseUp (mMousePressRight, mMouseMoved, mMouseLastPos))
           changed();
         mMousePress = false;
@@ -142,7 +142,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setMouseMoveCallback ([&](sMiniWindow* window, int x, int y, int pressure, int timestamp) {
+  setPointerMoveCallback ([&](sMiniWindow* window, int x, int y, int pressure, int timestamp) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}",
                                        x, y, pressure, timestamp));
@@ -163,7 +163,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setMouseWheelCallback ([&](sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
+  setPointerWheelCallback ([&](sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
       // lambda
       (void)window;
       (void)mod;

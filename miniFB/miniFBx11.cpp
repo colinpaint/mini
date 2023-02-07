@@ -380,18 +380,18 @@ namespace {
       //{{{
       case ButtonRelease:
         {
-        mfb_mouse_button button = (mfb_mouse_button)event->xbutton.button;
+        mfb_pointer_button button = (mfb_pointer_button)event->xbutton.button;
         int is_pressed = (event->type == ButtonPress);
         windowData->mod_keys = translateMod (event->xkey.state);
 
-        // Swap mouse right and middle for parity with other platforms:
+        // Swap pointer right and middle for parity with other platforms:
         // https://github.com/emoon/minifb/issues/65
         switch (button) {
           case Button2:
-            button = (mfb_mouse_button)Button3;
+            button = (mfb_pointer_button)Button3;
             break;
           case Button3:
-            button = (mfb_mouse_button)Button2;
+            button = (mfb_pointer_button)Button2;
             break;
           default:;
           }
@@ -400,33 +400,33 @@ namespace {
           case Button1:
           case Button2:
           case Button3:
-            windowData->mouse_button_status[button & 0x07] = is_pressed;
-            kCall (mouse_btn_func, button, (mfb_key_mod) windowData->mod_keys, is_pressed);
+            windowData->pointer_button_status[button & 0x07] = is_pressed;
+            kCall (pointer_btn_func, button, (mfb_key_mod) windowData->mod_keys, is_pressed);
             break;
 
           case Button4:
-            windowData->mouse_wheel_y = 1.0f;
-            kCall (mouse_wheel_func, (mfb_key_mod) windowData->mod_keys, 0.0f, windowData->mouse_wheel_y);
+            windowData->pointer_wheel_y = 1.0f;
+            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, 0.0f, windowData->pointer_wheel_y);
             break;
 
           case Button5:
-            windowData->mouse_wheel_y = -1.0f;
-            kCall (mouse_wheel_func, (mfb_key_mod) windowData->mod_keys, 0.0f, windowData->mouse_wheel_y);
+            windowData->pointer_wheel_y = -1.0f;
+            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, 0.0f, windowData->pointer_wheel_y);
             break;
 
           case 6:
-            windowData->mouse_wheel_x = 1.0f;
-            kCall (mouse_wheel_func, (mfb_key_mod) windowData->mod_keys, windowData->mouse_wheel_x, 0.0f);
+            windowData->pointer_wheel_x = 1.0f;
+            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, windowData->pointer_wheel_x, 0.0f);
             break;
 
           case 7:
-            windowData->mouse_wheel_x = -1.0f;
-            kCall (mouse_wheel_func, (mfb_key_mod) windowData->mod_keys, windowData->mouse_wheel_x, 0.0f);
+            windowData->pointer_wheel_x = -1.0f;
+            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, windowData->pointer_wheel_x, 0.0f);
             break;
 
           default:
-            windowData->mouse_button_status[(button - 4) & 0x07] = is_pressed;
-            kCall (mouse_btn_func, (mfb_mouse_button) (button - 4), (mfb_key_mod) windowData->mod_keys, is_pressed);
+            windowData->pointer_button_status[(button - 4) & 0x07] = is_pressed;
+            kCall (pointer_btn_func, (mfb_pointer_button) (button - 4), (mfb_key_mod) windowData->mod_keys, is_pressed);
             break;
           }
         }
@@ -436,10 +436,10 @@ namespace {
 
       //{{{
       case MotionNotify:
-        windowData->mousePosX = event->xmotion.x;
-        windowData->mousePosY = event->xmotion.y;
-        kCall (mouse_move_func, windowData->mousePosX, windowData->mousePosY,
-                                windowData->mouse_button_status[Button1] * 1024, 0);
+        windowData->pointerPosX = event->xmotion.x;
+        windowData->pointerPosY = event->xmotion.y;
+        kCall (pointer_move_func, windowData->pointerPosX, windowData->pointerPosY,
+                                windowData->pointer_button_status[Button1] * 1024, 0);
         break;
       //}}}
       //{{{

@@ -8,7 +8,7 @@ enum mfb_update_state { STATE_OK             =  0,
                         STATE_INTERNAL_ERROR = -4
                         };
 
-enum mfb_mouse_button { MOUSE_BTN_0, // No mouse button
+enum mfb_pointer_button { MOUSE_BTN_0, // No mouse button
                         MOUSE_BTN_1, MOUSE_BTN_2, MOUSE_BTN_3,
                         MOUSE_BTN_4, MOUSE_BTN_5, MOUSE_BTN_6, MOUSE_BTN_7
                         };
@@ -172,6 +172,6 @@ typedef bool(*mfb_close_func)(sMiniWindow* window);
 typedef void(*mfb_keyboard_func)(sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed);
 typedef void(*mfb_char_input_func)(sMiniWindow* window, unsigned int code);
 
-typedef void(*mfb_mouse_button_func)(sMiniWindow* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed);
-typedef void(*mfb_mouse_move_func)(sMiniWindow* window, int x, int y, int pressure, int timestamp);
-typedef void(*mfb_mouse_wheel_func)(sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY);
+typedef void(*mfb_pointer_button_func)(sMiniWindow* window, mfb_pointer_button button, mfb_key_mod mod, bool isPressed);
+typedef void(*mfb_pointer_move_func)(sMiniWindow* window, int x, int y, int pressure, int timestamp);
+typedef void(*mfb_pointer_wheel_func)(sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY);

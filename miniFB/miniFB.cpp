@@ -60,24 +60,24 @@ void setCharInputCallback (sMiniWindow* window, mfb_char_input_func callback) {
 //}}}
 
 //{{{
-void setMouseButtonCallback (sMiniWindow* window, mfb_mouse_button_func callback) {
+void setPointerButtonCallback (sMiniWindow* window, mfb_pointer_button_func callback) {
 
   if (window)
-    ((sWindowData*)(window))->mouse_btn_func = callback;
+    ((sWindowData*)(window))->pointer_btn_func = callback;
   }
 //}}}
 //{{{
-void setMouseMoveCallback (sMiniWindow* window, mfb_mouse_move_func callback) {
+void setPointerMoveCallback (sMiniWindow* window, mfb_pointer_move_func callback) {
 
   if (window)
-    ((sWindowData*)(window))->mouse_move_func = callback;
+    ((sWindowData*)(window))->pointer_move_func = callback;
   }
 //}}}
 //{{{
-void setMouseWheelCallback (sMiniWindow* window, mfb_mouse_wheel_func callback) {
+void setPointerWheelCallback (sMiniWindow* window, mfb_pointer_wheel_func callback) {
 
   if (window)
-    ((sWindowData*)(window))->mouse_wheel_func = callback;
+    ((sWindowData*)(window))->pointer_wheel_func = callback;
   }
 //}}}
 //{{{
@@ -154,34 +154,34 @@ unsigned getWindowHeight (sMiniWindow* window) {
 //}}}
 
 //{{{
-int getMouseX (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->mousePosX : 0; }
+int getPointerX (sMiniWindow* window) {
+  return window ? ((sWindowData*)(window))->pointerPosX : 0; }
 //}}}
 //{{{
-int getMouseY (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->mousePosY : 0; }
+int getPointerY (sMiniWindow* window) {
+  return window ? ((sWindowData*)(window))->pointerPosY : 0; }
 //}}}
 //{{{
-int getMousePressure (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->mousePressure : 0; }
+int getPointerPressure (sMiniWindow* window) {
+  return window ? ((sWindowData*)(window))->pointerPressure : 0; }
 //}}}
 //{{{
-int64_t getMouseTimestamp (sMiniWindow* window) {
+int64_t getPointerTimestamp (sMiniWindow* window) {
   return window ? ((sWindowData*)(window))->timestamp : 0; }
 //}}}
 
 //{{{
-float getMouseWheelX (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->mouse_wheel_x : 0; }
+float getPointerWheelX (sMiniWindow* window) {
+  return window ? ((sWindowData*)(window))->pointer_wheel_x : 0; }
 //}}}
 //{{{
-float getMouseWheelY (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->mouse_wheel_y : 0; }
+float getPointerWheelY (sMiniWindow* window) {
+  return window ? ((sWindowData*)(window))->pointer_wheel_y : 0; }
 //}}}
 
 //{{{
-const uint8_t* getMouseButtonBuffer (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->mouse_button_status : 0; }
+const uint8_t* getPointerButtonBuffer (sMiniWindow* window) {
+  return window ? ((sWindowData*)(window))->pointer_button_status : 0; }
 //}}}
 //{{{
 const uint8_t* getKeyBuffer (sMiniWindow* window)  {
@@ -407,17 +407,17 @@ void mfbStub::charInputStub (sMiniWindow* window, unsigned int code) {
 //}}}
 
 //{{{
-void mfbStub::mouseButtonStub (sMiniWindow* window, mfb_mouse_button button, mfb_key_mod mod, bool isPressed) {
+void mfbStub::pointerButtonStub (sMiniWindow* window, mfb_pointer_button button, mfb_key_mod mod, bool isPressed) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_mouse_btn (window, button, mod, isPressed);
+  stub->m_pointer_btn (window, button, mod, isPressed);
   }
 //}}}
 //{{{
-void mfbStub::mouseMoveStub (sMiniWindow* window, int x, int y, int pressure, int timestamp) {
+void mfbStub::pointerMoveStub (sMiniWindow* window, int x, int y, int pressure, int timestamp) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_mouse_move (window, x, y, pressure, timestamp);
+  stub->m_pointer_move (window, x, y, pressure, timestamp);
   }
 //}}}
 //{{{
@@ -482,32 +482,32 @@ void setCharInputCallback (std::function <void (sMiniWindow*, unsigned int)> fun
 //}}}
 
 //{{{
-void setMouseButtonCallback (std::function <void (sMiniWindow*, mfb_mouse_button, mfb_key_mod, bool)> func, sMiniWindow *window) {
+void setPointerButtonCallback (std::function <void (sMiniWindow*, mfb_pointer_button, mfb_key_mod, bool)> func, sMiniWindow *window) {
 
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_mouse_btn = std::bind (func, _1, _2, _3, _4);
-  setMouseButtonCallback (window, mfbStub::mouseButtonStub);
+  stub->m_pointer_btn = std::bind (func, _1, _2, _3, _4);
+  setPointerButtonCallback (window, mfbStub::pointerButtonStub);
   }
 //}}}
 //{{{
-void setMouseMoveCallback (std::function <void (sMiniWindow*, int, int, int, int)> func, sMiniWindow* window) {
+void setPointerMoveCallback (std::function <void (sMiniWindow*, int, int, int, int)> func, sMiniWindow* window) {
 
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_mouse_move = std::bind (func, _1, _2, _3, _4, _5);
-  setMouseMoveCallback (window, mfbStub::mouseMoveStub);
+  stub->m_pointer_move = std::bind (func, _1, _2, _3, _4, _5);
+  setPointerMoveCallback (window, mfbStub::pointerMoveStub);
   }
 //}}}
 //{{{
-void setMouseWheelCallback (std::function <void (sMiniWindow*, mfb_key_mod, float, float)> func, sMiniWindow *window) {
+void setPointerWheelCallback (std::function <void (sMiniWindow*, mfb_key_mod, float, float)> func, sMiniWindow *window) {
 
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
   stub->m_wheel = std::bind (func, _1, _2, _3, _4);
-  setMouseWheelCallback (window, mfbStub::wheelStub);
+  setPointerWheelCallback (window, mfbStub::wheelStub);
   }
 //}}}

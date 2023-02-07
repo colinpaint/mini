@@ -12,9 +12,9 @@ struct sWindowData {
   mfb_close_func        close_func;
   mfb_keyboard_func     keyboard_func;
   mfb_char_input_func   char_input_func;
-  mfb_mouse_button_func mouse_btn_func;
-  mfb_mouse_move_func   mouse_move_func;
-  mfb_mouse_wheel_func  mouse_wheel_func;
+  mfb_pointer_button_func pointer_btn_func;
+  mfb_pointer_move_func   pointer_move_func;
+  mfb_pointer_wheel_func  pointer_wheel_func;
 
   uint32_t window_width;
   uint32_t window_height;
@@ -34,14 +34,14 @@ struct sWindowData {
   uint32_t buffer_height;
   uint32_t buffer_stride;
 
-  int32_t  mousePosX;
-  int32_t  mousePosY;
-  int32_t  mousePressure;
+  int32_t  pointerPosX;
+  int32_t  pointerPosY;
+  int32_t  pointerPressure;
   int32_t  timestamp;
 
-  float    mouse_wheel_x;
-  float    mouse_wheel_y;
-  uint8_t  mouse_button_status[8];
+  float    pointer_wheel_x;
+  float    pointer_wheel_y;
+  uint8_t  pointer_button_status[8];
 
   bool     is_active;
   bool     is_initialized;

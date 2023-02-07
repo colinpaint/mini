@@ -841,8 +841,8 @@ namespace {
               cLog::log (LOGERROR, fmt::format ("pointerDown - unknown type:{}", pointerInfo.pointerType));
 
             windowData->mod_keys = translateMod();
-            windowData->mouse_button_status[MOUSE_BTN_1] = 1;
-            kCall (mouse_btn_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 1);
+            windowData->pointer_button_status[MOUSE_BTN_1] = 1;
+            kCall (pointer_btn_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 1);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerDown - no info"));
@@ -865,8 +865,8 @@ namespace {
               cLog::log (LOGERROR, fmt::format ("pointerUp - unknown type:{}", pointerInfo.pointerType));
 
             windowData->mod_keys = translateMod();
-            windowData->mouse_button_status[MOUSE_BTN_1] = 0;
-            kCall (mouse_btn_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 0);
+            windowData->pointer_button_status[MOUSE_BTN_1] = 0;
+            kCall (pointer_btn_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 0);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerUp - no info"));
@@ -886,10 +886,10 @@ namespace {
 
               POINT clientPos = pointerInfo.ptPixelLocation;
               ScreenToClient (hWnd, &clientPos);
-              windowData->mousePosX = clientPos.x;
-              windowData->mousePosY = clientPos.y;
-              kCall (mouse_move_func, windowData->mousePosX, windowData->mousePosY,
-                                      windowData->mouse_button_status[MOUSE_BTN_1] * 1024, 0);
+              windowData->pointerPosX = clientPos.x;
+              windowData->pointerPosY = clientPos.y;
+              kCall (pointer_move_func, windowData->pointerPosX, windowData->pointerPosY,
+                                      windowData->pointer_button_status[MOUSE_BTN_1] * 1024, 0);
               }
             else if (pointerInfo.pointerType == PT_PEN) {
               POINTER_PEN_INFO pointerPenInfos[10];
@@ -898,14 +898,14 @@ namespace {
                 windowData_win->mouse_inside = true;
                 for (uint32_t i = entriesCount; i > 0; i--) {
                   ScreenToClient (hWnd, &pointerPenInfos[i-1].pointerInfo.ptPixelLocation);
-                  windowData->mousePosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
-                  windowData->mousePosY = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
-                  windowData->mousePressure = pointerPenInfos[i-1].pressure;
+                  windowData->pointerPosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
+                  windowData->pointerPosY = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
+                  windowData->pointerPressure = pointerPenInfos[i-1].pressure;
                   windowData->timestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
 
-                  kCall (mouse_move_func,
-                         windowData->mousePosX, windowData->mousePosY,
-                         windowData->mousePressure, windowData->timestamp);
+                  kCall (pointer_move_func,
+                         windowData->pointerPosX, windowData->pointerPosY,
+                         windowData->pointerPressure, windowData->timestamp);
 
                   //cLog::log (LOGINFO, fmt::format ("pointerUpdate pen {} {},{} press:{} time:{}",
                   //                                 i, windowData->mousePosX, windowData->mousePosY,
@@ -927,8 +927,8 @@ namespace {
       case WM_POINTERWHEEL:
         if (windowData) {
           cLog::log (LOGINFO, fmt::format ("pointerWheel"));
-          windowData->mouse_wheel_y = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-          kCall (mouse_wheel_func, (mfb_key_mod)translateMod(), 0.0f, windowData->mouse_wheel_y);
+          windowData->pointer_wheel_y = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
+          kCall (pointer_wheel_func, (mfb_key_mod)translateMod(), 0.0f, windowData->pointer_wheel_y);
           }
         else
           cLog::log (LOGERROR, fmt::format ("pointerWheel - no info"));
