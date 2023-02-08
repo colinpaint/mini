@@ -340,25 +340,25 @@ namespace {
         int is_pressed = (event->type == KeyPress);
         windowData->modifierKeys = translateModEx (key_code, event->xkey.state, is_pressed);
 
-        windowData->key_status[key_code] = is_pressed;
-        kCall (key_func, key_code, (eKeyModifier)windowData->modifierKeys, is_pressed);
+        windowData->keyStatus[key_code] = is_pressed;
+        kCall (keyFunc, key_code, (eKeyModifier)windowData->modifierKeys, is_pressed);
 
         if (event->type == KeyPress) {
           KeySym keysym;
           XLookupString (&event->xkey, NULL, 0, &keysym, NULL);
           if ((keysym >= 0x0020 && keysym <= 0x007e) ||
               (keysym >= 0x00a0 && keysym <= 0x00ff)) {
-            kCall (char_func, keysym);
+            kCall (charFunc, keysym);
             }
           else if ((keysym & 0xff000000) == 0x01000000)
             keysym = keysym & 0x00ffffff;
 
-          kCall (char_func, keysym);
+          kCall (charFunc, keysym);
           // TODO: Investigate a bit more the xkbcommon api
           // This does not seem to be working properly
           // unsigned int codepoint = xkb_state_key_get_utf32(state, keysym);
           // if (codepoint != 0)
-          //    kCall(char_input_func, codepoint);
+          //    kCall(char_inputFunc, codepoint);
           }
         }
 
@@ -390,32 +390,32 @@ namespace {
           case Button2:
           case Button3:
             windowData->pointerButtonStatus[button & 0x07] = is_pressed;
-            kCall (pointer_button_func, button, (eKeyModifier) windowData->modifierKeys, is_pressed);
+            kCall (pointer_buttonFunc, button, (eKeyModifier) windowData->modifierKeys, is_pressed);
             break;
 
           case Button4:
             windowData->pointerWheelY = 1.0f;
-            kCall (pointer_wheel_func, (eKeyModifier) windowData->modifierKeys, 0.0f, windowData->pointerWheelY);
+            kCall (pointer_wheelFunc, (eKeyModifier) windowData->modifierKeys, 0.0f, windowData->pointerWheelY);
             break;
 
           case Button5:
             windowData->pointerWheelY = -1.0f;
-            kCall (pointer_wheel_func, (eKeyModifier) windowData->modifierKeys, 0.0f, windowData->pointerWheelY);
+            kCall (pointer_wheelFunc, (eKeyModifier) windowData->modifierKeys, 0.0f, windowData->pointerWheelY);
             break;
 
           case 6:
             windowData->pointerWheelX = 1.0f;
-            kCall (pointer_wheel_func, (eKeyModifier) windowData->modifierKeys, windowData->pointerWheelX, 0.0f);
+            kCall (pointer_wheelFunc, (eKeyModifier) windowData->modifierKeys, windowData->pointerWheelX, 0.0f);
             break;
 
           case 7:
             windowData->pointerWheelX = -1.0f;
-            kCall (pointer_wheel_func, (eKeyModifier) windowData->modifierKeys, windowData->pointerWheelX, 0.0f);
+            kCall (pointer_wheelFunc, (eKeyModifier) windowData->modifierKeys, windowData->pointerWheelX, 0.0f);
             break;
 
           default:
             windowData->pointerButtonStatus[(button - 4) & 0x07] = is_pressed;
-            kCall (pointer_button_func, (ePointerButton) (button - 4), (eKeyModifier) windowData->modifierKeys, is_pressed);
+            kCall (pointer_buttonFunc, (ePointerButton) (button - 4), (eKeyModifier) windowData->modifierKeys, is_pressed);
             break;
           }
         }
@@ -427,7 +427,7 @@ namespace {
       case MotionNotify:
         windowData->pointerPosX = event->xmotion.x;
         windowData->pointerPosY = event->xmotion.y;
-        kCall (pointer_move_func, windowData->pointerPosX, windowData->pointerPosY,
+        kCall (pointer_moveFunc, windowData->pointerPosX, windowData->pointerPosY,
                                   windowData->pointerButtonStatus[Button1] * 1024, 0);
         break;
       //}}}
@@ -440,7 +440,7 @@ namespace {
         resizeDst (windowData, event->xconfigure.width, event->xconfigure.height);
         resizeGL (windowData);
 
-        kCall (resize_func, windowData->window_width, windowData->window_height);
+        kCall (resizeFunc, windowData->window_width, windowData->window_height);
 
         break;
       //}}}
@@ -459,21 +459,21 @@ namespace {
       //{{{
       case FocusIn:
         windowData->isActive = true;
-        kCall (active_func, true);
+        kCall (activeFunc, true);
 
         break;
       //}}}
       //{{{
       case FocusOut:
         windowData->isActive = false;
-        kCall (active_func, false);
+        kCall (activeFunc, false);
 
         break;
       //}}}
 
       //{{{
       case DestroyNotify:
-        windowData->close = true;
+        windowData->closed = true;
         return;
       //}}}
       //{{{
@@ -481,10 +481,10 @@ namespace {
         if ((Atom)event->xclient.data.l[0] == gDeleteWindowAtom) {
           if (windowData) {
             bool destroy = false;
-            if (!windowData->close_func || windowData->close_func ((sMiniWindow*)windowData))
+            if (!windowData->closeFunc || windowData->closeFunc ((sMiniWindow*)windowData))
               destroy = true;
             if (destroy) {
-              windowData->close = true;
+              windowData->closed = true;
               return;
               }
             }
@@ -513,7 +513,7 @@ namespace {
   void processEvents (sWindowData* windowData) {
 
     sWindowDataX11* windowDataX11 = (sWindowDataX11*)windowData->specific;
-    while (!windowData->close && XPending (windowDataX11->display)) {
+    while (!windowData->closed && XPending (windowDataX11->display)) {
       XEvent event;
       XNextEvent (windowDataX11->display, &event);
       processEvent (windowData, &event);
@@ -610,9 +610,9 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
 
   windowData->window_width  = width;
   windowData->window_height = height;
-  windowData->buffer_width  = width;
-  windowData->buffer_height = height;
-  windowData->buffer_stride = width * 4;
+  windowData->bufferWidth  = width;
+  windowData->bufferHeight = height;
+  windowData->bufferStride = width * 4;
   calcDstFactor (windowData, width, height);
 
   int posX, posY;
@@ -803,7 +803,7 @@ eUpdateState updateEx (sMiniWindow* window, void* buffer, unsigned width, unsign
     return STATE_INVALID_WINDOW;
 
   sWindowData* windowData = (sWindowData*)window;
-  if (windowData->close) {
+  if (windowData->closed) {
     freeResources (windowData);
     return STATE_EXIT;
     }
@@ -811,10 +811,10 @@ eUpdateState updateEx (sMiniWindow* window, void* buffer, unsigned width, unsign
   if (buffer == 0x0)
     return STATE_INVALID_BUFFER;
 
-  if (windowData->buffer_width != width || windowData->buffer_height != height) {
-    windowData->buffer_width  = width;
-    windowData->buffer_stride = width * 4;
-    windowData->buffer_height = height;
+  if (windowData->bufferWidth != width || windowData->bufferHeight != height) {
+    windowData->bufferWidth  = width;
+    windowData->bufferStride = width * 4;
+    windowData->bufferHeight = height;
     }
 
   redrawGL (windowData, buffer);
@@ -831,7 +831,7 @@ eUpdateState updateEvents (sMiniWindow* window) {
     return STATE_INVALID_WINDOW;
 
   sWindowData* windowData = (sWindowData*)window;
-  if (windowData->close) {
+  if (windowData->closed) {
     freeResources (windowData);
     return STATE_EXIT;
     }
@@ -852,7 +852,7 @@ bool waitSync (sMiniWindow* window) {
     return false;
 
   sWindowData* windowData = (sWindowData*)window;
-  if (windowData->close) {
+  if (windowData->closed) {
     freeResources (windowData);
     return false;
     }
@@ -882,7 +882,7 @@ bool waitSync (sMiniWindow* window) {
       XNextEvent (windowDataX11->display, &event);
       processEvent (windowData, &event);
 
-      if (windowData->close) {
+      if (windowData->closed) {
         freeResources (windowData);
         return false;
         }

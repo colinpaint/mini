@@ -20,28 +20,28 @@ eUpdateState update (sMiniWindow* window, void *buffer) {
   if (!window)
     return STATE_INVALID_WINDOW;
 
-  return updateEx (window, buffer, ((sWindowData*)(window))->buffer_width, ((sWindowData*)(window))->buffer_height);
+  return updateEx (window, buffer, ((sWindowData*)(window))->bufferWidth, ((sWindowData*)(window))->bufferHeight);
   }
 //}}}
 //{{{
 void setActiveCallback (sMiniWindow* window, activeFuncType callback) {
 
   if (window)
-    ((sWindowData*)(window))->active_func = callback;
+    ((sWindowData*)(window))->activeFunc = callback;
   }
 //}}}
 //{{{
 void setResizeCallback (sMiniWindow* window, resizeFuncType callback) {
 
   if (window)
-    ((sWindowData*)(window))->resize_func = callback;
+    ((sWindowData*)(window))->resizeFunc = callback;
   }
 //}}}
 //{{{
 void setCloseCallback (sMiniWindow* window, closeFuncType callback) {
 
   if (window)
-    ((sWindowData*)(window))->close_func = callback;
+    ((sWindowData*)(window))->closeFunc = callback;
   }
 //}}}
 
@@ -49,14 +49,14 @@ void setCloseCallback (sMiniWindow* window, closeFuncType callback) {
 void setKeyCallback (sMiniWindow* window, keyFuncType callback) {
 
   if (window)
-    ((sWindowData*)(window))->key_func = callback;
+    ((sWindowData*)(window))->keyFunc = callback;
   }
 //}}}
 //{{{
 void setCharCallback (sMiniWindow* window, charFuncType callback) {
 
   if (window)
-    ((sWindowData*)(window))->char_func = callback;
+    ((sWindowData*)(window))->charFunc = callback;
   }
 //}}}
 
@@ -64,21 +64,21 @@ void setCharCallback (sMiniWindow* window, charFuncType callback) {
 void setPointerButtonCallback (sMiniWindow* window, pointerButtonFuncType callback) {
 
   if (window)
-    ((sWindowData*)(window))->pointer_button_func = callback;
+    ((sWindowData*)(window))->pointer_buttonFunc = callback;
   }
 //}}}
 //{{{
 void setPointerMoveCallback (sMiniWindow* window, pointerMoveFuncType callback) {
 
   if (window)
-    ((sWindowData*)(window))->pointer_move_func = callback;
+    ((sWindowData*)(window))->pointer_moveFunc = callback;
   }
 //}}}
 //{{{
 void setPointerWheelCallback (sMiniWindow* window, pointerWheelFuncType callback) {
 
   if (window)
-    ((sWindowData*)(window))->pointer_wheel_func = callback;
+    ((sWindowData*)(window))->pointer_wheelFunc = callback;
   }
 //}}}
 //{{{
@@ -103,7 +103,7 @@ void* getUserData (sMiniWindow* window) { return window ? ((sWindowData*)(window
 void close (sMiniWindow* window) {
 
   if (window)
-    ((sWindowData*)(window))->close = true;
+    ((sWindowData*)(window))->closed = true;
   }
 //}}}
 //{{{
@@ -113,9 +113,9 @@ void keyDefault (sMiniWindow* window, mfb_key key, eKeyModifier mod, bool isPres
   (void)(isPressed);
 
   if (key == KB_KEY_ESCAPE) {
-    if (!((sWindowData*)(window))->close_func ||
-         ((sWindowData*)(window))->close_func ((sMiniWindow*)window))
-      ((sWindowData*)(window))->close = true;
+    if (!((sWindowData*)(window))->closeFunc ||
+         ((sWindowData*)(window))->closeFunc ((sMiniWindow*)window))
+      ((sWindowData*)(window))->closed = true;
     }
   }
 //}}}

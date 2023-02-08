@@ -7,14 +7,14 @@ struct sWindowData {
   void* specific;
   void* user_data;
 
-  activeFuncType         active_func;
-  resizeFuncType         resize_func;
-  closeFuncType          close_func;
-  keyFuncType            key_func;
-  charFuncType           char_func;
-  pointerButtonFuncType  pointer_button_func;
-  pointerMoveFuncType    pointer_move_func;
-  pointerWheelFuncType   pointer_wheel_func;
+  activeFuncType         activeFunc;
+  resizeFuncType         resizeFunc;
+  closeFuncType          closeFunc;
+  keyFuncType            keyFunc;
+  charFuncType           charFunc;
+  pointerButtonFuncType  pointer_buttonFunc;
+  pointerMoveFuncType    pointer_moveFunc;
+  pointerWheelFuncType   pointer_wheelFunc;
   pointerEnterFuncType   pointerEnterFunc;
 
   uint32_t window_width;
@@ -31,9 +31,9 @@ struct sWindowData {
   float    factor_height;
 
   void*    draw_buffer;
-  uint32_t buffer_width;
-  uint32_t buffer_height;
-  uint32_t buffer_stride;
+  uint32_t bufferWidth;
+  uint32_t bufferHeight;
+  uint32_t bufferStride;
 
   int32_t  pointerPosX;
   int32_t  pointerPosY;
@@ -46,8 +46,7 @@ struct sWindowData {
 
   bool     isActive;
   bool     isInitialized;
-
-  bool     close;
+  bool     closed;
 
   uint8_t  keyStatus[512];
   uint32_t modifierKeys;

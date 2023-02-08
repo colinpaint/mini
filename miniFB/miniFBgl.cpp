@@ -265,7 +265,7 @@ void redrawGL (sWindowData* windowData, const void* pixels) {
   //glClear (GL_COLOR_BUFFER_BIT);
   glBindTexture (GL_TEXTURE_2D, windowData->textureId);
   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA,
-                windowData->buffer_width, windowData->buffer_height,
+                windowData->bufferWidth, windowData->bufferHeight,
                 0, format, GL_UNSIGNED_BYTE, pixels);
   //glTexSubImage2D (GL_TEXTURE_2D, 0,
   //                 0, 0, windowData->buffer_width, windowData->buffer_height,
