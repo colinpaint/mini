@@ -15,7 +15,7 @@ struct sWindowData {
   mfb_pointer_button_func pointer_button_func;
   mfb_pointer_move_func   pointer_move_func;
   mfb_pointer_wheel_func  pointer_wheel_func;
-  mfb_pointer_leave_func  pointer_leave_func;
+  pointerEnterFuncType    pointerEnterFunc;
 
   uint32_t window_width;
   uint32_t window_height;

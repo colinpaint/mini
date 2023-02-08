@@ -447,12 +447,12 @@ namespace {
 
       //{{{
       case EnterNotify:
-        kCall (pointer_leave_func, false);
+        kCall (pointerEnterFunc, true);
         break;
       //}}}
       //{{{
       case LeaveNotify:
-        kCall (pointer_leave_func, true);
+        kCall (pointerEnterFunc, false);
         break;
       //}}}
 
@@ -531,7 +531,7 @@ namespace {
   //}}}
   }
 
-// mfb interface
+// interface
 //{{{
 sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
@@ -542,6 +542,7 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     return 0;
     }
     //}}}
+
   sWindowDataX11* windowDataX11 = (sWindowDataX11*)calloc (1, sizeof(sWindowDataX11));
   if (!windowDataX11) {
     //{{{  error, return
@@ -568,8 +569,8 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
   windowDataX11->screen = DefaultScreen (windowDataX11->display);
   Visual* visual = DefaultVisual (windowDataX11->display, windowDataX11->screen);
 
-  int convDepth = -1;
   int formatCount;
+  int convDepth = -1;
   XPixmapFormatValues* formats = XListPixmapFormats (windowDataX11->display, &formatCount);
   int depth = DefaultDepth (windowDataX11->display, windowDataX11->screen);
   Window defaultRootWindow = DefaultRootWindow (windowDataX11->display);
@@ -590,7 +591,7 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     }
     //}}}
 
-  int screenWidth  = DisplayWidth (windowDataX11->display, windowDataX11->screen);
+  int screenWidth = DisplayWidth (windowDataX11->display, windowDataX11->screen);
   int screenHeight = DisplayHeight (windowDataX11->display, windowDataX11->screen);
 
   XSetWindowAttributes windowAttributes;
@@ -611,6 +612,7 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     //{{{  full screen desktop
     posX = 0;
     posY = 0;
+
     windowWidth  = screenWidth;
     windowHeight = screenHeight;
     }
@@ -619,6 +621,7 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     //{{{  window
     posX = (screenWidth  - width)  / 2;
     posY = (screenHeight - height) / 2;
+
     windowWidth  = width;
     windowHeight = height;
     }
@@ -730,59 +733,56 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     }
     //}}}
 
-  //{{{  look at inputDevice list
+  //{{{  search device list for "stylus"
   cLog::log (LOGINFO, fmt::format ("X11 input devices"));
   for (int32_t i = 0; i < count; i++) {
     cLog::log (LOGINFO, fmt::format ("- device:{} name:{} id:{}", i, devices[i].name, devices[i].id));
-    if (!strstr (devices[i].name, "stylus")) // && !strstr (devices[i].name, "eraser"))
-      continue;
+    if (strstr (devices[i].name, "stylus")) { // "eraser"
+      gDevice = XOpenDevice (windowDataX11->display, devices[i].id);
+      XAnyClassPtr classPtr = devices[i].inputclassinfo;
+      for (int32_t j = 0; j < devices[i].num_classes; j++) {
+        switch (classPtr->c_class) {
+          case ValuatorClass: {
+            XValuatorInfo* info = (XValuatorInfo*)classPtr;
+            if (info->num_axes > 0) {
+              // x
+              int32_t minX = info->axes[0].min_value;
+              gRangeX = info->axes[0].max_value;
+              cLog::log (LOGINFO, fmt::format ("- stylus xRange {}:{}", minX, gRangeX));
+              }
 
-    gDevice = XOpenDevice (windowDataX11->display, devices[i].id);
-    XAnyClassPtr classPtr = devices[i].inputclassinfo;
+            if (info->num_axes > 1) {
+              // y
+              int32_t minY = info->axes[1].min_value;
+              gRangeY = info->axes[1].max_value;
+              cLog::log (LOGINFO, fmt::format ("- stylus yRange {}:{}", minY, gRangeY));
+              }
 
-    for (int32_t j = 0; j < devices[i].num_classes; j++) {
-      switch (classPtr->c_class) {
-        case ValuatorClass: {
-          XValuatorInfo* info = (XValuatorInfo*)classPtr;
-          if (info->num_axes > 0) {
-            // x
-            int32_t minX = info->axes[0].min_value;
-            gRangeX = info->axes[0].max_value;
-            cLog::log (LOGINFO, fmt::format ("xRange {} {}", minX, gRangeX));
+            if (info->num_axes > 2) {
+              // pressure
+              int32_t minPressure = info->axes[2].min_value;
+              gMaxPressure = info->axes[2].max_value;
+              cLog::log (LOGINFO, fmt::format ("- stylus pressureRange {}:{}", minPressure, gMaxPressure));
+              }
+
+            XEventClass eventClass;
+            DeviceMotionNotify (gDevice, gMotionType, eventClass);
+            if (eventClass) {
+              gEventClasses[gNumEventClasses] = eventClass;
+              gNumEventClasses++;
+              }
             }
+            break;
 
-          if (info->num_axes > 1) {
-            // y
-            int32_t minY = info->axes[1].min_value;
-            gRangeY = info->axes[1].max_value;
-            cLog::log (LOGINFO, fmt::format ("yRange {} {}", minY, gRangeY));
-            }
-
-          if (info->num_axes > 2) {
-            // pressure
-            int32_t minPressure = info->axes[2].min_value;
-            gMaxPressure = info->axes[2].max_value;
-            cLog::log (LOGINFO, fmt::format ("pressure {} {}", minPressure, gMaxPressure));
-            }
-
-          XEventClass eventClass;
-          DeviceMotionNotify (gDevice, gMotionType, eventClass);
-          if (eventClass) {
-            gEventClasses[gNumEventClasses] = eventClass;
-            gNumEventClasses++;
-            }
+          default:
+            cLog::log (LOGINFO, fmt::format ("- unused class:{}", classPtr->c_class));
+            break;
           }
-          break;
-
-        default:
-          cLog::log (LOGINFO, fmt::format ("  - class {}", classPtr->c_class));
-          break;
+        classPtr = (XAnyClassPtr)((uint8_t*)classPtr + classPtr->length);
         }
-      classPtr = (XAnyClassPtr)((uint8_t*)classPtr + classPtr->length);
       }
     XSelectExtensionEvent (windowDataX11->display, windowDataX11->window, gEventClasses, gNumEventClasses);
     }
-
   XFreeDeviceList (devices);
   //}}}
   cLog::log (LOGINFO, "using X11 API");

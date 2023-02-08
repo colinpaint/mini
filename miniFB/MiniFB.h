@@ -65,7 +65,7 @@ void setCharCallback (sMiniWindow* window, mfb_char_func callback);
 void setPointerButtonCallback (sMiniWindow* window, mfb_pointer_button_func callback);
 void setPointerMoveCallback (sMiniWindow* window, mfb_pointer_move_func callback);
 void setPointerWheelCallback (sMiniWindow* window, mfb_pointer_wheel_func callback);
-void setPointerLeaveCallback (sMiniWindow* window, mfb_pointer_leave_func callback);
+void setPointerEnterCallback (sMiniWindow* window, pointerEnterFuncType callback);
 
 // lambda callbacks
 void setActiveCallback (std::function <void (sMiniWindow*, bool)> func, sMiniWindow* window);
@@ -78,7 +78,7 @@ void setCharCallback (std::function <void (sMiniWindow*, unsigned int)> func, sM
 void setPointerButtonCallback (std::function <void (sMiniWindow*, mfb_pointer_button, mfb_key_mod, bool)> func, sMiniWindow* window);
 void setPointerMoveCallback (std::function <void (sMiniWindow*, int, int, int, int)>func, sMiniWindow* window);
 void setPointerWheelCallback (std::function <void (sMiniWindow*, mfb_key_mod, float, float)> func, sMiniWindow* window);
-void setPointerLeaveCallback (std::function <void (sMiniWindow*, bool)> func, sMiniWindow* window);
+void setPointerEnterCallback (std::function <void (sMiniWindow*, bool)> func, sMiniWindow* window);
 
 // templates
 template <class T> void setActiveCallback (sMiniWindow* window, T* obj,
@@ -97,7 +97,7 @@ template <class T> void setPointerMoveCallback (sMiniWindow* window, T* obj,
                                               void (T::*method)(sMiniWindow*, int, int, int, int));
 template <class T> void setPointerWheelCallback (sMiniWindow* window, T* obj,
                                                void (T::*method)(sMiniWindow*, mfb_key_mod, float, float));
-template <class T> void setPointerLeaveCallback (sMiniWindow* window, T* obj,
+template <class T> void setPointerEnterCallback (sMiniWindow* window, T* obj,
                                                  void (T::*method)(sMiniWindow*, bool));
 
 //{{{
@@ -120,7 +120,7 @@ class mfbStub {
                                     sMiniWindow* window);
   friend void setPointerWheelCallback (std::function <void (sMiniWindow*, mfb_key_mod, float, float)> func,
                                      sMiniWindow* window);
-  friend void setPointerLeaveCallback (std::function <void (sMiniWindow*, bool)> func,
+  friend void setPointerEnterCallback (std::function <void (sMiniWindow*, bool)> func,
                                        sMiniWindow* window);
 
   // templates
@@ -142,7 +142,7 @@ class mfbStub {
                                                        void (T::*method)(sMiniWindow*, int, int, int, int));
   template <class T> friend void setPointerWheelCallback (sMiniWindow* window, T* obj,
                                                         void (T::*method)(sMiniWindow*, mfb_key_mod, float, float));
-  template <class T> friend void setPointerLeaveCallback (sMiniWindow* wndow, T* obj,
+  template <class T> friend void setPointerEnterCallback (sMiniWindow* wndow, T* obj,
                                                           void (T::*method)(sMiniWindow*, bool));
 
   // statics
@@ -158,7 +158,7 @@ class mfbStub {
   static void pointerButtonStub (sMiniWindow* window, mfb_pointer_button button, mfb_key_mod mod, bool isPressed);
   static void pointerMoveStub (sMiniWindow* window, int x, int y, int pressure, int timestamp);
   static void pointerWheelStub (sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY);
-  static void pointerLeaveStub (sMiniWindow* window, bool);
+  static void pointerEnterStub (sMiniWindow* window, bool);
 
   // vars
   sMiniWindow* m_window;
@@ -173,7 +173,7 @@ class mfbStub {
   std::function <void (sMiniWindow* window, mfb_pointer_button, mfb_key_mod, bool)> m_pointer_button;
   std::function <void (sMiniWindow* window, int, int, int, int)> m_pointer_move;
   std::function <void (sMiniWindow* window, mfb_key_mod, float, float)> m_pointer_wheel;
-  std::function <void (sMiniWindow* window, bool)> m_pointer_leave;
+  std::function <void (sMiniWindow* window, bool)> mPointerEnter;
   };
 //}}}
 
@@ -268,13 +268,13 @@ template <class T> inline void setPointerWheelCallback (sMiniWindow* window, T* 
   }
 //}}}
 //{{{
-template <class T> inline void setPointerLeaveCallback (sMiniWindow* window, T* obj,
+template <class T> inline void setPointerEnterCallback (sMiniWindow* window, T* obj,
                                                        void (T::*method)(sMiniWindow* window, bool)) {
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_pointer_leave = std::bind (method, obj, _1, _2);
+  stub->mPointerEnter = std::bind (method, obj, _1, _2);
 
-  setPointerLeaveCallback (window, mfbStub::pointerLeaveStub);
+  setPointerEnterCallback (window, mfbStub::pointerEnterStub);
   }
 //}}}

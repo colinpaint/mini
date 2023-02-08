@@ -82,10 +82,10 @@ void setPointerWheelCallback (sMiniWindow* window, mfb_pointer_wheel_func callba
   }
 //}}}
 //{{{
-void setPointerLeaveCallback (sMiniWindow* window, mfb_pointer_leave_func callback) {
+void setPointerEnterCallback (sMiniWindow* window, pointerEnterFuncType callback) {
 
   if (window)
-    ((sWindowData*)(window))->pointer_leave_func = callback;
+    ((sWindowData*)(window))->pointerEnterFunc = callback;
   }
 //}}}
 
@@ -437,10 +437,10 @@ void mfbStub::pointerWheelStub (sMiniWindow* window, mfb_key_mod mod, float delt
   }
 //}}}
 //{{{
-void mfbStub::pointerLeaveStub (sMiniWindow* window, bool leave) {
+void mfbStub::pointerEnterStub (sMiniWindow* window, bool enter) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_pointer_leave (window, leave);
+  stub->mPointerEnter (window, enter);
   }
 //}}}
 
@@ -528,12 +528,12 @@ void setPointerWheelCallback (std::function <void (sMiniWindow*, mfb_key_mod, fl
   }
 //}}}
 //{{{
-void setPointerLeaveCallback (std::function <void (sMiniWindow*, bool)> func, sMiniWindow *window) {
+void setPointerEnterCallback (std::function <void (sMiniWindow*, bool)> func, sMiniWindow *window) {
 
   using namespace std::placeholders;
 
   mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_pointer_leave = std::bind (func, _1, _2);
-  setPointerLeaveCallback (window, mfbStub::pointerLeaveStub);
+  stub->mPointerEnter = std::bind (func, _1, _2);
+  setPointerEnterCallback (window, mfbStub::pointerEnterStub);
   }
 //}}}

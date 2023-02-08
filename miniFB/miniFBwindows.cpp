@@ -16,7 +16,6 @@
 
 using namespace std;
 //}}}
-
 #ifdef USE_WINTAB
   #include "winTab.h"
   #define PACKETDATA PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE | PK_TIME
@@ -739,18 +738,17 @@ namespace {
       //{{{
       case WM_POINTERENTER:
         cLog::log (LOGINFO, fmt::format ("pointerEnter {:x} {:x}", wParam, lParam));
-        kCall (pointer_leave_func, false);
+        kCall (pointerEnterFunc, true);
         break;
       //}}}
       //{{{
       case WM_POINTERLEAVE:
-        cLog::log (LOGINFO, fmt::format ("pointerLeave {}{}pos:{},{}",
-                                         IS_POINTER_INRANGE_WPARAM(wParam) ? "inRange " : "",
-                                         IS_POINTER_INCONTACT_WPARAM(wParam) ? "inContact " : "",
-                                         GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) ));
-
+        //cLog::log (LOGINFO, fmt::format ("pointerleave {}{}pos:{},{}",
+        //                                 IS_POINTER_INRANGE_WPARAM(wParam) ? "inRange " : "",
+        //                                 IS_POINTER_INCONTACT_WPARAM(wParam) ? "inContact " : "",
+        //                                 GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) ));
         windowData_win->pointerInside = false;
-        kCall (pointer_leave_func, true);
+        kCall (pointerEnterFunc, false);
 
         break;
       //}}}
@@ -1235,6 +1233,7 @@ bool setViewport (sMiniWindow* window, unsigned offset_x, unsigned offset_y, uns
 
   float scale_x, scale_y;
   getWindowsMonitorScale (windowData_win->window, &scale_x, &scale_y);
+
   windowData->dst_offset_x = (uint32_t)(offset_x * scale_x);
   windowData->dst_offset_y = (uint32_t)(offset_y * scale_y);
 
@@ -1266,8 +1265,8 @@ bool waitSync (sMiniWindow* window) {
     return true;
 
   sWindowDataWindows* windowData_win = (sWindowDataWindows*)windowData->specific;
-  double current;
 
+  double current;
   while (true) {
     current = timerNow (windowData->timer);
     if (current >= gTimeForFrame) {
