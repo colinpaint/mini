@@ -768,7 +768,7 @@ namespace {
 
             windowData->modifierKeys = translateMod();
             windowData->pointerButtonStatus[MOUSE_BTN_1] = 1;
-            kCall (pointer_buttonFunc, MOUSE_BTN_1, (eKeyModifier)windowData->modifierKeys, 1);
+            kCall (pointerButtonFunc, MOUSE_BTN_1, (eKeyModifier)windowData->modifierKeys, 1);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerDown - no info"));
@@ -792,7 +792,7 @@ namespace {
 
             windowData->modifierKeys = translateMod();
             windowData->pointerButtonStatus[MOUSE_BTN_1] = 0;
-            kCall (pointer_buttonFunc, MOUSE_BTN_1, (eKeyModifier)windowData->modifierKeys, 0);
+            kCall (pointerButtonFunc, MOUSE_BTN_1, (eKeyModifier)windowData->modifierKeys, 0);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerUp - no info"));
@@ -886,7 +886,7 @@ namespace {
               ScreenToClient (hWnd, &clientPos);
               windowData->pointerPosX = clientPos.x;
               windowData->pointerPosY = clientPos.y;
-              kCall (pointer_moveFunc, windowData->pointerPosX, windowData->pointerPosY,
+              kCall (pointerMoveFunc, windowData->pointerPosX, windowData->pointerPosY,
                                       windowData->pointerButtonStatus[MOUSE_BTN_1] * 1024, 0);
               }
             else if (pointerInfo.pointerType == PT_PEN) {
@@ -901,7 +901,7 @@ namespace {
                   windowData->pointerPressure = pointerPenInfos[i-1].pressure;
                   windowData->timestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
 
-                  kCall (pointer_moveFunc,
+                  kCall (pointerMoveFunc,
                          windowData->pointerPosX, windowData->pointerPosY,
                          windowData->pointerPressure, windowData->timestamp);
 
@@ -926,7 +926,7 @@ namespace {
         if (windowData) {
           cLog::log (LOGINFO, fmt::format ("pointerWheel"));
           windowData->pointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-          kCall (pointer_wheelFunc, (eKeyModifier)translateMod(), 0.0f, windowData->pointerWheelY);
+          kCall (pointerWheelFunc, (eKeyModifier)translateMod(), 0.0f, windowData->pointerWheelY);
           }
         else
           cLog::log (LOGERROR, fmt::format ("pointerWheel - no info"));

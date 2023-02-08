@@ -390,32 +390,32 @@ namespace {
           case Button2:
           case Button3:
             windowData->pointerButtonStatus[button & 0x07] = is_pressed;
-            kCall (pointer_buttonFunc, button, (eKeyModifier) windowData->modifierKeys, is_pressed);
+            kCall (pointerButtonFunc, button, (eKeyModifier) windowData->modifierKeys, is_pressed);
             break;
 
           case Button4:
             windowData->pointerWheelY = 1.0f;
-            kCall (pointer_wheelFunc, (eKeyModifier) windowData->modifierKeys, 0.0f, windowData->pointerWheelY);
+            kCall (pointerWheelFunc, (eKeyModifier) windowData->modifierKeys, 0.0f, windowData->pointerWheelY);
             break;
 
           case Button5:
             windowData->pointerWheelY = -1.0f;
-            kCall (pointer_wheelFunc, (eKeyModifier) windowData->modifierKeys, 0.0f, windowData->pointerWheelY);
+            kCall (pointerWheelFunc, (eKeyModifier) windowData->modifierKeys, 0.0f, windowData->pointerWheelY);
             break;
 
           case 6:
             windowData->pointerWheelX = 1.0f;
-            kCall (pointer_wheelFunc, (eKeyModifier) windowData->modifierKeys, windowData->pointerWheelX, 0.0f);
+            kCall (pointerWheelFunc, (eKeyModifier) windowData->modifierKeys, windowData->pointerWheelX, 0.0f);
             break;
 
           case 7:
             windowData->pointerWheelX = -1.0f;
-            kCall (pointer_wheelFunc, (eKeyModifier) windowData->modifierKeys, windowData->pointerWheelX, 0.0f);
+            kCall (pointerWheelFunc, (eKeyModifier) windowData->modifierKeys, windowData->pointerWheelX, 0.0f);
             break;
 
           default:
             windowData->pointerButtonStatus[(button - 4) & 0x07] = is_pressed;
-            kCall (pointer_buttonFunc, (ePointerButton) (button - 4), (eKeyModifier) windowData->modifierKeys, is_pressed);
+            kCall (pointerButtonFunc, (ePointerButton) (button - 4), (eKeyModifier) windowData->modifierKeys, is_pressed);
             break;
           }
         }
@@ -427,8 +427,8 @@ namespace {
       case MotionNotify:
         windowData->pointerPosX = event->xmotion.x;
         windowData->pointerPosY = event->xmotion.y;
-        kCall (pointer_moveFunc, windowData->pointerPosX, windowData->pointerPosY,
-                                  windowData->pointerButtonStatus[Button1] * 1024, 0);
+        kCall (pointerMoveFunc, windowData->pointerPosX, windowData->pointerPosY,
+                                windowData->pointerButtonStatus[Button1] * 1024, 0);
         break;
       //}}}
 

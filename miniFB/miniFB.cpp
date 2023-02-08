@@ -64,21 +64,21 @@ void setCharCallback (sMiniWindow* window, charFuncType callback) {
 void setPointerButtonCallback (sMiniWindow* window, pointerButtonFuncType callback) {
 
   if (window)
-    ((sWindowData*)(window))->pointer_buttonFunc = callback;
+    ((sWindowData*)(window))->pointerButtonFunc = callback;
   }
 //}}}
 //{{{
 void setPointerMoveCallback (sMiniWindow* window, pointerMoveFuncType callback) {
 
   if (window)
-    ((sWindowData*)(window))->pointer_moveFunc = callback;
+    ((sWindowData*)(window))->pointerMoveFunc = callback;
   }
 //}}}
 //{{{
 void setPointerWheelCallback (sMiniWindow* window, pointerWheelFuncType callback) {
 
   if (window)
-    ((sWindowData*)(window))->pointer_wheelFunc = callback;
+    ((sWindowData*)(window))->pointerWheelFunc = callback;
   }
 //}}}
 //{{{

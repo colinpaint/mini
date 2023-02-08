@@ -12,9 +12,9 @@ struct sWindowData {
   closeFuncType          closeFunc;
   keyFuncType            keyFunc;
   charFuncType           charFunc;
-  pointerButtonFuncType  pointer_buttonFunc;
-  pointerMoveFuncType    pointer_moveFunc;
-  pointerWheelFuncType   pointer_wheelFunc;
+  pointerButtonFuncType  pointerButtonFunc;
+  pointerMoveFuncType    pointerMoveFunc;
+  pointerWheelFuncType   pointerWheelFunc;
   pointerEnterFuncType   pointerEnterFunc;
 
   uint32_t window_width;
