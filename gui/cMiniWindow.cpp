@@ -80,7 +80,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // keyboard callbacks
   //{{{
-  setKeyCallback ([&](sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
+  setKeyCallback ([&](sMiniWindow* window, mfb_key key, eKeyModifier mod, bool isPressed) {
 
       if (key == KB_KEY_ESCAPE)
         close (window);
@@ -103,7 +103,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // mouse callbacks
   //{{{
-  setPointerButtonCallback ([&](sMiniWindow* window, mfb_pointer_button button, mfb_key_mod mod, bool isPressed) {
+  setPointerButtonCallback ([&](sMiniWindow* window, ePointerButton button, eKeyModifier mod, bool isPressed) {
 
       (void)mod;
       //cLog::log (LOGINFO, fmt::format ("mouseButton {} button:{} pressed:{} at:{} {} mod:{}",
@@ -155,7 +155,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setPointerWheelCallback ([&](sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
+  setPointerWheelCallback ([&](sMiniWindow* window, eKeyModifier mod, float deltaX, float deltaY) {
       // lambda
       (void)window;
       (void)mod;

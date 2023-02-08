@@ -646,7 +646,7 @@ namespace {
             return 0;
 
           windowData->key_status[key_code] = (uint8_t)is_pressed;
-          kCall (key_func, key_code, (mfb_key_mod)windowData->mod_keys, is_pressed);
+          kCall (key_func, key_code, (eKeyModifier)windowData->mod_keys, is_pressed);
           }
 
         break;
@@ -768,7 +768,7 @@ namespace {
 
             windowData->mod_keys = translateMod();
             windowData->pointerButtonStatus[MOUSE_BTN_1] = 1;
-            kCall (pointer_button_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 1);
+            kCall (pointer_button_func, MOUSE_BTN_1, (eKeyModifier)windowData->mod_keys, 1);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerDown - no info"));
@@ -792,7 +792,7 @@ namespace {
 
             windowData->mod_keys = translateMod();
             windowData->pointerButtonStatus[MOUSE_BTN_1] = 0;
-            kCall (pointer_button_func, MOUSE_BTN_1, (mfb_key_mod)windowData->mod_keys, 0);
+            kCall (pointer_button_func, MOUSE_BTN_1, (eKeyModifier)windowData->mod_keys, 0);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerUp - no info"));
@@ -926,7 +926,7 @@ namespace {
         if (windowData) {
           cLog::log (LOGINFO, fmt::format ("pointerWheel"));
           windowData->pointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-          kCall (pointer_wheel_func, (mfb_key_mod)translateMod(), 0.0f, windowData->pointerWheelY);
+          kCall (pointer_wheel_func, (eKeyModifier)translateMod(), 0.0f, windowData->pointerWheelY);
           }
         else
           cLog::log (LOGERROR, fmt::format ("pointerWheel - no info"));
@@ -976,7 +976,7 @@ namespace {
     }
   //}}}
   //{{{
-  void freeWindow (sWindowData* windowData) {
+  void freeResources (sWindowData* windowData) {
 
     if (!windowData)
       return;
@@ -1153,14 +1153,14 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
   }
 //}}}
 //{{{
-mfb_update_state updateEx (sMiniWindow* window, void* buffer, unsigned width, unsigned height) {
+eUpdateState updateEx (sMiniWindow* window, void* buffer, unsigned width, unsigned height) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
 
   sWindowData* windowData = (sWindowData*)window;
   if (windowData->close) {
-    freeWindow (windowData);
+    freeResources (windowData);
     return STATE_EXIT;
     }
 
@@ -1177,14 +1177,14 @@ mfb_update_state updateEx (sMiniWindow* window, void* buffer, unsigned width, un
   }
 //}}}
 //{{{
-mfb_update_state updateEvents (sMiniWindow* window) {
+eUpdateState updateEvents (sMiniWindow* window) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
 
   sWindowData* windowData = (sWindowData*)window;
   if (windowData->close) {
-    freeWindow (windowData);
+    freeResources (windowData);
     return STATE_EXIT;
     }
 
@@ -1199,7 +1199,6 @@ mfb_update_state updateEvents (sMiniWindow* window) {
   }
 //}}}
 
-// viewport
 //{{{
 void getMonitorScale (sMiniWindow* window, float* scale_x, float* scale_y) {
 
@@ -1246,7 +1245,6 @@ bool setViewport (sMiniWindow* window, unsigned offset_x, unsigned offset_y, uns
   }
 //}}}
 
-// sync
 //{{{
 bool waitSync (sMiniWindow* window) {
 
@@ -1256,7 +1254,7 @@ bool waitSync (sMiniWindow* window) {
   sWindowData* windowData = (sWindowData*)window;
   if (windowData->close) {
     //{{{  return false
-    freeWindow (windowData);
+    freeResources (windowData);
     return false;
     }
     //}}}
@@ -1285,7 +1283,7 @@ bool waitSync (sMiniWindow* window) {
 
         if (windowData->close) {
           //{{{  return false
-          freeWindow (windowData);
+          freeResources (windowData);
           return false;
           }
           //}}}
@@ -1297,7 +1295,6 @@ bool waitSync (sMiniWindow* window) {
   }
 //}}}
 
-// timer
 //{{{
 void timerInit() {
 

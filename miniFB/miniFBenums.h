@@ -1,36 +1,31 @@
 #pragma once
 #include <cstdint>
 
-enum mfb_update_state { STATE_OK             =  0,
-                        STATE_EXIT           = -1,
-                        STATE_INVALID_WINDOW = -2,
-                        STATE_INVALID_BUFFER = -3,
-                        STATE_INTERNAL_ERROR = -4
-                      };
+enum eUpdateState { STATE_OK             =  0,
+                    STATE_EXIT           = -1,
+                    STATE_INVALID_WINDOW = -2,
+                    STATE_INVALID_BUFFER = -3,
+                    STATE_INTERNAL_ERROR = -4 };
 
-enum mfb_pointer_button { MOUSE_BTN_0, // No mouse button
-                          MOUSE_BTN_1, MOUSE_BTN_2, MOUSE_BTN_3,
-                          MOUSE_BTN_4, MOUSE_BTN_5, MOUSE_BTN_6, MOUSE_BTN_7
-                        };
+enum ePointerButton { MOUSE_BTN_0, MOUSE_BTN_1, MOUSE_BTN_2, MOUSE_BTN_3,
+                      MOUSE_BTN_4, MOUSE_BTN_5, MOUSE_BTN_6, MOUSE_BTN_7 };
 
 #define MOUSE_LEFT   MOUSE_BTN_1
 #define MOUSE_RIGHT  MOUSE_BTN_2
 #define MOUSE_MIDDLE MOUSE_BTN_3
 
-enum mfb_key_mod { KB_MOD_SHIFT     = 0x0001,
-                   KB_MOD_CONTROL   = 0x0002,
-                   KB_MOD_ALT       = 0x0004,
-                   KB_MOD_SUPER     = 0x0008,
-                   KB_MOD_CAPS_LOCK = 0x0010,
-                   KB_MOD_NUM_LOCK  = 0x0020
-                 };
+enum eKeyModifier { KB_MOD_SHIFT     = 0x0001,
+                    KB_MOD_CONTROL   = 0x0002,
+                    KB_MOD_ALT       = 0x0004,
+                    KB_MOD_SUPER     = 0x0008,
+                    KB_MOD_CAPS_LOCK = 0x0010,
+                    KB_MOD_NUM_LOCK  = 0x0020 };
 
 enum sMiniWindow_flags { WF_RESIZABLE          = 0x01,
                          WF_FULLSCREEN         = 0x02,
                          WF_FULLSCREEN_DESKTOP = 0x04,
                          WF_BORDERLESS         = 0x08,
-                         WF_ALWAYS_ON_TOP      = 0x10
-                       };
+                         WF_ALWAYS_ON_TOP      = 0x10 };
 //{{{
 enum mfb_key {
   KB_KEY_UNKNOWN       = -1,
@@ -169,10 +164,10 @@ typedef void(*activeFuncType)(sMiniWindow* window, bool isActive);
 typedef void(*resizeFuncType)(sMiniWindow* window, int width, int height);
 typedef bool(*closeFuncType)(sMiniWindow* window);
 
-typedef void(*keyFuncType)(sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed);
+typedef void(*keyFuncType)(sMiniWindow* window, mfb_key key, eKeyModifier mod, bool isPressed);
 typedef void(*charFuncType)(sMiniWindow* window, unsigned int code);
 
-typedef void(*pointerButtonFuncType)(sMiniWindow* window, mfb_pointer_button button, mfb_key_mod mod, bool isPressed);
+typedef void(*pointerButtonFuncType)(sMiniWindow* window, ePointerButton button, eKeyModifier mod, bool isPressed);
 typedef void(*pointerMoveFuncType)(sMiniWindow* window, int x, int y, int pressure, int timestamp);
-typedef void(*pointerWheelFuncType)(sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY);
+typedef void(*pointerWheelFuncType)(sMiniWindow* window, eKeyModifier mod, float deltaX, float deltaY);
 typedef void(*pointerEnterFuncType)(sMiniWindow* window, bool enter);

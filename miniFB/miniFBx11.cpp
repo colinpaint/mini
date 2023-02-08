@@ -41,8 +41,8 @@ namespace {
   Atom gDeleteWindowAtom;
   XDevice* gDevice = nullptr;
   uint32_t gMotionType = 0;
-  XEventClass gEventClasses[1024];
   uint32_t gNumEventClasses = 0;
+  XEventClass gEventClasses[16];
   int32_t gRangeX = 0;
   int32_t gRangeY = 0;
   int32_t gMaxPressure = 0;
@@ -341,7 +341,7 @@ namespace {
         windowData->mod_keys = translateModEx (key_code, event->xkey.state, is_pressed);
 
         windowData->key_status[key_code] = is_pressed;
-        kCall (key_func, key_code, (mfb_key_mod)windowData->mod_keys, is_pressed);
+        kCall (key_func, key_code, (eKeyModifier)windowData->mod_keys, is_pressed);
 
         if (event->type == KeyPress) {
           KeySym keysym;
@@ -369,7 +369,7 @@ namespace {
       //{{{
       case ButtonRelease:
         {
-        mfb_pointer_button button = (mfb_pointer_button)event->xbutton.button;
+        ePointerButton button = (ePointerButton)event->xbutton.button;
         int is_pressed = (event->type == ButtonPress);
         windowData->mod_keys = translateMod (event->xkey.state);
 
@@ -377,10 +377,10 @@ namespace {
         // https://github.com/emoon/minifb/issues/65
         switch (button) {
           case Button2:
-            button = (mfb_pointer_button)Button3;
+            button = (ePointerButton)Button3;
             break;
           case Button3:
-            button = (mfb_pointer_button)Button2;
+            button = (ePointerButton)Button2;
             break;
           default:;
           }
@@ -390,32 +390,32 @@ namespace {
           case Button2:
           case Button3:
             windowData->pointerButtonStatus[button & 0x07] = is_pressed;
-            kCall (pointer_button_func, button, (mfb_key_mod) windowData->mod_keys, is_pressed);
+            kCall (pointer_button_func, button, (eKeyModifier) windowData->mod_keys, is_pressed);
             break;
 
           case Button4:
             windowData->pointerWheelY = 1.0f;
-            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, 0.0f, windowData->pointerWheelY);
+            kCall (pointer_wheel_func, (eKeyModifier) windowData->mod_keys, 0.0f, windowData->pointerWheelY);
             break;
 
           case Button5:
             windowData->pointerWheelY = -1.0f;
-            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, 0.0f, windowData->pointerWheelY);
+            kCall (pointer_wheel_func, (eKeyModifier) windowData->mod_keys, 0.0f, windowData->pointerWheelY);
             break;
 
           case 6:
             windowData->pointerWheelX = 1.0f;
-            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, windowData->pointerWheelX, 0.0f);
+            kCall (pointer_wheel_func, (eKeyModifier) windowData->mod_keys, windowData->pointerWheelX, 0.0f);
             break;
 
           case 7:
             windowData->pointerWheelX = -1.0f;
-            kCall (pointer_wheel_func, (mfb_key_mod) windowData->mod_keys, windowData->pointerWheelX, 0.0f);
+            kCall (pointer_wheel_func, (eKeyModifier) windowData->mod_keys, windowData->pointerWheelX, 0.0f);
             break;
 
           default:
             windowData->pointerButtonStatus[(button - 4) & 0x07] = is_pressed;
-            kCall (pointer_button_func, (mfb_pointer_button) (button - 4), (mfb_key_mod) windowData->mod_keys, is_pressed);
+            kCall (pointer_button_func, (ePointerButton) (button - 4), (eKeyModifier) windowData->mod_keys, is_pressed);
             break;
           }
         }
@@ -496,10 +496,12 @@ namespace {
       default:
         if (event->type == (int)gMotionType) {
           XDeviceMotionEvent* motionEvent = (XDeviceMotionEvent*)(event);
-          int posX = motionEvent->x;
-          int posY = motionEvent->y;
+          //int posX = motionEvent->x;
+          //int posY = motionEvent->y;
+          int posX = motionEvent->axis_data[0];
+          int posY = motionEvent->axis_data[1];
           int pressure = motionEvent->axis_data[2];
-          cLog::log (LOGINFO, fmt::format ("tablet event {} {} {}", posX, posY, pressure));
+          cLog::log (LOGINFO, fmt::format ("tablet motionEvent {},{} {}", posX, posY, pressure));
           }
         else
           cLog::log (LOGINFO, fmt::format ("unused event {}", event->type));
@@ -519,7 +521,13 @@ namespace {
     }
   //}}}
   //{{{
-  void freeWindow (sWindowData* windowData)  {
+  void freeResources (sWindowData* windowData)  {
+
+    if (gDevice) {
+      sWindowDataX11* windowDataX11 = (sWindowDataX11*)windowData->specific;
+      if (windowDataX11)
+        XCloseDevice (windowDataX11->display, gDevice);
+      }
 
     if (windowData) {
       destroyGLcontext (windowData);
@@ -568,7 +576,7 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
 
   windowDataX11->screen = DefaultScreen (windowDataX11->display);
   Visual* visual = DefaultVisual (windowDataX11->display, windowDataX11->screen);
-
+  //{{{  set format
   int formatCount;
   int convDepth = -1;
   XPixmapFormatValues* formats = XListPixmapFormats (windowDataX11->display, &formatCount);
@@ -590,7 +598,8 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     return 0;
     }
     //}}}
-
+  //}}}
+  //{{{  set width, height
   int screenWidth = DisplayWidth (windowDataX11->display, windowDataX11->screen);
   int screenHeight = DisplayHeight (windowDataX11->display, windowDataX11->screen);
 
@@ -626,15 +635,11 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     windowHeight = height;
     }
     //}}}
+  //}}}
 
-  windowDataX11->window = XCreateWindow (windowDataX11->display,
-                                         defaultRootWindow,
-                                         posX, posY,
-                                         windowWidth, windowHeight,
-                                         0,
-                                         depth,
-                                         InputOutput,
-                                         visual,
+  windowDataX11->window = XCreateWindow (windowDataX11->display, defaultRootWindow,
+                                         posX, posY, windowWidth, windowHeight,
+                                         0, depth, InputOutput, visual,
                                          CWBackPixel | CWBorderPixel | CWBackingStore,
                                          &windowAttributes);
   if (!windowDataX11->window) {
@@ -694,6 +699,7 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     }
     //}}}
 
+  //{{{  set sizeHints
   XSizeHints sizeHints;
   sizeHints.flags = PPosition | PMinSize | PMaxSize;
   sizeHints.x = 0;
@@ -712,17 +718,14 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     sizeHints.max_height = height;
     }
     //}}}
-
   XSetWMNormalHints (windowDataX11->display, windowDataX11->window, &sizeHints);
-
+  //}}}
   XClearWindow (windowDataX11->display, windowDataX11->window);
   XMapRaised (windowDataX11->display, windowDataX11->window);
   XFlush (windowDataX11->display);
 
   windowDataX11->gc = DefaultGC (windowDataX11->display, windowDataX11->screen);
-  windowData->timer = timerCreate();
-
-  setKeyCallback ((sMiniWindow*)windowData, keyDefault);
+  cLog::log (LOGINFO, "using X11 API");
 
   int32_t count;
   XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (windowDataX11->display, &count);
@@ -732,9 +735,9 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     return 0;
     }
     //}}}
-
   //{{{  search device list for "stylus"
   cLog::log (LOGINFO, fmt::format ("X11 input devices"));
+
   for (int32_t i = 0; i < count; i++) {
     cLog::log (LOGINFO, fmt::format ("- device:{} name:{} id:{}", i, devices[i].name, devices[i].id));
     if (strstr (devices[i].name, "stylus")) { // "eraser"
@@ -785,21 +788,23 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     }
   XFreeDeviceList (devices);
   //}}}
-  cLog::log (LOGINFO, "using X11 API");
+
+  windowData->timer = timerCreate();
+  setKeyCallback ((sMiniWindow*)windowData, keyDefault);
 
   windowData->is_initialized = true;
   return (sMiniWindow*)windowData;
   }
 //}}}
 //{{{
-mfb_update_state updateEx (sMiniWindow* window, void* buffer, unsigned width, unsigned height) {
+eUpdateState updateEx (sMiniWindow* window, void* buffer, unsigned width, unsigned height) {
 
   if (window == 0x0)
     return STATE_INVALID_WINDOW;
 
   sWindowData* windowData = (sWindowData*)window;
   if (windowData->close) {
-    freeWindow (windowData);
+    freeResources (windowData);
     return STATE_EXIT;
     }
 
@@ -820,14 +825,14 @@ mfb_update_state updateEx (sMiniWindow* window, void* buffer, unsigned width, un
   }
 //}}}
 //{{{
-mfb_update_state updateEvents (sMiniWindow* window) {
+eUpdateState updateEvents (sMiniWindow* window) {
 
   if (window == 0x0)
     return STATE_INVALID_WINDOW;
 
   sWindowData* windowData = (sWindowData*)window;
   if (windowData->close) {
-    freeWindow (windowData);
+    freeResources (windowData);
     return STATE_EXIT;
     }
 
@@ -848,7 +853,7 @@ bool waitSync (sMiniWindow* window) {
 
   sWindowData* windowData = (sWindowData*)window;
   if (windowData->close) {
-    freeWindow (windowData);
+    freeResources (windowData);
     return false;
     }
 
@@ -878,7 +883,7 @@ bool waitSync (sMiniWindow* window) {
       processEvent (windowData, &event);
 
       if (windowData->close) {
-        freeWindow (windowData);
+        freeResources (windowData);
         return false;
         }
       }

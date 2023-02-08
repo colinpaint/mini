@@ -15,7 +15,7 @@ sMiniWindow* open (const char* title, unsigned width, unsigned height) {
 //}}}
 
 //{{{
-mfb_update_state update (sMiniWindow* window, void *buffer) {
+eUpdateState update (sMiniWindow* window, void *buffer) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
@@ -107,7 +107,7 @@ void close (sMiniWindow* window) {
   }
 //}}}
 //{{{
-void keyDefault (sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
+void keyDefault (sMiniWindow* window, mfb_key key, eKeyModifier mod, bool isPressed) {
 
   (void)(mod);
   (void)(isPressed);
@@ -401,7 +401,7 @@ bool mfbStub::closeStub (sMiniWindow* window) {
 //}}}
 
 //{{{
-void mfbStub::keyStub (sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed) {
+void mfbStub::keyStub (sMiniWindow* window, mfb_key key, eKeyModifier mod, bool isPressed) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
   stub->m_key (window, key, mod, isPressed);
@@ -416,7 +416,7 @@ void mfbStub::charStub (sMiniWindow* window, unsigned int code) {
 //}}}
 
 //{{{
-void mfbStub::pointerButtonStub (sMiniWindow* window, mfb_pointer_button button, mfb_key_mod mod, bool isPressed) {
+void mfbStub::pointerButtonStub (sMiniWindow* window, ePointerButton button, eKeyModifier mod, bool isPressed) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
   stub->m_pointer_button (window, button, mod, isPressed);
@@ -430,7 +430,7 @@ void mfbStub::pointerMoveStub (sMiniWindow* window, int x, int y, int pressure, 
   }
 //}}}
 //{{{
-void mfbStub::pointerWheelStub (sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY) {
+void mfbStub::pointerWheelStub (sMiniWindow* window, eKeyModifier mod, float deltaX, float deltaY) {
 
   mfbStub* stub = mfbStub::GetInstance (window);
   stub->m_pointer_wheel (window, mod, deltaX, deltaY);
@@ -477,7 +477,7 @@ void setCloseCallback (std::function <bool (sMiniWindow*)> func, sMiniWindow* wi
 //}}}
 
 //{{{
-void setKeyCallback (std::function <void (sMiniWindow*, mfb_key, mfb_key_mod, bool)> func, sMiniWindow *window) {
+void setKeyCallback (std::function <void (sMiniWindow*, mfb_key, eKeyModifier, bool)> func, sMiniWindow *window) {
 
   using namespace std::placeholders;
 
@@ -498,7 +498,7 @@ void setCharCallback (std::function <void (sMiniWindow*, unsigned int)> func, sM
 //}}}
 
 //{{{
-void setPointerButtonCallback (std::function <void (sMiniWindow*, mfb_pointer_button, mfb_key_mod, bool)> func, sMiniWindow *window) {
+void setPointerButtonCallback (std::function <void (sMiniWindow*, ePointerButton, eKeyModifier, bool)> func, sMiniWindow *window) {
 
   using namespace std::placeholders;
 
@@ -518,7 +518,7 @@ void setPointerMoveCallback (std::function <void (sMiniWindow*, int, int, int, i
   }
 //}}}
 //{{{
-void setPointerWheelCallback (std::function <void (sMiniWindow*, mfb_key_mod, float, float)> func, sMiniWindow *window) {
+void setPointerWheelCallback (std::function <void (sMiniWindow*, eKeyModifier, float, float)> func, sMiniWindow *window) {
 
   using namespace std::placeholders;
 
