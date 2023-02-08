@@ -103,6 +103,9 @@ uint8_t cPaintLayer::getPaintShape (float i, float j, float radius, float pressu
 //{{{
 void cPaintLayer::setRadius (float radius) {
 
+  mOverlap = 0.25f;
+  mMaxPressure = 0.5f;
+
   mRadius = radius;
   mShapeRadius = static_cast<unsigned>(ceil(radius));
   mShapeSize = (2 * mShapeRadius) + 1;
@@ -110,20 +113,53 @@ void cPaintLayer::setRadius (float radius) {
   mSubPixels = 4;
   mSubPixelResolution = 1.f / mSubPixels;
 
-  for (int ySub = 0; ySub < mSubPixels; ySub++) {
-    for (int xSub = 0; xSub < mSubPixels; xSub++) {
-      mBrushShapes [(ySub * mSubPixels) + xSub].release();
-      mBrushShapes [(ySub * mSubPixels) + xSub].createPixels (mShapeSize, mShapeSize);
-      uint8_t* shape = mBrushShapes [(ySub * mSubPixels) + xSub].getPixels();
+  // subPixel array
+  for (int ySubPixel = 0; ySubPixel < mSubPixels; ySubPixel++) {
+    for (int xSubPixel = 0; xSubPixel < mSubPixels; xSubPixel++) {
+      mBrushShapes [(ySubPixel * mSubPixels) + xSubPixel].release();
+      mBrushShapes [(ySubPixel * mSubPixels) + xSubPixel].createPixels (mShapeSize, mShapeSize);
+      uint8_t* shape = mBrushShapes [(ySubPixel * mSubPixels) + xSubPixel].getPixels();
       for (int j = -mShapeRadius; j <= mShapeRadius; j++)
         for (int i = -mShapeRadius; i <= mShapeRadius; i++)
-          *shape++ = getPaintShape (i - (xSub * mSubPixelResolution), j - (ySub * mSubPixelResolution), mRadius, 128.f);
+          *shape++ = getPaintShape (i - (xSubPixel * mSubPixelResolution),
+                                    j - (ySubPixel * mSubPixelResolution), mRadius, 255 * mMaxPressure);
       }
     }
+
+  // single shape
+  mBrushShape.release();
+  mBrushShape.createPixels (mShapeSize, mShapeSize);
   }
 //}}}
 //{{{
 void cPaintLayer::stamp (cWindow& window, const cColor& color, cPoint pos, int pressure) {
+// stamp brushShape into image
+
+  (void)pressure;
+
+  // !!!! does this behave correctly as we go negative !!!
+  int32_t xInt = static_cast<int32_t>(pos.x);
+  float xSubPixel = pos.x - xInt;
+
+  int32_t yInt = static_cast<int32_t>(pos.y);
+  float ySubPixel = pos.y - yInt;
+
+  // calc subPixel brush shape
+  uint8_t* shape = mBrushShape.getPixels();
+  for (int j = -mShapeRadius; j <= mShapeRadius; j++)
+    for (int i = -mShapeRadius; i <= mShapeRadius; i++)
+      *shape++ = getPaintShape (i - (xSubPixel * mSubPixelResolution),
+                                j - (ySubPixel * mSubPixelResolution), mRadius,
+                                (255.f * pressure * mMaxPressure) / 1024.f);
+
+  // stamp to point
+  window.stamp (color, mBrushShape, cPoint(xInt, yInt) - cPoint (mShapeRadius, mShapeRadius));
+
+  mPrevPos = pos;
+  }
+//}}}
+//{{{
+void cPaintLayer::stampPreCalc (cWindow& window, const cColor& color, cPoint pos, int pressure) {
 // stamp brushShape into image
   (void)pressure;
 
@@ -155,7 +191,7 @@ void cPaintLayer::paint (cWindow& window, const cColor& color, cPoint pos, int p
     // draw stamps from mPrevPos to pos
     cPoint diff = pos - mPrevPos;
     float length = diff.magnitude();
-    float overlap = mRadius / 2.f;
+    float overlap = mRadius * mOverlap;
 
     if (length >= overlap) {
       cPoint inc = diff * (overlap / length);
@@ -264,7 +300,7 @@ void cStrokeLayer::draw (cWindow& window) {
       first = false;
       }
     else {
-      cPoint perp = (brushPoint.mPos - lastPos).perp() * 16.f;
+      cPoint perp = (brushPoint.mPos - lastPos).perp() * (16.f * brushPoint.mPressure / 1024.f);
       window.drawLine (kWhite, mPos + brushPoint.mPos - perp, mPos + brushPoint.mPos + perp, 1.f);
       }
     lastPos = brushPoint.mPos;

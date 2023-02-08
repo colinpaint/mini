@@ -88,6 +88,7 @@ protected:
   std::vector<sBrushPoint> mLine;
   cRect mExtent = {0,0,0,0};
 
+  cAlphaTexture mBrushShape;
   std::array <cAlphaTexture, kMaxSubPixel * kMaxSubPixel> mBrushShapes;
   int32_t mSubPixels = 4;
   float mRadius = 0;
@@ -97,10 +98,14 @@ protected:
   float mCreatedShapeRadius = 0.f;
   cPoint mPrevPos =  {0,0};
 
+  float mMaxPressure = 0.5f;
+  float mOverlap = 0.25f;
+
 private:
   uint8_t getPaintShape (float i, float j, float radius, float pressure);
   void setRadius (float radius);
   void stamp (cWindow& window, const cColor& color, cPoint pos, int pressure);
+  void stampPreCalc (cWindow& window, const cColor& color, cPoint pos, int pressure);
   void paint (cWindow& window, const cColor& color, cPoint pos, int pressure, bool first);
   };
 //}}}
