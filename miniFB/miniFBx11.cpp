@@ -424,11 +424,17 @@ namespace {
       //}}}
 
       //{{{
-      case MotionNotify:
+      case MotionNotify: {
+        XDeviceMotionEvent* motionEvent = (XDeviceMotionEvent*)(event);
+
+        cLog::log (LOGINFO, fmt::format ("motionNotify {},{} {}",
+                                         event->xmotion.x, event->xmotion.y, motionEvent->serial));
+
         windowData->pointerPosX = event->xmotion.x;
         windowData->pointerPosY = event->xmotion.y;
         kCall (pointerMoveFunc, windowData->pointerPosX, windowData->pointerPosY,
                                 windowData->pointerButtonStatus[Button1] * 1024, 0);
+        }
         break;
       //}}}
 
@@ -496,12 +502,13 @@ namespace {
       default:
         if (event->type == (int)gMotionType) {
           XDeviceMotionEvent* motionEvent = (XDeviceMotionEvent*)(event);
-          //int posX = motionEvent->x;
-          //int posY = motionEvent->y;
-          int posX = motionEvent->axis_data[0];
-          int posY = motionEvent->axis_data[1];
+          int posX = motionEvent->x;
+          int posY = motionEvent->y;
+          //int posX = motionEvent->axis_data[0];
+          //int posY = motionEvent->axis_data[1];
           int pressure = motionEvent->axis_data[2];
-          cLog::log (LOGINFO, fmt::format ("tablet motionEvent {},{} {}", posX, posY, pressure));
+          cLog::log (LOGINFO, fmt::format ("tablet motionEvent {},{} {} {}",
+                                           posX, posY, pressure, motionEvent->serial, event->type));
           }
         else
           cLog::log (LOGINFO, fmt::format ("unused event {}", event->type));

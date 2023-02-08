@@ -17,7 +17,7 @@ cPaintLayer::cPaintLayer (const std::string& name, const cColor& color, cPoint p
     : cLayer(name, color, {0.f,0.f}), mWidth(width) {
 
   setRadius (width);
-  addPoint (pos, 0 ,0);
+  addPoint (pos, 0, 0);
   }
 //}}}
 //{{{
@@ -133,9 +133,7 @@ void cPaintLayer::setRadius (float radius) {
 //}}}
 //{{{
 void cPaintLayer::stamp (cWindow& window, const cColor& color, cPoint pos, int pressure) {
-// stamp brushShape into image
-
-  (void)pressure;
+// calc and stamp brushShape into image
 
   // !!!! does this behave correctly as we go negative !!!
   int32_t xInt = static_cast<int32_t>(pos.x);
