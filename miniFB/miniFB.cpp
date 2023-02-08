@@ -150,8 +150,8 @@ bool setViewportBestFit (sMiniWindow* window, unsigned old_width, unsigned old_h
 //}}}
 
 //{{{
-bool mfbIsWindowActive (sMiniWindow* window)  {
-  return window ? ((sWindowData*)(window))->is_active : 0; }
+bool isWindowActive (sMiniWindow* window)  {
+  return window ? ((sWindowData*)(window))->isActive : 0; }
 //}}}
 //{{{
 unsigned getWindowWidth (sMiniWindow* window)  {
@@ -194,7 +194,7 @@ const uint8_t* getPointerButtonBuffer (sMiniWindow* window) {
 //}}}
 //{{{
 const uint8_t* getKeyBuffer (sMiniWindow* window)  {
-  return window ? ((sWindowData*)(window))->key_status : 0; }
+  return window ? ((sWindowData*)(window))->keyStatus : 0; }
 //}}}
 
 //{{{

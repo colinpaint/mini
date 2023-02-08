@@ -210,9 +210,9 @@ void initGL (sWindowData* windowData) {
 
   glEnable (GL_TEXTURE_2D);
 
-  glGenTextures (1, &windowData->text_id);
+  glGenTextures (1, &windowData->textureId);
   //glActiveTexture (TEXTURE0);
-  glBindTexture (GL_TEXTURE_2D, windowData->text_id);
+  glBindTexture (GL_TEXTURE_2D, windowData->textureId);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -229,7 +229,7 @@ void initGL (sWindowData* windowData) {
 //{{{
 void resizeGL (sWindowData* windowData) {
 
-  if (windowData->is_initialized) {
+  if (windowData->isInitialized) {
     #if defined(_WIN32) || defined(WIN32)
     sWindowDataWindows* windowData_ex = (sWindowDataWindows*) windowData->specific;
       wglMakeCurrent (windowData_ex->hdc, windowData_ex->hGLRC);
@@ -263,7 +263,7 @@ void redrawGL (sWindowData* windowData, const void* pixels) {
 
   // clear
   //glClear (GL_COLOR_BUFFER_BIT);
-  glBindTexture (GL_TEXTURE_2D, windowData->text_id);
+  glBindTexture (GL_TEXTURE_2D, windowData->textureId);
   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA,
                 windowData->buffer_width, windowData->buffer_height,
                 0, format, GL_UNSIGNED_BYTE, pixels);

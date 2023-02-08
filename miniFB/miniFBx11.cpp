@@ -259,37 +259,37 @@ namespace {
   //{{{
   int translateMod (int state) {
 
-    int mod_keys = 0;
+    int modifierKeys = 0;
 
     if (state & ShiftMask)
-      mod_keys |= KB_MOD_SHIFT;
+      modifierKeys |= KB_MOD_SHIFT;
     if (state & ControlMask)
-      mod_keys |= KB_MOD_CONTROL;
+      modifierKeys |= KB_MOD_CONTROL;
     if (state & Mod1Mask)
-      mod_keys |= KB_MOD_ALT;
+      modifierKeys |= KB_MOD_ALT;
     if (state & Mod4Mask)
-      mod_keys |= KB_MOD_SUPER;
+      modifierKeys |= KB_MOD_SUPER;
     if (state & LockMask)
-      mod_keys |= KB_MOD_CAPS_LOCK;
+      modifierKeys |= KB_MOD_CAPS_LOCK;
     if (state & Mod2Mask)
-      mod_keys |= KB_MOD_NUM_LOCK;
+      modifierKeys |= KB_MOD_NUM_LOCK;
 
-    return mod_keys;
+    return modifierKeys;
     }
   //}}}
   //{{{
   int translateModEx (int key, int state, int is_pressed) {
 
-    int mod_keys = translateMod (state);
+    int modifierKeys = translateMod (state);
 
     switch (key) {
       case KB_KEY_LEFT_SHIFT:
       //{{{
       case KB_KEY_RIGHT_SHIFT:
         if (is_pressed)
-          mod_keys |= KB_MOD_SHIFT;
+          modifierKeys |= KB_MOD_SHIFT;
         else
-          mod_keys &= ~KB_MOD_SHIFT;
+          modifierKeys &= ~KB_MOD_SHIFT;
         break;
       //}}}
 
@@ -297,9 +297,9 @@ namespace {
       //{{{
       case KB_KEY_RIGHT_CONTROL:
         if (is_pressed)
-          mod_keys |= KB_MOD_CONTROL;
+          modifierKeys |= KB_MOD_CONTROL;
         else
-          mod_keys &= ~KB_MOD_CONTROL;
+          modifierKeys &= ~KB_MOD_CONTROL;
         break;
       //}}}
 
@@ -307,9 +307,9 @@ namespace {
       //{{{
       case KB_KEY_RIGHT_ALT:
         if (is_pressed)
-          mod_keys |= KB_MOD_ALT;
+          modifierKeys |= KB_MOD_ALT;
         else
-         mod_keys &= ~KB_MOD_ALT;
+          modifierKeys &= ~KB_MOD_ALT;
         break;
       //}}}
 
@@ -317,14 +317,14 @@ namespace {
       //{{{
       case KB_KEY_RIGHT_SUPER:
         if (is_pressed)
-          mod_keys |= KB_MOD_SUPER;
+          modifierKeys |= KB_MOD_SUPER;
         else
-          mod_keys &= ~KB_MOD_SUPER;
+          modifierKeys &= ~KB_MOD_SUPER;
         break;
       //}}}
       }
 
-    return mod_keys;
+    return modifierKeys;
     }
   //}}}
 
@@ -338,10 +338,10 @@ namespace {
         {
         mfb_key key_code = (mfb_key)translateKey (event->xkey.keycode);
         int is_pressed = (event->type == KeyPress);
-        windowData->mod_keys = translateModEx (key_code, event->xkey.state, is_pressed);
+        windowData->modifierKeys = translateModEx (key_code, event->xkey.state, is_pressed);
 
         windowData->key_status[key_code] = is_pressed;
-        kCall (key_func, key_code, (eKeyModifier)windowData->mod_keys, is_pressed);
+        kCall (key_func, key_code, (eKeyModifier)windowData->modifierKeys, is_pressed);
 
         if (event->type == KeyPress) {
           KeySym keysym;
@@ -371,7 +371,7 @@ namespace {
         {
         ePointerButton button = (ePointerButton)event->xbutton.button;
         int is_pressed = (event->type == ButtonPress);
-        windowData->mod_keys = translateMod (event->xkey.state);
+        windowData->modifierKeys = translateMod (event->xkey.state);
 
         // Swap pointer right and middle for parity with other platforms:
         // https://github.com/emoon/minifb/issues/65
@@ -390,32 +390,32 @@ namespace {
           case Button2:
           case Button3:
             windowData->pointerButtonStatus[button & 0x07] = is_pressed;
-            kCall (pointer_button_func, button, (eKeyModifier) windowData->mod_keys, is_pressed);
+            kCall (pointer_button_func, button, (eKeyModifier) windowData->modifierKeys, is_pressed);
             break;
 
           case Button4:
             windowData->pointerWheelY = 1.0f;
-            kCall (pointer_wheel_func, (eKeyModifier) windowData->mod_keys, 0.0f, windowData->pointerWheelY);
+            kCall (pointer_wheel_func, (eKeyModifier) windowData->modifierKeys, 0.0f, windowData->pointerWheelY);
             break;
 
           case Button5:
             windowData->pointerWheelY = -1.0f;
-            kCall (pointer_wheel_func, (eKeyModifier) windowData->mod_keys, 0.0f, windowData->pointerWheelY);
+            kCall (pointer_wheel_func, (eKeyModifier) windowData->modifierKeys, 0.0f, windowData->pointerWheelY);
             break;
 
           case 6:
             windowData->pointerWheelX = 1.0f;
-            kCall (pointer_wheel_func, (eKeyModifier) windowData->mod_keys, windowData->pointerWheelX, 0.0f);
+            kCall (pointer_wheel_func, (eKeyModifier) windowData->modifierKeys, windowData->pointerWheelX, 0.0f);
             break;
 
           case 7:
             windowData->pointerWheelX = -1.0f;
-            kCall (pointer_wheel_func, (eKeyModifier) windowData->mod_keys, windowData->pointerWheelX, 0.0f);
+            kCall (pointer_wheel_func, (eKeyModifier) windowData->modifierKeys, windowData->pointerWheelX, 0.0f);
             break;
 
           default:
             windowData->pointerButtonStatus[(button - 4) & 0x07] = is_pressed;
-            kCall (pointer_button_func, (ePointerButton) (button - 4), (eKeyModifier) windowData->mod_keys, is_pressed);
+            kCall (pointer_button_func, (ePointerButton) (button - 4), (eKeyModifier) windowData->modifierKeys, is_pressed);
             break;
           }
         }
@@ -458,14 +458,14 @@ namespace {
 
       //{{{
       case FocusIn:
-        windowData->is_active = true;
+        windowData->isActive = true;
         kCall (active_func, true);
 
         break;
       //}}}
       //{{{
       case FocusOut:
-        windowData->is_active = false;
+        windowData->isActive = false;
         kCall (active_func, false);
 
         break;
@@ -792,7 +792,7 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
   windowData->timer = timerCreate();
   setKeyCallback ((sMiniWindow*)windowData, keyDefault);
 
-  windowData->is_initialized = true;
+  windowData->isInitialized = true;
   return (sMiniWindow*)windowData;
   }
 //}}}

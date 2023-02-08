@@ -15,7 +15,7 @@ eUpdateState updateEvents (sMiniWindow* window);
 void close (sMiniWindow* window);
 
 // gets
-bool mfbIsWindowActive (sMiniWindow* window);
+bool isWindowActive (sMiniWindow* window);
 unsigned getWindowWidth (sMiniWindow* window);
 unsigned getWindowHeight (sMiniWindow* window);
 
@@ -43,9 +43,11 @@ bool setViewportBestFit (sMiniWindow* window, unsigned old_width, unsigned old_h
 // fps
 void setTargetFps (uint32_t fps);
 unsigned getTargetFps();
+
 bool waitSync (sMiniWindow* window);
 
 // timer
+struct sMiniFBtimer;
 struct sMiniFBtimer* timerCreate();
 void timerDestroy (struct sMiniFBtimer* tmr);
 void  timerReset (struct sMiniFBtimer* tmr);

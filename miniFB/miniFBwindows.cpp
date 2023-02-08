@@ -616,7 +616,7 @@ namespace {
       //{{{
       case WM_SETFOCUS:
         if (windowData) {
-          windowData->is_active = true;
+          windowData->isActive = true;
           kCall (active_func, true);
           }
 
@@ -625,7 +625,7 @@ namespace {
       //{{{
       case WM_KILLFOCUS:
         if (windowData) {
-          windowData->is_active = false;
+          windowData->isActive = false;
           kCall (active_func, false);
           }
 
@@ -640,13 +640,13 @@ namespace {
         if (windowData) {
           mfb_key key_code = translateKey ((unsigned int)wParam, (unsigned long)lParam);
           int is_pressed = !((lParam >> 31) & 1);
-          windowData->mod_keys = translateMod();
+          windowData->modifierKeys = translateMod();
 
           if (key_code == KB_KEY_UNKNOWN)
             return 0;
 
-          windowData->key_status[key_code] = (uint8_t)is_pressed;
-          kCall (key_func, key_code, (eKeyModifier)windowData->mod_keys, is_pressed);
+          windowData->keyStatus[key_code] = (uint8_t)is_pressed;
+          kCall (key_func, key_code, (eKeyModifier)windowData->modifierKeys, is_pressed);
           }
 
         break;
@@ -766,9 +766,9 @@ namespace {
             else // unused PT_TOUCH, PT_TOUCHPAD
               cLog::log (LOGERROR, fmt::format ("pointerDown - unknown type:{}", pointerInfo.pointerType));
 
-            windowData->mod_keys = translateMod();
+            windowData->modifierKeys = translateMod();
             windowData->pointerButtonStatus[MOUSE_BTN_1] = 1;
-            kCall (pointer_button_func, MOUSE_BTN_1, (eKeyModifier)windowData->mod_keys, 1);
+            kCall (pointer_button_func, MOUSE_BTN_1, (eKeyModifier)windowData->modifierKeys, 1);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerDown - no info"));
@@ -790,9 +790,9 @@ namespace {
             else // unused PT_TOUCH, PT_TOUCHPAD
               cLog::log (LOGERROR, fmt::format ("pointerUp - unknown type:{}", pointerInfo.pointerType));
 
-            windowData->mod_keys = translateMod();
+            windowData->modifierKeys = translateMod();
             windowData->pointerButtonStatus[MOUSE_BTN_1] = 0;
-            kCall (pointer_button_func, MOUSE_BTN_1, (eKeyModifier)windowData->mod_keys, 0);
+            kCall (pointer_button_func, MOUSE_BTN_1, (eKeyModifier)windowData->modifierKeys, 0);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerUp - no info"));
@@ -1148,7 +1148,7 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
   // enable WM_POINTER wndProc messaging, to tell mouse from pen
   EnableMouseInPointer (true);
 
-  windowData->is_initialized = true;
+  windowData->isInitialized = true;
   return (sMiniWindow*)windowData;
   }
 //}}}

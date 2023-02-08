@@ -1,4 +1,4 @@
-// sWindowData - sMiniWindow is opaque pointer to this
+// sWindowData - sMiniWindow is opaque pointer
 #pragma once
 #include "miniFBenums.h"
 #include <functional>
@@ -44,14 +44,14 @@ struct sWindowData {
   float    pointerWheelY;
   uint8_t  pointerButtonStatus[8];
 
-  bool     is_active;
-  bool     is_initialized;
+  bool     isActive;
+  bool     isInitialized;
 
   bool     close;
 
-  uint8_t  key_status[512];
-  uint32_t mod_keys;
+  uint8_t  keyStatus[512];
+  uint32_t modifierKeys;
 
-  uint32_t    text_id;
+  uint32_t textureId;
   sMiniFBtimer* timer;
   };

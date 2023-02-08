@@ -155,9 +155,8 @@ enum mfb_key {
 //}}}
 #define KB_KEY_LAST KB_KEY_MENU
 
-// Opaque pointer
+// opaque window pointer
 struct sMiniWindow;
-struct sMiniFBtimer;
 
 // Event callbacks
 typedef void(*activeFuncType)(sMiniWindow* window, bool isActive);
