@@ -7,15 +7,15 @@ struct sWindowData {
   void* specific;
   void* user_data;
 
-  mfb_active_func         active_func;
-  mfb_resize_func         resize_func;
-  mfb_close_func          close_func;
-  mfb_key_func            key_func;
-  mfb_char_func           char_func;
-  mfb_pointer_button_func pointer_button_func;
-  mfb_pointer_move_func   pointer_move_func;
-  mfb_pointer_wheel_func  pointer_wheel_func;
-  pointerEnterFuncType    pointerEnterFunc;
+  activeFuncType         active_func;
+  resizeFuncType         resize_func;
+  closeFuncType          close_func;
+  keyFuncType            key_func;
+  charFuncType           char_func;
+  pointerButtonFuncType  pointer_button_func;
+  pointerMoveFuncType    pointer_move_func;
+  pointerWheelFuncType   pointer_wheel_func;
+  pointerEnterFuncType   pointerEnterFunc;
 
   uint32_t window_width;
   uint32_t window_height;

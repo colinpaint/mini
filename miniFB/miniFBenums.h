@@ -165,14 +165,14 @@ struct sMiniWindow;
 struct sMiniFBtimer;
 
 // Event callbacks
-typedef void(*mfb_active_func)(sMiniWindow* window, bool isActive);
-typedef void(*mfb_resize_func)(sMiniWindow* window, int width, int height);
-typedef bool(*mfb_close_func)(sMiniWindow* window);
+typedef void(*activeFuncType)(sMiniWindow* window, bool isActive);
+typedef void(*resizeFuncType)(sMiniWindow* window, int width, int height);
+typedef bool(*closeFuncType)(sMiniWindow* window);
 
-typedef void(*mfb_key_func)(sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed);
-typedef void(*mfb_char_func)(sMiniWindow* window, unsigned int code);
+typedef void(*keyFuncType)(sMiniWindow* window, mfb_key key, mfb_key_mod mod, bool isPressed);
+typedef void(*charFuncType)(sMiniWindow* window, unsigned int code);
 
-typedef void(*mfb_pointer_button_func)(sMiniWindow* window, mfb_pointer_button button, mfb_key_mod mod, bool isPressed);
-typedef void(*mfb_pointer_move_func)(sMiniWindow* window, int x, int y, int pressure, int timestamp);
-typedef void(*mfb_pointer_wheel_func)(sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY);
+typedef void(*pointerButtonFuncType)(sMiniWindow* window, mfb_pointer_button button, mfb_key_mod mod, bool isPressed);
+typedef void(*pointerMoveFuncType)(sMiniWindow* window, int x, int y, int pressure, int timestamp);
+typedef void(*pointerWheelFuncType)(sMiniWindow* window, mfb_key_mod mod, float deltaX, float deltaY);
 typedef void(*pointerEnterFuncType)(sMiniWindow* window, bool enter);

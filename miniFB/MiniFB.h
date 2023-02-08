@@ -55,16 +55,16 @@ double timerGetFrequency();
 double timerGetResolution();
 
 // func callbacks
-void setActiveCallback (sMiniWindow* window, mfb_active_func callback);
-void setResizeCallback (sMiniWindow* window, mfb_resize_func callback);
-void setCloseCallback (sMiniWindow* window, mfb_close_func callback);
+void setActiveCallback (sMiniWindow* window, activeFuncType callback);
+void setResizeCallback (sMiniWindow* window, resizeFuncType callback);
+void setCloseCallback (sMiniWindow* window, closeFuncType callback);
 
-void setKeyCallback (sMiniWindow* window, mfb_key_func callback);
-void setCharCallback (sMiniWindow* window, mfb_char_func callback);
+void setKeyCallback (sMiniWindow* window, keyFuncType callback);
+void setCharCallback (sMiniWindow* window, charFuncType callback);
 
-void setPointerButtonCallback (sMiniWindow* window, mfb_pointer_button_func callback);
-void setPointerMoveCallback (sMiniWindow* window, mfb_pointer_move_func callback);
-void setPointerWheelCallback (sMiniWindow* window, mfb_pointer_wheel_func callback);
+void setPointerButtonCallback (sMiniWindow* window, pointerButtonFuncType callback);
+void setPointerMoveCallback (sMiniWindow* window, pointerMoveFuncType callback);
+void setPointerWheelCallback (sMiniWindow* window, pointerWheelFuncType callback);
 void setPointerEnterCallback (sMiniWindow* window, pointerEnterFuncType callback);
 
 // lambda callbacks

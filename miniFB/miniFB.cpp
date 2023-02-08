@@ -24,21 +24,21 @@ mfb_update_state update (sMiniWindow* window, void *buffer) {
   }
 //}}}
 //{{{
-void setActiveCallback (sMiniWindow* window, mfb_active_func callback) {
+void setActiveCallback (sMiniWindow* window, activeFuncType callback) {
 
   if (window)
     ((sWindowData*)(window))->active_func = callback;
   }
 //}}}
 //{{{
-void setResizeCallback (sMiniWindow* window, mfb_resize_func callback) {
+void setResizeCallback (sMiniWindow* window, resizeFuncType callback) {
 
   if (window)
     ((sWindowData*)(window))->resize_func = callback;
   }
 //}}}
 //{{{
-void setCloseCallback (sMiniWindow* window, mfb_close_func callback) {
+void setCloseCallback (sMiniWindow* window, closeFuncType callback) {
 
   if (window)
     ((sWindowData*)(window))->close_func = callback;
@@ -46,14 +46,14 @@ void setCloseCallback (sMiniWindow* window, mfb_close_func callback) {
 //}}}
 
 //{{{
-void setKeyCallback (sMiniWindow* window, mfb_key_func callback) {
+void setKeyCallback (sMiniWindow* window, keyFuncType callback) {
 
   if (window)
     ((sWindowData*)(window))->key_func = callback;
   }
 //}}}
 //{{{
-void setCharCallback (sMiniWindow* window, mfb_char_func callback) {
+void setCharCallback (sMiniWindow* window, charFuncType callback) {
 
   if (window)
     ((sWindowData*)(window))->char_func = callback;
@@ -61,21 +61,21 @@ void setCharCallback (sMiniWindow* window, mfb_char_func callback) {
 //}}}
 
 //{{{
-void setPointerButtonCallback (sMiniWindow* window, mfb_pointer_button_func callback) {
+void setPointerButtonCallback (sMiniWindow* window, pointerButtonFuncType callback) {
 
   if (window)
     ((sWindowData*)(window))->pointer_button_func = callback;
   }
 //}}}
 //{{{
-void setPointerMoveCallback (sMiniWindow* window, mfb_pointer_move_func callback) {
+void setPointerMoveCallback (sMiniWindow* window, pointerMoveFuncType callback) {
 
   if (window)
     ((sWindowData*)(window))->pointer_move_func = callback;
   }
 //}}}
 //{{{
-void setPointerWheelCallback (sMiniWindow* window, mfb_pointer_wheel_func callback) {
+void setPointerWheelCallback (sMiniWindow* window, pointerWheelFuncType callback) {
 
   if (window)
     ((sWindowData*)(window))->pointer_wheel_func = callback;
