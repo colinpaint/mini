@@ -1,0 +1,5 @@
+gcc -o touch touch.c  -lX11 -lXi -lcairo -I/usr/include/cairo -L/usr/lib/x86_64-linux-gnu
+#
+gcc -o xinput xinput.c -lX11 -lXi
+#
+gcc -o pen pen.c -lX11 -lXi
