@@ -1,9 +1,5 @@
-/* Shows how ownership works with multitouch events
-To compile:
-	gcc -o multitouch multitouch.c  -lX11 -lXi -lcairo -I/usr/include/cairo -L/usr/lib/x86_64-linux-gnu
-To run the sample
-	./multitouch
- */
+// Shows how ownership works with multitouch events
+//  gcc -o touch touch.c  -lX11 -lXi -lcairo -I/usr/include/cairo -L/usr/lib/x86_64-linux-gnu
 //Author: Peter Hutterer <peter.hutterer@who-t.net> 2012
 //Under MIT License (https://choosealicense.com/licenses/mit)
 //{{{  includes
@@ -158,7 +154,7 @@ static void msg(const char *fmt, ...)
 
 static int running = 1;
 //{{{
-static void sighandler(int signal)
+static void sighandler (int signal)
 {
 		running = 0;
 		error("signal received, shutting down\n");
@@ -166,7 +162,7 @@ static void sighandler(int signal)
 
 //}}}
 //{{{
-static void init_windows(struct multitouch *mt, enum Mode mode)
+static void init_windows (struct multitouch *mt, enum Mode mode)
 {
 		Window win;
 		XEvent event;
@@ -283,7 +279,7 @@ static void init_windows(struct multitouch *mt, enum Mode mode)
 }
 //}}}
 //{{{
-static Pixmap init_pixmap(struct multitouch *mt)
+static Pixmap init_pixmap (struct multitouch *mt)
 {
 		Pixmap p;
 		p = XCreatePixmap(mt->dpy, mt->win, mt->width, mt->height,
@@ -292,7 +288,7 @@ static Pixmap init_pixmap(struct multitouch *mt)
 }
 //}}}
 //{{{
-static GC init_gc(struct multitouch *mt)
+static GC init_gc (struct multitouch *mt)
 {
 		GC gc;
 
@@ -302,7 +298,7 @@ static GC init_gc(struct multitouch *mt)
 }
 //}}}
 //{{{
-static int init_x11(struct multitouch *mt, int width, int height, enum Mode mode)
+static int init_x11 (struct multitouch *mt, int width, int height, enum Mode mode)
 {
 		Display *dpy;
 		int major = 2, minor = 2;
@@ -341,16 +337,7 @@ static int init_x11(struct multitouch *mt, int width, int height, enum Mode mode
 //}}}
 
 //{{{
-static void teardown(struct multitouch *mt)
-{
-		if (mt->win)
-				XUnmapWindow(mt->dpy, mt->win);
-		XCloseDisplay(mt->dpy);
-}
-//}}}
-
-//{{{
-static const char* window_to_name(struct multitouch *mt, Window win)
+static const char* window_to_name (struct multitouch *mt, Window win)
 {
 		const char *windowname;
 		if (win == mt->blackbar)
@@ -381,7 +368,7 @@ static const char* window_to_name(struct multitouch *mt, Window win)
 
 //}}}
 //{{{
-static void print_event(struct multitouch *mt, XIDeviceEvent* event)
+static void print_event (struct multitouch *mt, XIDeviceEvent* event)
 {
 		const char *type;
 		switch(event->evtype)
@@ -417,7 +404,7 @@ static void print_event(struct multitouch *mt, XIDeviceEvent* event)
 }
 //}}}
 //{{{
-static void print_core_event(struct multitouch *mt, XButtonEvent *event)
+static void print_core_event (struct multitouch *mt, XButtonEvent *event)
 {
 		const char *type;
 		switch(event->type)
@@ -435,7 +422,7 @@ static void print_core_event(struct multitouch *mt, XButtonEvent *event)
 //}}}
 
 //{{{
-static void paint_touch_begin(struct multitouch *mt, XIDeviceEvent *event)
+static void paint_touch_begin (struct multitouch *mt, XIDeviceEvent *event)
 {
 		int i;
 		int radius = 30;
@@ -470,7 +457,7 @@ static void paint_touch_begin(struct multitouch *mt, XIDeviceEvent *event)
 }
 //}}}
 //{{{
-static struct touchpoint* find_touch(struct multitouch *mt, uint32_t touchid)
+static struct touchpoint* find_touch (struct multitouch *mt, uint32_t touchid)
 {
 		int i;
 
@@ -484,7 +471,7 @@ static struct touchpoint* find_touch(struct multitouch *mt, uint32_t touchid)
 //}}}
 
 //{{{
-static void paint_touch_update(struct multitouch *mt, XIDeviceEvent *event)
+static void paint_touch_update (struct multitouch *mt, XIDeviceEvent *event)
 {
 		struct touchpoint *t = find_touch(mt, event->detail);
 
@@ -508,7 +495,7 @@ static void paint_touch_update(struct multitouch *mt, XIDeviceEvent *event)
 }
 //}}}
 //{{{
-static void paint_touch_end(struct multitouch *mt, XIDeviceEvent *event)
+static void paint_touch_end (struct multitouch *mt, XIDeviceEvent *event)
 {
 		int rsize = 30;
 		struct touchpoint *t = find_touch(mt, event->detail);
@@ -533,7 +520,7 @@ static void paint_touch_end(struct multitouch *mt, XIDeviceEvent *event)
 }
 //}}}
 //{{{
-static void paint_grabs(struct multitouch *mt)
+static void paint_grabs (struct multitouch *mt)
 {
 		const int radius = 50;
 		struct grabpoint *grab;
@@ -615,7 +602,7 @@ static void paint_grabs(struct multitouch *mt)
 //}}}
 
 //{{{
-static struct grabpoint* find_unused_grab(struct multitouch *mt)
+static struct grabpoint* find_unused_grab (struct multitouch *mt)
 {
 		int i;
 		struct grabpoint *grab = NULL;
@@ -631,7 +618,7 @@ static struct grabpoint* find_unused_grab(struct multitouch *mt)
 }
 //}}}
 //{{{
-static struct grabpoint* find_grab(struct multitouch *mt, uint32_t touchid)
+static struct grabpoint* find_grab (struct multitouch *mt, uint32_t touchid)
 {
 		int i;
 		struct grabpoint *grab = NULL;
@@ -648,7 +635,7 @@ static struct grabpoint* find_grab(struct multitouch *mt, uint32_t touchid)
 //}}}
 
 //{{{
-static void handle_grabbed_event(struct multitouch *mt, XIDeviceEvent *event)
+static void handle_grabbed_event (struct multitouch *mt, XIDeviceEvent *event)
 {
 		struct grabpoint *grab = NULL;
 
@@ -701,7 +688,7 @@ static void handle_grabbed_event(struct multitouch *mt, XIDeviceEvent *event)
 }
 //}}}
 //{{{
-static void handle_grabbed_pointer_event(struct multitouch *mt, XIDeviceEvent *event)
+static void handle_grabbed_pointer_event (struct multitouch *mt, XIDeviceEvent *event)
 {
 		struct grabpoint *grab = NULL;
 
@@ -777,7 +764,7 @@ static void handle_grabbed_core_event(struct multitouch *mt, XButtonEvent *event
 //}}}
 
 //{{{
-static void paint_core_event(struct multitouch *mt, XButtonEvent *event)
+static void paint_core_event (struct multitouch *mt, XButtonEvent *event)
 {
 		const int xsize = 40;
 
@@ -834,7 +821,7 @@ out:
 
 //}}}
 //{{{
-static void handle_ownership(struct multitouch *mt, XITouchOwnershipEvent *event)
+static void handle_ownership (struct multitouch *mt, XITouchOwnershipEvent *event)
 {
 		const int radius = 10;
 		struct touchpoint *t = find_touch(mt, event->touchid);
@@ -849,7 +836,7 @@ static void handle_ownership(struct multitouch *mt, XITouchOwnershipEvent *event
 }
 //}}}
 //{{{
-static void paint_pointer_event(struct multitouch *mt, XIDeviceEvent *event)
+static void paint_pointer_event (struct multitouch *mt, XIDeviceEvent *event)
 {
 		const int xsize = 20;
 		int i;
@@ -900,7 +887,7 @@ out:
 }
 //}}}
 //{{{
-static void paint_event(struct multitouch *mt, XIDeviceEvent *event)
+static void paint_event (struct multitouch *mt, XIDeviceEvent *event)
 {
 		if (event->event == mt->blackbar || event->event == mt->whitebar ||
 				event->event == mt->blackbar_os || event->event == mt->whitebar_os)
@@ -931,67 +918,54 @@ static void paint_event(struct multitouch *mt, XIDeviceEvent *event)
 //}}}
 
 //{{{
-static int init_cairo(struct multitouch *mt)
-{
-		cairo_surface_t *surface;
-		cairo_t *cr;
+static int init_cairo (struct multitouch *mt) {
 
-		/* frontbuffer */
-		surface = cairo_xlib_surface_create(mt->dpy, mt->win,
-																				mt->visual, mt->width, mt->height);
-		if (!surface)
-				return error("Failed to create cairo surface\n");
+	/* frontbuffer */
+	cairo_surface_t* surface = cairo_xlib_surface_create(mt->dpy, mt->win, mt->visual, mt->width, mt->height);
+	if (!surface)
+		return error ("Failed to create cairo surface\n");
 
-		mt->surface_win = surface;
+	mt->surface_win = surface;
 
-		cr = cairo_create(surface);
-		if (!cr)
-				return error("Failed to create cairo context\n");
+	cairo_t* cr = cairo_create(surface);
+	if (!cr)
+		return error ("Failed to create cairo context\n");
+	mt->cr_win = cr;
 
-		mt->cr_win = cr;
+	/* grab drawing backbuffer */
+	surface = cairo_surface_create_similar (surface, CAIRO_CONTENT_COLOR_ALPHA, mt->width, mt->height);
+	if (!surface)
+		return error ("Failed to create cairo surface\n");
+	mt->surface_grabs = surface;
 
-		/* grab drawing backbuffer */
-		surface = cairo_surface_create_similar(surface,
-																					 CAIRO_CONTENT_COLOR_ALPHA,
-																					 mt->width, mt->height);
-		if (!surface)
-				return error("Failed to create cairo surface\n");
+	cr = cairo_create (surface);
+	if (!cr)
+		return error ("Failed to create cairo context\n");
+	mt->cr_grabs = cr;
 
-		mt->surface_grabs = surface;
+	/* backbuffer */
+	surface = cairo_surface_create_similar (surface, CAIRO_CONTENT_COLOR_ALPHA, mt->width, mt->height);
+	if (!surface)
+		return error ("Failed to create cairo surface\n");
+	mt->surface = surface;
 
-		cr = cairo_create(surface);
-		if (!cr)
-				return error("Failed to create cairo context\n");
+	cr = cairo_create (surface);
+	if (!cr)
+		return error ("Failed to create cairo context\n");
 
-		mt->cr_grabs = cr;
+	cairo_set_line_width (cr, 1);
+	cairo_set_source_rgb (cr, .85, .85, .85);
+	cairo_rectangle (cr, 0, 0, mt->width, mt->height);
+	cairo_fill (cr);
+	mt->cr = cr;
 
-		/* backbuffer */
-		surface = cairo_surface_create_similar(surface,
-																					 CAIRO_CONTENT_COLOR_ALPHA,
-																					 mt->width, mt->height);
-		if (!surface)
-				return error("Failed to create cairo surface\n");
+	expose (mt, 0, 0, mt->width, mt->height);
 
-		mt->surface = surface;
-
-		cr = cairo_create(surface);
-		if (!cr)
-				return error("Failed to create cairo context\n");
-
-		cairo_set_line_width(cr, 1);
-		cairo_set_source_rgb(cr, .85, .85, .85);
-		cairo_rectangle(cr, 0, 0, mt->width, mt->height);
-		cairo_fill(cr);
-
-		mt->cr = cr;
-
-		expose(mt, 0, 0, mt->width, mt->height);
-
-		return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 //}}}
 //{{{
-static void expose(struct multitouch *mt, int x1, int y1, int x2, int y2)
+static void expose (struct multitouch *mt, int x1, int y1, int x2, int y2)
 {
 		cairo_set_source_surface(mt->cr_win, mt->surface, 0, 0);
 		cairo_paint(mt->cr_win);
@@ -1005,102 +979,105 @@ static void expose(struct multitouch *mt, int x1, int y1, int x2, int y2)
 //}}}
 
 //{{{
-static int main_loop(struct multitouch *mt)
-{
-		struct pollfd fd;
+static void init (struct multitouch *mt, Bool ownership) {
 
-		fd.fd = ConnectionNumber(mt->dpy);
-		fd.events = POLLIN;
+	memset(mt, 0, sizeof(*mt));
 
-		while (running)
-		{
-
-				if (poll(&fd, 1, 500) <= 0)
-						continue;
-
-				while (XPending(mt->dpy)) {
-						XEvent ev;
-						XGenericEventCookie *cookie = &ev.xcookie;
-
-						XNextEvent(mt->dpy, &ev);
-						if (ev.type == Expose) {
-								expose(mt, ev.xexpose.x, ev.xexpose.y,
-													 ev.xexpose.x + ev.xexpose.width,
-													 ev.xexpose.y + ev.xexpose.height);
-						} else if (ev.type == GenericEvent &&
-								XGetEventData(mt->dpy, cookie) &&
-								cookie->type == GenericEvent &&
-								cookie->extension == mt->xi_opcode)
-						{
-								print_event(mt, cookie->data);
-								paint_event(mt, cookie->data);
-						} else if (ev.type >= ButtonPress && ev.type <= MotionNotify)
-						{
-								print_core_event(mt, &ev.xbutton);
-								paint_core_event(mt, &ev.xbutton);
-						}
-
-						XFreeEventData(mt->dpy, cookie);
-				}
-		}
-
-		return EXIT_SUCCESS;
-}
+	mt->ntouches = MAX_TOUCHES;
+	mt->ngrabs = MAX_TOUCHES;
+	mt->needs_ownership = ownership;
+	mt->last_x = mt->last_y = -1;
+	}
 //}}}
 //{{{
-static void init(struct multitouch *mt, Bool ownership)
-{
-		memset(mt, 0, sizeof(*mt));
+static int main_loop (struct multitouch *mt) {
 
-		mt->ntouches = MAX_TOUCHES;
-		mt->ngrabs = MAX_TOUCHES;
-		mt->needs_ownership = ownership;
-		mt->last_x = mt->last_y = -1;
-}
-//}}}
-//{{{
-int main(int argc, char **argv)
-{
-		int rc;
-		struct multitouch mt;
-		Bool ownership = False;
-		enum Mode mode = MODE_DEFAULT;
+	struct pollfd fd;
+	fd.fd = ConnectionNumber(mt->dpy);
+	fd.events = POLLIN;
 
-		usage();
+	while (running) {
+		if (poll(&fd, 1, 500) <= 0)
+			continue;
 
-		if (argc > 1)
-		{
-				if(strcmp(argv[1], "--with-ownership") == 0)
+		while (XPending(mt->dpy)) {
+				XEvent ev;
+				XGenericEventCookie *cookie = &ev.xcookie;
+
+				XNextEvent(mt->dpy, &ev);
+				if (ev.type == Expose) {
+						expose(mt, ev.xexpose.x, ev.xexpose.y,
+											 ev.xexpose.x + ev.xexpose.width,
+											 ev.xexpose.y + ev.xexpose.height);
+				} else if (ev.type == GenericEvent &&
+						XGetEventData(mt->dpy, cookie) &&
+						cookie->type == GenericEvent &&
+						cookie->extension == mt->xi_opcode)
 				{
-						mode = MODE_OWNERSHIP;
-						msg("ownership events selected\n");
-				} else if (strcmp(argv[1], "--pointer-events") == 0)
+						print_event(mt, cookie->data);
+						paint_event(mt, cookie->data);
+				} else if (ev.type >= ButtonPress && ev.type <= MotionNotify)
 				{
-						mode = MODE_POINTER;
-						msg("pointer events selected\n");
-				} else if (strcmp(argv[1], "--core-events") == 0)
-				{
-						mode = MODE_CORE;
-						msg("core events selected\n");
+						print_core_event(mt, &ev.xbutton);
+						paint_core_event(mt, &ev.xbutton);
 				}
+
+				XFreeEventData(mt->dpy, cookie);
+			}
 		}
 
-		init(&mt, ownership);
+	return EXIT_SUCCESS;
+	}
+//}}}
+//{{{
+static void teardown (struct multitouch *mt) {
 
-		rc = init_x11(&mt, 800, 600, mode);
-		if (rc != EXIT_SUCCESS)
-				return rc;
+	if (mt->win)
+		XUnmapWindow(mt->dpy, mt->win);
+	XCloseDisplay(mt->dpy);
+	}
+//}}}
+//{{{
+int main (int argc, char **argv) {
 
-		rc = init_cairo(&mt);
-		if (rc != EXIT_SUCCESS)
-				return rc;
+	int rc;
+	struct multitouch mt;
+	Bool ownership = False;
+	enum Mode mode = MODE_DEFAULT;
 
-		signal(SIGINT, sighandler);
+	usage();
 
-		main_loop(&mt);
+	if (argc > 1) {
+		if(strcmp (argv[1], "--with-ownership") == 0) {
+			mode = MODE_OWNERSHIP;
+			msg("ownership events selected\n");
+			} 
+		else if (strcmp (argv[1], "--pointer-events") == 0) {
+			mode = MODE_POINTER;
+			msg("pointer events selected\n");
+			} 
+		else if (strcmp (argv[1], "--core-events") == 0) {
+			mode = MODE_CORE;
+			msg("core events selected\n");
+			}
+		}
 
-		teardown(&mt);
+	init(&mt, ownership);
 
-		return EXIT_SUCCESS;
-}
+	rc = init_x11 (&mt, 800, 600, mode);
+	if (rc != EXIT_SUCCESS)
+		return rc;
+
+	rc = init_cairo (&mt);
+	if (rc != EXIT_SUCCESS)
+		return rc;
+
+	signal (SIGINT, sighandler);
+
+	main_loop (&mt);
+
+	teardown (&mt);
+
+	return EXIT_SUCCESS;
+	}
 //}}}

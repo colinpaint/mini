@@ -1,10 +1,5 @@
-/* List Wacom devices running on the system
-To compile:
-	gcc -o xinput-list-wacom-devices xinput-list-wacom-devices.c -lX11 -lXi
-To run the sample:
-	./xinput-list-wacom-devices
-*/
-
+// List Wacom devices running on the system
+// gcc -o xinput-list-wacom-devices xinput-list-wacom-devices.c -lX11 -lXi
 #include <stdio.h>
 #include <string.h>
 
@@ -13,35 +8,36 @@ To run the sample:
 
 int main() {
 
-	int ndevices, i, opcode, event, error;
-	XIDeviceInfo *devices, device;
+  int ndevices, i, opcode, event, error;
+  XIDeviceInfo* devices, device;
 
-	/* Connect to the X server */
-	Display *display = XOpenDisplay(NULL);
+  // Connect to the X server */
+  Display* display = XOpenDisplay(NULL);
 
-	/* Check for XInput */
-	if (!XQueryExtension(display, "XInputExtension", &opcode, &event, &error)) {
-		printf("X Input extension not available.\n");
-		return -1;
-		}
+  // Check for XInput */
+  if (!XQueryExtension(display, "XInputExtension", &opcode, &event, &error)) {
+    printf("X Input extension not available.\n");
+    return -1;
+    }
 
-	/* Is XInput 2 available? */
-	int major = 2, minor = 0;
-	if (XIQueryVersion(display, &major, &minor) == BadRequest) {
-		printf("XInput 2 not available\n");
-		return -1;
-		}
+  // Is XInput 2 available? */
+  int major = 2, minor = 0;
+  if (XIQueryVersion (display, &major, &minor) == BadRequest) {
+    printf ("XInput 2 not available\n");
+    return -1;
+    }
+  printf ("XInput2 %d %d\n", major, minor);
 
-	devices = XIQueryDevice (display, XIAllDevices, &ndevices);
+  devices = XIQueryDevice (display, XIAllDevices, &ndevices);
 
-	for (i = 0; i < ndevices; i++) {
-		device = devices[i];
+  for (i = 0; i < ndevices; i++) {
+    device = devices[i];
 
-		if (strncmp ("Wacom", device.name, 5) != 0)
-			continue;
+    //if (strncmp ("Wacom", device.name, 5) != 0)
+    //  continue;
 
-		printf ("id: %d - %s \n", device.deviceid, device.name);
-		}
+    printf ("id:%d - %s\n", device.deviceid, device.name);
+    }
 
-	XIFreeDeviceInfo (devices);
-	}
+  XIFreeDeviceInfo (devices);
+  }

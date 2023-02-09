@@ -1,10 +1,5 @@
-/* print raw values from a Wacom pen tip to the terminal
-To compile:
-  gcc -o pen-tip-values pen-tip-values.c -lX11 -lXi
-To run the sample
-  ./find-pressure
- */
-
+// print raw values from a Wacom pen tip to the terminal
+// gcc -o pen pen.c -lX11 -lXi
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,78 +7,65 @@ To run the sample
 #include <X11/extensions/XInput2.h>
 
 //{{{
-static void print_valuators (Display *display, XIAnyClassInfo **classes, int num_classes) {
+static void printValuators (Display* display, XIAnyClassInfo** classes, int num_classes) {
 
-  int i;
-  for (i = 0; i < num_classes; i++) {
+  for (int i = 0; i < num_classes; i++) {
     if (classes[i]->type == XIValuatorClass) {
-      XIValuatorClassInfo *v = (XIValuatorClassInfo*)classes[i];
-      printf("Valuator %d: '%s'\n", v->number, (v->label) ?  XGetAtomName(display, v->label) : "No label");
-      printf("\tRange: %f - %f\n", v->min, v->max);
-      printf("\tResolution: %d units/m\n", v->resolution);
-      printf("\tMode: %s\n", v->mode == XIModeAbsolute ? "absolute": "relative");
+      XIValuatorClassInfo* v = (XIValuatorClassInfo*)classes[i];
+      printf ("Valuator %d: '%s'\n", v->number, (v->label) ?  XGetAtomName (display, v->label) : "No label");
+      printf ("- Range: %f - %f\n", v->min, v->max);
+      printf ("- Resolution: %d units/m\n", v->resolution);
+      printf ("- Mode: %s\n", v->mode == XIModeAbsolute ? "absolute": "relative");
       if (v->mode == XIModeAbsolute)
-          printf("\tCurrent value: %f\n", v->value);
-
+        printf ("- Current value: %f\n", v->value);
       }
     }
   }
 //}}}
 //{{{
-static void device_info (Display *display, int deviceid) {
+static void deviceInfo (Display *display, int deviceid) {
 
-  XIDeviceInfo *info, *dev;
-  int i, ndevices;
-
-  dev = XIQueryDevice (display, deviceid, &ndevices);
-
+  int ndevices;
+  XIDeviceInfo* dev = XIQueryDevice (display, deviceid, &ndevices);
   printf ("Device Name: '%s' (%d)\n", dev->name, dev->deviceid);
-  print_valuators (display, dev->classes, dev->num_classes);
+  printValuators (display, dev->classes, dev->num_classes);
 }
 //}}}
 //{{{
-static int find_stylus (Display *display, int deviceid) {
+static int findStylus (Display *display, int deviceid) {
 
-  XIDeviceInfo *info, *dev;
   int ndevices;
-  int i;
-  char * word;
+  XIDeviceInfo* info = XIQueryDevice (display, deviceid, &ndevices);
+
   int stylus = 0;
-
-  info = XIQueryDevice(display, deviceid, &ndevices);
-
+  int i;
   for (i = 0; i < ndevices; i++) {
-    dev = &info[i];
-    word = strtok (dev->name," ");
-    while (1) {
-      word = strtok (NULL, " ");
-      if (!word)
-        break;
-        if (strcmp("stylus", word) == 0)
-          stylus = dev->deviceid;
-        }
-     }
+    XIDeviceInfo* dev = &info[i];
+    if (strstr (dev->name, "stylus")) {
+      stylus = dev->deviceid;
+      break;
+      }
+    }
 
   if (stylus) {
-    printf("Selected Device with ID %i\n", stylus);
-    device_info(display, stylus);
+    printf ("Selected Device with ID %i\n", stylus);
+    deviceInfo (display, stylus);
     }
-  else {
-    printf("no tablet connected\n");
-    }
+  else
+    printf ("no tablet connected\n");
 
   return stylus;
   }
 //}}}
 //{{{
-static Window create_win (Display *dpy) {
+static Window createWin (Display *dpy) {
 
   XIEventMask mask;
   int stylus;
 
   Window win = XCreateSimpleWindow (dpy, DefaultRootWindow(dpy), 0, 0, 1200, 800, 0, 0, WhitePixel(dpy, 0));
 
-  stylus  = find_stylus (dpy, XIAllDevices);
+  stylus  = findStylus (dpy, XIAllDevices);
   if (stylus)
     mask.deviceid = stylus;
   else
@@ -102,16 +84,14 @@ static Window create_win (Display *dpy) {
 }
 //}}}
 //{{{
-static void print_rawmotion (XIRawEvent *event) {
+static void printRawMotion (XIRawEvent *event) {
 
-  int i;
-  double *valuator = event->valuators.values;
+  double* valuator = event->valuators.values;
+  printf ("- device:%d event type:%d\n", event->deviceid, event->evtype);
 
-  printf("    device: %d event type: %d\n", event->deviceid, event->evtype);
-
-  for (i = 0; i < event->valuators.mask_len * 8; i++) {
-    if (XIMaskIsSet(event->valuators.mask, i)) {
-      printf(" raw valuator %d: %f\n", i, *valuator);
+  for (int i = 0; i < event->valuators.mask_len * 8; i++) {
+    if (XIMaskIsSet (event->valuators.mask, i)) {
+      printf ("  - raw valuator %d:%f\n", i, *valuator);
       valuator++;
       }
     }
@@ -120,38 +100,44 @@ static void print_rawmotion (XIRawEvent *event) {
 
 int main (int argc, char **argv) {
 
-  Display *dpy;
+  Display* display = XOpenDisplay (NULL);
+  if (!display) {
+    fprintf (stderr, "Failed to open display\n");
+    return -1;
+    }
+
   int xi_opcode, event, error;
-  Window win;
+  if (!XQueryExtension (display, "XInputExtension", &xi_opcode, &event, &error)) {
+    printf ("X Input extension not available\n");
+    return -1;
+    }
+
+  // Is XInput 2 available? */
+  int major = 2;
+  int minor = 0;
+  if (XIQueryVersion (display, &major, &minor) == BadRequest) {
+    printf ("XInput 2 not available\n");
+    return -1;
+    }
+  printf ("XInput2 %d %d\n", major, minor);
+
+  Window win = createWin (display);
+
   XEvent ev;
-
-  dpy = XOpenDisplay (NULL);
-  if (!dpy) {
-    fprintf (stderr, "Failed to open display.\n");
-    return -1;
-    }
-
-  if (!XQueryExtension (dpy, "XInputExtension", &xi_opcode, &event, &error)) {
-    printf ("X Input extension not available.\n");
-    return -1;
-    }
-
-  win = create_win (dpy);
-
   while (1) {
-    XGenericEventCookie *cookie = &ev.xcookie;
-
-    XNextEvent (dpy, &ev);
-    if (cookie->type != GenericEvent || cookie->extension != xi_opcode ||
-       !XGetEventData (dpy, cookie))
+    XGenericEventCookie* cookie = &ev.xcookie;
+    XNextEvent (display, &ev);
+    if (cookie->type != GenericEvent ||
+        cookie->extension != xi_opcode ||
+        !XGetEventData (display, cookie))
       continue;
 
     if (cookie->evtype == XI_RawMotion)
-      print_rawmotion (cookie->data);
+      printRawMotion (cookie->data);
 
-    XFreeEventData (dpy, cookie);
+    XFreeEventData (display, cookie);
     }
 
-  XCloseDisplay (dpy);
+  XCloseDisplay (display);
   return 0;
   }
