@@ -1,10 +1,10 @@
 #pragma once
 
-struct sWindowData;
+struct sInfo;
 
-bool createGLcontext (sWindowData* windowData);
-void destroyGLcontext (sWindowData* windowData);
+bool createGLcontext (sInfo* info);
+void destroyGLcontext (sInfo* info);
 
-void initGL (sWindowData* windowData);
-void redrawGL (sWindowData* windowData, const void *pixels);
-void resizeGL (sWindowData* windowData);
+void initGL (sInfo* info);
+void redrawGL (sInfo* info, const void *pixels);
+void resizeGL (sInfo* info);

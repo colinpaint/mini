@@ -1,10 +1,9 @@
 // sWindowDataX11 - specific is opaque pointer
 #pragma once
-#include "miniFBenums.h"
 #include <X11/Xlib.h>
 #include <GL/glx.h>
 
-struct sWindowDataX11 {
+struct sInfoX11 {
   Window     window;
   Display*   display;
   int        screen;

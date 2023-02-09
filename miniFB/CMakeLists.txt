@@ -1,13 +1,13 @@
 project (miniFB)
 
-set (files miniFB.h miniFBenums.h sWindowData.h miniFB.cpp
+set (files miniFB.h miniFBenums.h sInfo.h miniFB.cpp
            miniFBinternal.h miniFBinternal.cpp
            miniFBgl.h miniFBgl.cpp)
 
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-  set (platform sWindowDataWindows.h miniFBwindows.cpp pktDef.h winTab.h)
+  set (platform sInfoWindows.h miniFBwindows.cpp pktDef.h winTab.h)
 else()
-  set (platform sWindowDataX11.h miniFBx11.cpp miniFBlinux.cpp)
+  set (platform sInfoX11.h miniFBx11.cpp miniFBlinux.cpp)
 endif()
 
 add_library (${PROJECT_NAME} ${files} ${platform})

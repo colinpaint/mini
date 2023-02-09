@@ -5,46 +5,49 @@
 
 #define MFB_RGB(r,g,b) (((uint32_t)r) << 16) | (((uint32_t)g) << 8) | ((uint32_t)b)
 
-sMiniWindow* open (const char* title, unsigned width, unsigned height);
-sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags);
+// opaque window pointer
+struct sWindow;
 
-eUpdateState update (sMiniWindow* window, void* buffer);
-eUpdateState updateEx (sMiniWindow* window, void* buffer, unsigned width, unsigned height);
-eUpdateState updateEvents (sMiniWindow* window);
+sWindow* open (const char* title, unsigned width, unsigned height);
+sWindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags);
 
-void close (sMiniWindow* window);
+eUpdateState update (sWindow* window, void* buffer);
+eUpdateState updateEx (sWindow* window, void* buffer, unsigned width, unsigned height);
+eUpdateState updateEvents (sWindow* window);
+
+void close (sWindow* window);
 
 // gets
-bool isWindowActive (sMiniWindow* window);
-unsigned getWindowWidth (sMiniWindow* window);
-unsigned getWindowHeight (sMiniWindow* window);
+bool isWindowActive (sWindow* window);
+unsigned getWindowWidth (sWindow* window);
+unsigned getWindowHeight (sWindow* window);
 
-int getPointerX (sMiniWindow* window);          // Last Pointer pos X
-int getPointerY (sMiniWindow* window);          // Last Pointer pos Y
-int getPointerPressure (sMiniWindow* window);   // Last Pointer pressure
-int64_t getPointerTimestamp (sMiniWindow* window);  // Last Pointer timestamp
+int getPointerX (sWindow* window);          // Last Pointer pos X
+int getPointerY (sWindow* window);          // Last Pointer pos Y
+int getPointerPressure (sWindow* window);   // Last Pointer pressure
+int64_t getPointerTimestamp (sWindow* window);  // Last Pointer timestamp
 
-float getPointerWheelX (sMiniWindow* window); // Pointer wheel X as a sum. When you call this function it resets.
-float getPointerWheelY (sMiniWindow* window); // Pointer wheel Y as a sum. When you call this function it resets.
+float getPointerWheelX (sWindow* window); // Pointer wheel X as a sum. When you call this function it resets.
+float getPointerWheelY (sWindow* window); // Pointer wheel Y as a sum. When you call this function it resets.
 
-const uint8_t* getPointerButtonBuffer (sMiniWindow* window); // One byte for every button. Press (1), Release 0. (up to 8 buttons)
-const uint8_t* getKeyBuffer (sMiniWindow* window);          // One byte for every key. Press (1), Release 0.
-const char* getKeyName (mfb_key key);
+const uint8_t* getPointerButtonBuffer (sWindow* window); // One byte for every button. Press (1), Release 0. (up to 8 buttons)
+const uint8_t* getKeyBuffer (sWindow* window);          // One byte for every key. Press (1), Release 0.
+const char* getKeyName (eKey key);
 
-void getMonitorScale (sMiniWindow* window, float* scale_x, float* scale_y);
+void getMonitorScale (sWindow* window, float* scale_x, float* scale_y);
 
 // sets
-void setUserData (sMiniWindow* window, void* user_data);
-void* getUserData (sMiniWindow* window);
+void setUserData (sWindow* window, void* user_data);
+void* getUserData (sWindow* window);
 
-bool setViewport (sMiniWindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
-bool setViewportBestFit (sMiniWindow* window, unsigned old_width, unsigned old_height);
+bool setViewport (sWindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
+bool setViewportBestFit (sWindow* window, unsigned old_width, unsigned old_height);
 
 // fps
 void setTargetFps (uint32_t fps);
 unsigned getTargetFps();
 
-bool waitSync (sMiniWindow* window);
+bool waitSync (sWindow* window);
 
 // timer
 struct sMiniFBtimer;
@@ -57,226 +60,238 @@ double timerGetFrequency();
 double timerGetResolution();
 
 // func callbacks
-void setActiveCallback (sMiniWindow* window, activeFuncType callback);
-void setResizeCallback (sMiniWindow* window, resizeFuncType callback);
-void setCloseCallback (sMiniWindow* window, closeFuncType callback);
+typedef void(*activeFuncType)(sWindow* window, bool isActive);
+typedef void(*resizeFuncType)(sWindow* window, int width, int height);
+typedef bool(*closeFuncType)(sWindow* window);
 
-void setKeyCallback (sMiniWindow* window, keyFuncType callback);
-void setCharCallback (sMiniWindow* window, charFuncType callback);
+typedef void(*keyFuncType)(sWindow* window, eKey key, eKeyModifier mod, bool isPressed);
+typedef void(*charFuncType)(sWindow* window, unsigned int code);
 
-void setPointerButtonCallback (sMiniWindow* window, pointerButtonFuncType callback);
-void setPointerMoveCallback (sMiniWindow* window, pointerMoveFuncType callback);
-void setPointerWheelCallback (sMiniWindow* window, pointerWheelFuncType callback);
-void setPointerEnterCallback (sMiniWindow* window, pointerEnterFuncType callback);
+typedef void(*pointerButtonFuncType)(sWindow* window, ePointerButton button, eKeyModifier mod, bool isPressed);
+typedef void(*pointerMoveFuncType)(sWindow* window, int x, int y, int pressure, int timestamp);
+typedef void(*pointerWheelFuncType)(sWindow* window, eKeyModifier mod, float deltaX, float deltaY);
+typedef void(*pointerEnterFuncType)(sWindow* window, bool enter);
+
+void setActiveCallback (sWindow* window, activeFuncType callback);
+void setResizeCallback (sWindow* window, resizeFuncType callback);
+void setCloseCallback (sWindow* window, closeFuncType callback);
+
+void setKeyCallback (sWindow* window, keyFuncType callback);
+void setCharCallback (sWindow* window, charFuncType callback);
+
+void setPointerButtonCallback (sWindow* window, pointerButtonFuncType callback);
+void setPointerMoveCallback (sWindow* window, pointerMoveFuncType callback);
+void setPointerWheelCallback (sWindow* window, pointerWheelFuncType callback);
+void setPointerEnterCallback (sWindow* window, pointerEnterFuncType callback);
 
 // lambda callbacks
-void setActiveCallback (std::function <void (sMiniWindow*, bool)> func, sMiniWindow* window);
-void setResizeCallback (std::function <void (sMiniWindow*, int, int)> func, sMiniWindow* window);
-void setCloseCallback (std::function <bool (sMiniWindow*)> func, sMiniWindow* window);
+void setActiveCallback (std::function <void (sWindow*, bool)> func, sWindow* window);
+void setResizeCallback (std::function <void (sWindow*, int, int)> func, sWindow* window);
+void setCloseCallback (std::function <bool (sWindow*)> func, sWindow* window);
 
-void setKeyCallback (std::function <void (sMiniWindow*, mfb_key, eKeyModifier, bool)> func, sMiniWindow* window);
-void setCharCallback (std::function <void (sMiniWindow*, unsigned int)> func, sMiniWindow* window);
+void setKeyCallback (std::function <void (sWindow*, eKey, eKeyModifier, bool)> func, sWindow* window);
+void setCharCallback (std::function <void (sWindow*, unsigned int)> func, sWindow* window);
 
-void setPointerButtonCallback (std::function <void (sMiniWindow*, ePointerButton, eKeyModifier, bool)> func, sMiniWindow* window);
-void setPointerMoveCallback (std::function <void (sMiniWindow*, int, int, int, int)>func, sMiniWindow* window);
-void setPointerWheelCallback (std::function <void (sMiniWindow*, eKeyModifier, float, float)> func, sMiniWindow* window);
-void setPointerEnterCallback (std::function <void (sMiniWindow*, bool)> func, sMiniWindow* window);
+void setPointerButtonCallback (std::function <void (sWindow*, ePointerButton, eKeyModifier, bool)> func, sWindow* window);
+void setPointerMoveCallback (std::function <void (sWindow*, int, int, int, int)>func, sWindow* window);
+void setPointerWheelCallback (std::function <void (sWindow*, eKeyModifier, float, float)> func, sWindow* window);
+void setPointerEnterCallback (std::function <void (sWindow*, bool)> func, sWindow* window);
 
 // templates
-template <class T> void setActiveCallback (sMiniWindow* window, T* obj,
-                                           void (T::*method)(sMiniWindow*, bool));
-template <class T> void setResizeCallback (sMiniWindow* window, T* obj,
-                                           void (T::*method)(sMiniWindow*, int, int));
+template <class T> void setActiveCallback (sWindow* window, T* obj,
+                                           void (T::*method)(sWindow*, bool));
+template <class T> void setResizeCallback (sWindow* window, T* obj,
+                                           void (T::*method)(sWindow*, int, int));
 
-template <class T> void setKeyCallback (sMiniWindow* window, T* obj,
-                                        void (T::*method)(sMiniWindow*, mfb_key, eKeyModifier, bool));
-template <class T> void setCharCallback (sMiniWindow* window, T* obj,
-                                         void (T::*method)(sMiniWindow*, unsigned int));
+template <class T> void setKeyCallback (sWindow* window, T* obj,
+                                        void (T::*method)(sWindow*, eKey, eKeyModifier, bool));
+template <class T> void setCharCallback (sWindow* window, T* obj,
+                                         void (T::*method)(sWindow*, unsigned int));
 
-template <class T> void setPointerButtonCallback (sMiniWindow* window, T* obj,
-                                                  void (T::*method)(sMiniWindow*, ePointerButton, eKeyModifier, bool));
-template <class T> void setPointerMoveCallback (sMiniWindow* window, T* obj,
-                                              void (T::*method)(sMiniWindow*, int, int, int, int));
-template <class T> void setPointerWheelCallback (sMiniWindow* window, T* obj,
-                                               void (T::*method)(sMiniWindow*, eKeyModifier, float, float));
-template <class T> void setPointerEnterCallback (sMiniWindow* window, T* obj,
-                                                 void (T::*method)(sMiniWindow*, bool));
+template <class T> void setPointerButtonCallback (sWindow* window, T* obj,
+                                                  void (T::*method)(sWindow*, ePointerButton, eKeyModifier, bool));
+template <class T> void setPointerMoveCallback (sWindow* window, T* obj,
+                                              void (T::*method)(sWindow*, int, int, int, int));
+template <class T> void setPointerWheelCallback (sWindow* window, T* obj,
+                                               void (T::*method)(sWindow*, eKeyModifier, float, float));
+template <class T> void setPointerEnterCallback (sWindow* window, T* obj,
+                                                 void (T::*method)(sWindow*, bool));
 
 //{{{
-class mfbStub {
-  mfbStub() : m_window(0x0) {}
+class cStub {
+  cStub() : m_window(0x0) {}
 
   // friends
-  friend void setActiveCallback (std::function <void (sMiniWindow* window, bool)> func, sMiniWindow* window);
-  friend void setResizeCallback (std::function <void (sMiniWindow*, int, int)> func, sMiniWindow* window);
-  friend void setCloseCallback (std::function <bool (sMiniWindow*)> func, sMiniWindow* window);
+  friend void setActiveCallback (std::function <void (sWindow* window, bool)> func, sWindow* window);
+  friend void setResizeCallback (std::function <void (sWindow*, int, int)> func, sWindow* window);
+  friend void setCloseCallback (std::function <bool (sWindow*)> func, sWindow* window);
 
-  friend void setKeyCallback (std::function <void (sMiniWindow*, mfb_key, eKeyModifier, bool)> func,
-                              sMiniWindow* window);
-  friend void setCharCallback (std::function <void (sMiniWindow*, unsigned int)> func,
-                               sMiniWindow* window);
+  friend void setKeyCallback (std::function <void (sWindow*, eKey, eKeyModifier, bool)> func,
+                              sWindow* window);
+  friend void setCharCallback (std::function <void (sWindow*, unsigned int)> func,
+                               sWindow* window);
 
-  friend void setPointerButtonCallback (std::function <void (sMiniWindow*, ePointerButton, eKeyModifier, bool)> func,
-                                      sMiniWindow* window);
-  friend void setPointerMoveCallback (std::function <void (sMiniWindow*, int, int, int, int)> func,
-                                    sMiniWindow* window);
-  friend void setPointerWheelCallback (std::function <void (sMiniWindow*, eKeyModifier, float, float)> func,
-                                     sMiniWindow* window);
-  friend void setPointerEnterCallback (std::function <void (sMiniWindow*, bool)> func,
-                                       sMiniWindow* window);
+  friend void setPointerButtonCallback (std::function <void (sWindow*, ePointerButton, eKeyModifier, bool)> func,
+                                      sWindow* window);
+  friend void setPointerMoveCallback (std::function <void (sWindow*, int, int, int, int)> func,
+                                    sWindow* window);
+  friend void setPointerWheelCallback (std::function <void (sWindow*, eKeyModifier, float, float)> func,
+                                     sWindow* window);
+  friend void setPointerEnterCallback (std::function <void (sWindow*, bool)> func,
+                                       sWindow* window);
 
   // templates
-  template <class T> friend void setActiveCallback (sMiniWindow* window, T* obj,
-                                                    void (T::*method)(sMiniWindow*, bool));
-  template <class T> friend void setResizeCallback (sMiniWindow* window, T* obj,
-                                                    void (T::*method)(sMiniWindow*, int, int));
-  template <class T> friend void setCloseCallback (sMiniWindow* window, T* obj,
-                                                   bool (T::*method)(sMiniWindow* ));
+  template <class T> friend void setActiveCallback (sWindow* window, T* obj,
+                                                    void (T::*method)(sWindow*, bool));
+  template <class T> friend void setResizeCallback (sWindow* window, T* obj,
+                                                    void (T::*method)(sWindow*, int, int));
+  template <class T> friend void setCloseCallback (sWindow* window, T* obj,
+                                                   bool (T::*method)(sWindow* ));
 
-  template <class T> friend void setKeyCallback (sMiniWindow* window, T* obj,
-                                                 void (T::*method)(sMiniWindow*, mfb_key, eKeyModifier, bool));
-  template <class T> friend void setCharCallback (sMiniWindow* window, T* obj,
-                                                  void (T::*method)(sMiniWindow*, unsigned int));
+  template <class T> friend void setKeyCallback (sWindow* window, T* obj,
+                                                 void (T::*method)(sWindow*, eKey, eKeyModifier, bool));
+  template <class T> friend void setCharCallback (sWindow* window, T* obj,
+                                                  void (T::*method)(sWindow*, unsigned int));
 
-  template <class T> friend void setPointerButtonCallback (sMiniWindow* window, T* obj,
-                                                         void (T::*method)(sMiniWindow*, ePointerButton, eKeyModifier, bool));
-  template <class T> friend void setPointerMoveCallback (sMiniWindow* window, T* obj,
-                                                       void (T::*method)(sMiniWindow*, int, int, int, int));
-  template <class T> friend void setPointerWheelCallback (sMiniWindow* window, T* obj,
-                                                        void (T::*method)(sMiniWindow*, eKeyModifier, float, float));
-  template <class T> friend void setPointerEnterCallback (sMiniWindow* wndow, T* obj,
-                                                          void (T::*method)(sMiniWindow*, bool));
+  template <class T> friend void setPointerButtonCallback (sWindow* window, T* obj,
+                                                         void (T::*method)(sWindow*, ePointerButton, eKeyModifier, bool));
+  template <class T> friend void setPointerMoveCallback (sWindow* window, T* obj,
+                                                       void (T::*method)(sWindow*, int, int, int, int));
+  template <class T> friend void setPointerWheelCallback (sWindow* window, T* obj,
+                                                        void (T::*method)(sWindow*, eKeyModifier, float, float));
+  template <class T> friend void setPointerEnterCallback (sWindow* wndow, T* obj,
+                                                          void (T::*method)(sWindow*, bool));
 
   // statics
-  static mfbStub* GetInstance (sMiniWindow* window);
+  static cStub* GetInstance (sWindow* window);
 
-  static void activeStub (sMiniWindow* window, bool isActive);
-  static void resizeStub (sMiniWindow* window, int width, int height);
-  static bool closeStub (sMiniWindow* window);
+  static void activeStub (sWindow* window, bool isActive);
+  static void resizeStub (sWindow* window, int width, int height);
+  static bool closeStub (sWindow* window);
 
-  static void keyStub (sMiniWindow* window, mfb_key key, eKeyModifier mod, bool isPressed);
-  static void charStub (sMiniWindow* window, unsigned int);
+  static void keyStub (sWindow* window, eKey key, eKeyModifier mod, bool isPressed);
+  static void charStub (sWindow* window, unsigned int);
 
-  static void pointerButtonStub (sMiniWindow* window, ePointerButton button, eKeyModifier mod, bool isPressed);
-  static void pointerMoveStub (sMiniWindow* window, int x, int y, int pressure, int timestamp);
-  static void pointerWheelStub (sMiniWindow* window, eKeyModifier mod, float deltaX, float deltaY);
-  static void pointerEnterStub (sMiniWindow* window, bool);
+  static void pointerButtonStub (sWindow* window, ePointerButton button, eKeyModifier mod, bool isPressed);
+  static void pointerMoveStub (sWindow* window, int x, int y, int pressure, int timestamp);
+  static void pointerWheelStub (sWindow* window, eKeyModifier mod, float deltaX, float deltaY);
+  static void pointerEnterStub (sWindow* window, bool);
 
   // vars
-  sMiniWindow* m_window;
+  sWindow* m_window;
 
-  std::function <void (sMiniWindow* window, bool)> m_active;
-  std::function <void (sMiniWindow* window, int, int)> m_resize;
-  std::function <bool (sMiniWindow* window)> m_close;
+  std::function <void (sWindow* window, bool)> m_active;
+  std::function <void (sWindow* window, int, int)> m_resize;
+  std::function <bool (sWindow* window)> m_close;
 
-  std::function <void (sMiniWindow* window, mfb_key, eKeyModifier, bool)> m_key;
-  std::function <void (sMiniWindow* window, unsigned int)> m_char;
+  std::function <void (sWindow* window, eKey, eKeyModifier, bool)> m_key;
+  std::function <void (sWindow* window, unsigned int)> m_char;
 
-  std::function <void (sMiniWindow* window, ePointerButton, eKeyModifier, bool)> m_pointer_button;
-  std::function <void (sMiniWindow* window, int, int, int, int)> m_pointer_move;
-  std::function <void (sMiniWindow* window, eKeyModifier, float, float)> m_pointer_wheel;
-  std::function <void (sMiniWindow* window, bool)> mPointerEnter;
+  std::function <void (sWindow* window, ePointerButton, eKeyModifier, bool)> m_pointer_button;
+  std::function <void (sWindow* window, int, int, int, int)> m_pointer_move;
+  std::function <void (sWindow* window, eKeyModifier, float, float)> m_pointer_wheel;
+  std::function <void (sWindow* window, bool)> mPointerEnter;
   };
 //}}}
 
 //{{{
-template <class T> inline void setActiveCallback (sMiniWindow* window, T* obj,
-                                                  void (T::*method)(sMiniWindow* window, bool)) {
+template <class T> inline void setActiveCallback (sWindow* window, T* obj,
+                                                  void (T::*method)(sWindow* window, bool)) {
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->m_active = std::bind (method, obj, _1, _2);
 
-  setActiveCallback (window, mfbStub::activeStub);
+  setActiveCallback (window, cStub::activeStub);
   }
 //}}}
 //{{{
-template <class T> inline void setResizeCallback (sMiniWindow* window, T* obj,
-                                                  void (T::*method)(sMiniWindow* window, int, int)) {
+template <class T> inline void setResizeCallback (sWindow* window, T* obj,
+                                                  void (T::*method)(sWindow* window, int, int)) {
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->m_resize = std::bind (method, obj, _1, _2, _3);
 
-  setResizeCallback (window, mfbStub::resizeStub);
+  setResizeCallback (window, cStub::resizeStub);
   }
 //}}}
 //{{{
-template <class T> inline void setCloseCallback (sMiniWindow* window, T* obj,
-                                                 bool (T::*method)(sMiniWindow* window)) {
+template <class T> inline void setCloseCallback (sWindow* window, T* obj,
+                                                 bool (T::*method)(sWindow* window)) {
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->m_close = std::bind (method, obj, _1);
 
-  setCloseCallback (window, mfbStub::closeStub);
+  setCloseCallback (window, cStub::closeStub);
   }
 //}}}
 
 //{{{
-template <class T> inline void setKeyCallback (sMiniWindow* window, T* obj,
-                                               void (T::*method)(sMiniWindow* window, mfb_key, eKeyModifier, bool)) {
+template <class T> inline void setKeyCallback (sWindow* window, T* obj,
+                                               void (T::*method)(sWindow* window, eKey, eKeyModifier, bool)) {
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance(window);
+  cStub* stub = cStub::GetInstance(window);
   stub->m_key = std::bind(method, obj, _1, _2, _3, _4);
 
-  setKeyCallback (window, mfbStub::keyStub);
+  setKeyCallback (window, cStub::keyStub);
   }
 //}}}
 //{{{
-template <class T> inline void setCharCallback (sMiniWindow* window, T* obj,
-                                                void (T::*method)(sMiniWindow* window, unsigned int)) {
+template <class T> inline void setCharCallback (sWindow* window, T* obj,
+                                                void (T::*method)(sWindow* window, unsigned int)) {
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->m_char = std::bind (method, obj, _1, _2);
 
-  setCharCallback (window, mfbStub::charStub);
+  setCharCallback (window, cStub::charStub);
   }
 //}}}
 
 //{{{
-template <class T> inline void setPointerButtonCallback (sMiniWindow* window, T* obj,
-                                                       void (T::*method)(sMiniWindow* window, ePointerButton, eKeyModifier, bool)) {
+template <class T> inline void setPointerButtonCallback (sWindow* window, T* obj,
+                                                       void (T::*method)(sWindow* window, ePointerButton, eKeyModifier, bool)) {
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->m_pointer_button = std::bind (method, obj, _1, _2, _3, _4);
 
-  setPointerButtonCallback (window, mfbStub::pointerButtonStub);
+  setPointerButtonCallback (window, cStub::pointerButtonStub);
   }
 //}}}
 //{{{
-template <class T> inline void setPointerMoveCallback (sMiniWindow* window, T* obj,
-                                                     void (T::*method)(sMiniWindow* window, int, int, int, int)) {
+template <class T> inline void setPointerMoveCallback (sWindow* window, T* obj,
+                                                     void (T::*method)(sWindow* window, int, int, int, int)) {
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->m_pointer_move = std::bind (method, obj, _1, _2, _3, _4, _5);
 
-  setPointerMoveCallback (window, mfbStub::pointerMoveStub);
+  setPointerMoveCallback (window, cStub::pointerMoveStub);
   }
 //}}}
 //{{{
-template <class T> inline void setPointerWheelCallback (sMiniWindow* window, T* obj,
-                                                      void (T::*method)(sMiniWindow* window, eKeyModifier, float, float)) {
+template <class T> inline void setPointerWheelCallback (sWindow* window, T* obj,
+                                                      void (T::*method)(sWindow* window, eKeyModifier, float, float)) {
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->m_pointer_wheel = std::bind (method, obj, _1, _2, _3, _4);
 
-  setPointerWheelCallback (window, mfbStub::pointerWheelStub);
+  setPointerWheelCallback (window, cStub::pointerWheelStub);
   }
 //}}}
 //{{{
-template <class T> inline void setPointerEnterCallback (sMiniWindow* window, T* obj,
-                                                       void (T::*method)(sMiniWindow* window, bool)) {
+template <class T> inline void setPointerEnterCallback (sWindow* window, T* obj,
+                                                       void (T::*method)(sWindow* window, bool)) {
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->mPointerEnter = std::bind (method, obj, _1, _2);
 
-  setPointerEnterCallback (window, mfbStub::pointerEnterStub);
+  setPointerEnterCallback (window, cStub::pointerEnterStub);
   }
 //}}}

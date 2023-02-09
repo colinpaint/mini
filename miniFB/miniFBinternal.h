@@ -1,10 +1,10 @@
 #pragma once
 #include "miniFB.h"
-#include "sWindowData.h"
+#include "sInfo.h"
 
 #define kCall(func, ...)  \
-  if (windowData && windowData->func) \
-    windowData->func ((sMiniWindow*)windowData, __VA_ARGS__);
+  if (info && info->func) \
+    info->func ((sWindow*)info, __VA_ARGS__);
 
 //{{{
 struct sMiniFBtimer {
@@ -15,9 +15,9 @@ struct sMiniFBtimer {
 //}}}
 
 extern short int gKeycodes[512];
-void keyDefault (sMiniWindow* window, mfb_key key, eKeyModifier mod, bool isPressed);
+void keyDefault (sWindow* window, eKey key, eKeyModifier mod, bool isPressed);
 
-void calcDstFactor (sWindowData* windowData, uint32_t width, uint32_t height);
-void resizeDst (sWindowData* windowData, uint32_t width, uint32_t height);
+void calcDstFactor (sInfo* info, uint32_t width, uint32_t height);
+void resizeDst (sInfo* info, uint32_t width, uint32_t height);
 
 void setTargetFpsAux();

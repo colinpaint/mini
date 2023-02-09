@@ -4,10 +4,10 @@
 #include "miniFBinternal.h"
 
 #if defined(_WIN32) || defined(WIN32)
-  #include "sWindowDataWindows.h"
+  #include "sInfoWindows.h"
   #include <gl/gl.h>
 #else
-  #include "sWindowDataX11.h"
+  #include "sInfoX11.h"
   #include <GL/gl.h>
   #include <GL/glx.h>
 #endif
@@ -76,7 +76,7 @@ namespace {
 
   #else
     //{{{
-    bool setup_pixel_format (sWindowDataX11* windowDataX11) {
+    bool setup_pixel_format (sInfoX11* infoX11) {
 
       GLint glxAttribs[] = { GLX_RGBA,
                              GLX_DOUBLEBUFFER,
@@ -91,14 +91,14 @@ namespace {
                              GLX_SAMPLES,        0,
                              None };
 
-      XVisualInfo* visualInfo = glXChooseVisual (windowDataX11->display, windowDataX11->screen, glxAttribs);
+      XVisualInfo* visualInfo = glXChooseVisual (infoX11->display, infoX11->screen, glxAttribs);
       if (!visualInfo) {
         cLog::log (LOGERROR, "Could not create correct visual window");
-        XCloseDisplay (windowDataX11->display);
+        XCloseDisplay (infoX11->display);
         return false;
         }
 
-      windowDataX11->context = glXCreateContext (windowDataX11->display, visualInfo, NULL, GL_TRUE);
+      infoX11->context = glXCreateContext (infoX11->display, visualInfo, NULL, GL_TRUE);
 
       return true;
       }
@@ -194,13 +194,13 @@ void setTargetFpsAux() {
 //}}}
 
 //{{{
-void initGL (sWindowData* windowData) {
+void initGL (sInfo* info) {
 
-  glViewport (0, 0, windowData->window_width, windowData->window_height);
+  glViewport (0, 0, info->window_width, info->window_height);
 
   glMatrixMode (GL_PROJECTION);
   glLoadIdentity();
-  glOrtho (0, windowData->window_width, windowData->window_height, 0, 2048, -2048);
+  glOrtho (0, info->window_width, info->window_height, 0, 2048, -2048);
 
   glMatrixMode (GL_MODELVIEW);
   glLoadIdentity();
@@ -210,9 +210,9 @@ void initGL (sWindowData* windowData) {
 
   glEnable (GL_TEXTURE_2D);
 
-  glGenTextures (1, &windowData->textureId);
+  glGenTextures (1, &info->textureId);
   //glActiveTexture (TEXTURE0);
-  glBindTexture (GL_TEXTURE_2D, windowData->textureId);
+  glBindTexture (GL_TEXTURE_2D, info->textureId);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -227,48 +227,48 @@ void initGL (sWindowData* windowData) {
   }
 //}}}
 //{{{
-void resizeGL (sWindowData* windowData) {
+void resizeGL (sInfo* info) {
 
-  if (windowData->isInitialized) {
+  if (info->isInitialized) {
     #if defined(_WIN32) || defined(WIN32)
-    sWindowDataWindows* windowData_ex = (sWindowDataWindows*) windowData->specific;
-      wglMakeCurrent (windowData_ex->hdc, windowData_ex->hGLRC);
+    sInfoWindows* info_ex = (sInfoWindows*) info->specificInfo;
+      wglMakeCurrent (info_ex->hdc, info_ex->hGLRC);
     #else
-      sWindowDataX11* windowData_ex = (sWindowDataX11*) windowData->specific;
-      glXMakeCurrent (windowData_ex->display, windowData_ex->window, windowData_ex->context);
+      sInfoX11* info_ex = (sInfoX11*) info->specificInfo;
+      glXMakeCurrent (info_ex->display, info_ex->window, info_ex->context);
     #endif
 
-    glViewport (0,0, windowData->window_width,windowData->window_height);
+    glViewport (0,0, info->window_width,info->window_height);
 
     glMatrixMode (GL_PROJECTION);
     glLoadIdentity();
-    glOrtho (0, windowData->window_width, windowData->window_height, 0, 2048, -2048);
+    glOrtho (0, info->window_width, info->window_height, 0, 2048, -2048);
 
     glClear (GL_COLOR_BUFFER_BIT);
     }
   }
 //}}}
 //{{{
-void redrawGL (sWindowData* windowData, const void* pixels) {
+void redrawGL (sInfo* info, const void* pixels) {
 
   #if defined(_WIN32) || defined(WIN32)
-  sWindowDataWindows* windowData_ex = (sWindowDataWindows*)windowData->specific;
-    wglMakeCurrent (windowData_ex->hdc, windowData_ex->hGLRC);
+  sInfoWindows* info_ex = (sInfoWindows*)info->specificInfo;
+    wglMakeCurrent (info_ex->hdc, info_ex->hGLRC);
   #else
-    sWindowDataX11* windowData_ex = (sWindowDataX11*)windowData->specific;
-    glXMakeCurrent (windowData_ex->display, windowData_ex->window, windowData_ex->context);
+    sInfoX11* info_ex = (sInfoX11*)info->specificInfo;
+    glXMakeCurrent (info_ex->display, info_ex->window, info_ex->context);
   #endif
 
   GLenum format = RGBA;
 
   // clear
   //glClear (GL_COLOR_BUFFER_BIT);
-  glBindTexture (GL_TEXTURE_2D, windowData->textureId);
+  glBindTexture (GL_TEXTURE_2D, info->textureId);
   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA,
-                windowData->bufferWidth, windowData->bufferHeight,
+                info->bufferWidth, info->bufferHeight,
                 0, format, GL_UNSIGNED_BYTE, pixels);
   //glTexSubImage2D (GL_TEXTURE_2D, 0,
-  //                 0, 0, windowData->buffer_width, windowData->buffer_height,
+  //                 0, 0, info->buffer_width, info->buffer_height,
   //                 format, GL_UNSIGNED_BYTE, pixels);
 
   // draw single texture
@@ -276,10 +276,10 @@ void redrawGL (sWindowData* windowData, const void* pixels) {
   glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 
   // vertices
-  float x = (float)windowData->dst_offset_x;
-  float y = (float)windowData->dst_offset_y;
-  float w = (float)windowData->dst_offset_x + windowData->dst_width;
-  float h = (float)windowData->dst_offset_y + windowData->dst_height;
+  float x = (float)info->dst_offset_x;
+  float y = (float)info->dst_offset_y;
+  float w = (float)info->dst_offset_x + info->dst_width;
+  float h = (float)info->dst_offset_y + info->dst_height;
   float vertices[] = { x, y, 0, 0,
                        w, y, 1, 0,
                        x, h, 0, 1,
@@ -294,28 +294,28 @@ void redrawGL (sWindowData* windowData, const void* pixels) {
 
   // swap buffer
   #if defined(_WIN32) || defined(WIN32)
-    SwapBuffers (windowData_ex->hdc);
+    SwapBuffers (info_ex->hdc);
   #else
-    glXSwapBuffers (windowData_ex->display, windowData_ex->window);
+    glXSwapBuffers (info_ex->display, info_ex->window);
   #endif
   }
 //}}}
 
 //{{{
-bool createGLcontext (sWindowData* windowData) {
+bool createGLcontext (sInfo* info) {
 
   #if defined(_WIN32) || defined(WIN32)
-  sWindowDataWindows* windowData_win = (sWindowDataWindows*)windowData->specific;
-    if (setup_pixel_format (windowData_win->hdc) == false)
+  sInfoWindows* info_win = (sInfoWindows*)info->specificInfo;
+    if (setup_pixel_format (info_win->hdc) == false)
       return false;
 
-    windowData_win->hGLRC = wglCreateContext (windowData_win->hdc);
-    wglMakeCurrent (windowData_win->hdc, windowData_win->hGLRC);
+    info_win->hGLRC = wglCreateContext (info_win->hdc);
+    wglMakeCurrent (info_win->hdc, info_win->hGLRC);
 
     cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
     cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
     cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
-    initGL (windowData);
+    initGL (info);
 
     // get extensions
     SwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress ("wglSwapIntervalEXT");
@@ -323,29 +323,29 @@ bool createGLcontext (sWindowData* windowData) {
     setTargetFpsAux();
 
   #else
-    sWindowDataX11* windowDataX11 = (sWindowDataX11*) windowData->specific;
+    sInfoX11* infoX11 = (sInfoX11*) info->specificInfo;
 
     GLint majorGLX = 0;
     GLint minorGLX = 0;
-    glXQueryVersion (windowDataX11->display, &majorGLX, &minorGLX);
+    glXQueryVersion (infoX11->display, &majorGLX, &minorGLX);
     if ((majorGLX <= 1) && (minorGLX < 2)) {
       cLog::log (LOGERROR, "GLX 1.2 or greater is required");
-      XCloseDisplay (windowDataX11->display);
+      XCloseDisplay (infoX11->display);
       return false;
       }
     else
       cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
 
-    if (setup_pixel_format (windowDataX11) == false)
+    if (setup_pixel_format (infoX11) == false)
       return false;
 
-    glXMakeCurrent (windowDataX11->display, windowDataX11->window, windowDataX11->context);
+    glXMakeCurrent (infoX11->display, infoX11->window, infoX11->context);
 
     cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
     cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
     cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
     cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
-    initGL (windowData);
+    initGL (info);
 
     // get extensions
     if (CheckGLExtension ("GLX_EXT_swap_control")) {
@@ -359,19 +359,19 @@ bool createGLcontext (sWindowData* windowData) {
   }
 //}}}
 //{{{
-void destroyGLcontext (sWindowData* windowData) {
+void destroyGLcontext (sInfo* info) {
 
   #if defined(_WIN32) || defined(WIN32)
-  sWindowDataWindows* windowData_win = (sWindowDataWindows*)windowData->specific;
-    if (windowData_win->hGLRC) {
+  sInfoWindows* info_win = (sInfoWindows*)info->specificInfo;
+    if (info_win->hGLRC) {
       wglMakeCurrent (NULL, NULL);
-      wglDeleteContext (windowData_win->hGLRC);
-      windowData_win->hGLRC = 0;
+      wglDeleteContext (info_win->hGLRC);
+      info_win->hGLRC = 0;
       }
 
   #else
-    sWindowDataX11* windowDataX11 = (sWindowDataX11*)windowData->specific;
-    glXDestroyContext (windowDataX11->display, windowDataX11->context);
+    sInfoX11* infoX11 = (sInfoX11*)info->specificInfo;
+    glXDestroyContext (infoX11->display, infoX11->context);
   #endif
   }
 //}}}

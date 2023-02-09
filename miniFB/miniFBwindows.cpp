@@ -5,9 +5,9 @@
 #include "miniFB.h"
 
 #include "miniFBinternal.h"
-#include "sWindowData.h"
+#include "sInfo.h"
 
-#include "sWindowDataWindows.h"
+#include "sInfoWindows.h"
 #include <windowsx.h>
 
 #include "miniFBgl.h"
@@ -526,7 +526,7 @@ namespace {
     }
   //}}}
   //{{{
-  mfb_key translateKey (unsigned int wParam, unsigned long lParam) {
+  eKey translateKey (unsigned int wParam, unsigned long lParam) {
 
     if (wParam == VK_CONTROL) {
       if (lParam & 0x01000000)
@@ -547,14 +547,14 @@ namespace {
     if (wParam == VK_PROCESSKEY)
       return KB_KEY_UNKNOWN;
 
-    return (mfb_key)gKeycodes[HIWORD(lParam) & 0x1FF];
+    return (eKey)gKeycodes[HIWORD(lParam) & 0x1FF];
     }
   //}}}
   //{{{
   LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
-    sWindowData* windowData = (sWindowData*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
-    sWindowDataWindows* windowData_win = windowData ? (sWindowDataWindows*)windowData->specific : nullptr;
+    sInfo* info = (sInfo*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+    sInfoWindows* info_win = info ? (sInfoWindows*)info->specificInfo : nullptr;
 
     switch (message) {
       //{{{
@@ -566,20 +566,20 @@ namespace {
       //}}}
       //{{{
       case WM_SIZE:
-        if (windowData) {
+        if (info) {
           if (wParam == SIZE_MINIMIZED)
             return 0;
 
           float scale_x, scale_y;
           getWindowsMonitorScale (hWnd, &scale_x, &scale_y);
-          windowData->window_width = GET_X_LPARAM(lParam);
-          windowData->window_height =  GET_Y_LPARAM(lParam);
-          resizeDst (windowData, windowData->window_width, windowData->window_height);
+          info->window_width = GET_X_LPARAM(lParam);
+          info->window_height =  GET_Y_LPARAM(lParam);
+          resizeDst (info, info->window_width, info->window_height);
 
-          resizeGL (windowData);
-          if (windowData->window_width && windowData->window_height) {
-            uint32_t width  = (uint32_t)(windowData->window_width  / scale_x);
-            uint32_t height = (uint32_t)(windowData->window_height / scale_y);
+          resizeGL (info);
+          if (info->window_width && info->window_height) {
+            uint32_t width  = (uint32_t)(info->window_width  / scale_x);
+            uint32_t height = (uint32_t)(info->window_height / scale_y);
             kCall (resizeFunc, width, height);
             }
           }
@@ -589,17 +589,17 @@ namespace {
 
       //{{{
       case WM_CLOSE:
-        if (windowData) {
+        if (info) {
           bool destroy = false;
 
           // Obtain a confirmation of close
-          if (!windowData->closeFunc || windowData->closeFunc ((sMiniWindow*)windowData))
+          if (!info->closeFunc || info->closeFunc ((sWindow*)info))
             destroy = true;
 
           if (destroy) {
-            windowData->closed = true;
-            if (windowData_win)
-              DestroyWindow (windowData_win->window);
+            info->closed = true;
+            if (info_win)
+              DestroyWindow (info_win->window);
             }
           }
 
@@ -607,16 +607,16 @@ namespace {
       //}}}
       //{{{
       case WM_DESTROY:
-        if (windowData)
-          windowData->closed = true;
+        if (info)
+          info->closed = true;
 
         break;
       //}}}
 
       //{{{
       case WM_SETFOCUS:
-        if (windowData) {
-          windowData->isActive = true;
+        if (info) {
+          info->isActive = true;
           kCall (activeFunc, true);
           }
 
@@ -624,8 +624,8 @@ namespace {
       //}}}
       //{{{
       case WM_KILLFOCUS:
-        if (windowData) {
-          windowData->isActive = false;
+        if (info) {
+          info->isActive = false;
           kCall (activeFunc, false);
           }
 
@@ -637,16 +637,16 @@ namespace {
       case WM_KEYDOWN:
       //{{{
       case WM_KEYUP:
-        if (windowData) {
-          mfb_key key_code = translateKey ((unsigned int)wParam, (unsigned long)lParam);
+        if (info) {
+          eKey key_code = translateKey ((unsigned int)wParam, (unsigned long)lParam);
           int is_pressed = !((lParam >> 31) & 1);
-          windowData->modifierKeys = translateMod();
+          info->modifierKeys = translateMod();
 
           if (key_code == KB_KEY_UNKNOWN)
             return 0;
 
-          windowData->keyStatus[key_code] = (uint8_t)is_pressed;
-          kCall (keyFunc, key_code, (eKeyModifier)windowData->modifierKeys, is_pressed);
+          info->keyStatus[key_code] = (uint8_t)is_pressed;
+          kCall (keyFunc, key_code, (eKeyModifier)info->modifierKeys, is_pressed);
           }
 
         break;
@@ -658,7 +658,7 @@ namespace {
         {
         static WCHAR highSurrogate = 0;
 
-        if (windowData) {
+        if (info) {
           if (wParam >= 0xd800 && wParam <= 0xdbff) {
             highSurrogate = (WCHAR) wParam;
             }
@@ -684,7 +684,7 @@ namespace {
       //}}}
       //{{{
       case WM_UNICHAR:
-        if (windowData) {
+        if (info) {
           if (wParam == UNICODE_NOCHAR) {
             // WM_UNICHAR is not sent by Windows, but is sent by some third-party input method engine
             // Returning TRUE here announces support for this message
@@ -747,14 +747,14 @@ namespace {
         //                                 IS_POINTER_INRANGE_WPARAM(wParam) ? "inRange " : "",
         //                                 IS_POINTER_INCONTACT_WPARAM(wParam) ? "inContact " : "",
         //                                 GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) ));
-        windowData_win->pointerInside = false;
+        info_win->pointerInside = false;
         kCall (pointerEnterFunc, false);
 
         break;
       //}}}
       //{{{
       case WM_POINTERDOWN:
-        if (windowData) {
+        if (info) {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
             if (pointerInfo.pointerType == PT_MOUSE) {
@@ -766,9 +766,9 @@ namespace {
             else // unused PT_TOUCH, PT_TOUCHPAD
               cLog::log (LOGERROR, fmt::format ("pointerDown - unknown type:{}", pointerInfo.pointerType));
 
-            windowData->modifierKeys = translateMod();
-            windowData->pointerButtonStatus[MOUSE_BTN_1] = 1;
-            kCall (pointerButtonFunc, MOUSE_BTN_1, (eKeyModifier)windowData->modifierKeys, 1);
+            info->modifierKeys = translateMod();
+            info->pointerButtonStatus[MOUSE_BTN_1] = 1;
+            kCall (pointerButtonFunc, MOUSE_BTN_1, (eKeyModifier)info->modifierKeys, 1);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerDown - no info"));
@@ -778,7 +778,7 @@ namespace {
       //}}}
       //{{{
       case WM_POINTERUP:
-        if (windowData) {
+        if (info) {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
             if (pointerInfo.pointerType == PT_MOUSE) {
@@ -790,9 +790,9 @@ namespace {
             else // unused PT_TOUCH, PT_TOUCHPAD
               cLog::log (LOGERROR, fmt::format ("pointerUp - unknown type:{}", pointerInfo.pointerType));
 
-            windowData->modifierKeys = translateMod();
-            windowData->pointerButtonStatus[MOUSE_BTN_1] = 0;
-            kCall (pointerButtonFunc, MOUSE_BTN_1, (eKeyModifier)windowData->modifierKeys, 0);
+            info->modifierKeys = translateMod();
+            info->pointerButtonStatus[MOUSE_BTN_1] = 0;
+            kCall (pointerButtonFunc, MOUSE_BTN_1, (eKeyModifier)info->modifierKeys, 0);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerUp - no info"));
@@ -874,40 +874,40 @@ namespace {
           //INT32        tiltX;
           //INT32        tiltY;
         //}}}
-        if (windowData) {
+        if (info) {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
             if (pointerInfo.pointerType == PT_MOUSE) {
               //cLog::log (LOGINFO, fmt::format ("pointerUpdate mouse type:{} flags:{:x} time:{}",
               //                                 pointerInfo.pointerType, pointerInfo.pointerFlags, pointerInfo.dwTime));
-              windowData_win->pointerInside = true;
+              info_win->pointerInside = true;
 
               POINT clientPos = pointerInfo.ptPixelLocation;
               ScreenToClient (hWnd, &clientPos);
-              windowData->pointerPosX = clientPos.x;
-              windowData->pointerPosY = clientPos.y;
-              kCall (pointerMoveFunc, windowData->pointerPosX, windowData->pointerPosY,
-                                      windowData->pointerButtonStatus[MOUSE_BTN_1] * 1024, 0);
+              info->pointerPosX = clientPos.x;
+              info->pointerPosY = clientPos.y;
+              kCall (pointerMoveFunc, info->pointerPosX, info->pointerPosY,
+                                      info->pointerButtonStatus[MOUSE_BTN_1] * 1024, 0);
               }
             else if (pointerInfo.pointerType == PT_PEN) {
               POINTER_PEN_INFO pointerPenInfos[10];
               uint32_t entriesCount = 10;
               if (GetPointerPenInfoHistory (GET_POINTERID_WPARAM (wParam), &entriesCount, pointerPenInfos)) {
-                windowData_win->pointerInside = true;
+                info_win->pointerInside = true;
                 for (uint32_t i = entriesCount; i > 0; i--) {
                   ScreenToClient (hWnd, &pointerPenInfos[i-1].pointerInfo.ptPixelLocation);
-                  windowData->pointerPosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
-                  windowData->pointerPosY = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
-                  windowData->pointerPressure = pointerPenInfos[i-1].pressure;
-                  windowData->timestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
+                  info->pointerPosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
+                  info->pointerPosY = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
+                  info->pointerPressure = pointerPenInfos[i-1].pressure;
+                  info->timestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
 
                   kCall (pointerMoveFunc,
-                         windowData->pointerPosX, windowData->pointerPosY,
-                         windowData->pointerPressure, windowData->timestamp);
+                         info->pointerPosX, info->pointerPosY,
+                         info->pointerPressure, info->timestamp);
 
                   //cLog::log (LOGINFO, fmt::format ("pointerUpdate pen {} {},{} press:{} time:{}",
-                  //                                 i, windowData->mousePosX, windowData->mousePosY,
-                  //                                 windowData->mousePressure, windowData->time));
+                  //                                 i, info->mousePosX, info->mousePosY,
+                  //                                 info->mousePressure, info->time));
                   }
                 }
               }
@@ -923,10 +923,10 @@ namespace {
       //}}}
       //{{{
       case WM_POINTERWHEEL:
-        if (windowData) {
+        if (info) {
           cLog::log (LOGINFO, fmt::format ("pointerWheel"));
-          windowData->pointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-          kCall (pointerWheelFunc, (eKeyModifier)translateMod(), 0.0f, windowData->pointerWheelY);
+          info->pointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
+          kCall (pointerWheelFunc, (eKeyModifier)translateMod(), 0.0f, info->pointerWheelY);
           }
         else
           cLog::log (LOGERROR, fmt::format ("pointerWheel - no info"));
@@ -976,28 +976,28 @@ namespace {
     }
   //}}}
   //{{{
-  void freeResources (sWindowData* windowData) {
+  void freeResources (sInfo* info) {
 
-    if (!windowData)
+    if (!info)
       return;
 
-    sWindowDataWindows* windowDataWindows = (sWindowDataWindows*)windowData->specific;
+    sInfoWindows* infoWindows = (sInfoWindows*)info->specificInfo;
 
-    destroyGLcontext (windowData);
+    destroyGLcontext (info);
 
-    if (windowDataWindows->window && windowDataWindows->hdc) {
-      ReleaseDC (windowDataWindows->window, windowDataWindows->hdc);
-      DestroyWindow (windowDataWindows->window);
+    if (infoWindows->window && infoWindows->hdc) {
+      ReleaseDC (infoWindows->window, infoWindows->hdc);
+      DestroyWindow (infoWindows->window);
       }
 
-    windowDataWindows->window = 0;
-    windowDataWindows->hdc = 0;
+    infoWindows->window = 0;
+    infoWindows->hdc = 0;
 
-    timerDestroy (windowData->timer);
-    windowData->timer = 0x0;
+    timerDestroy (info->timer);
+    info->timer = 0x0;
 
-    windowData->draw_buffer = 0x0;
-    windowData->closed = true;
+    info->draw_buffer = 0x0;
+    info->closed = true;
 
     #ifdef USE_WINTAB
       winTabUnload();
@@ -1008,7 +1008,7 @@ namespace {
 
 // interface
 //{{{
-sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+sWindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   RECT rect = { 0 };
   int x = 0;
@@ -1018,23 +1018,23 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
   dpiAware();
   initKeycodes();
 
-  sWindowData* windowData = (sWindowData*)malloc(sizeof(sWindowData));
-  if (windowData == 0x0)
+  sInfo* info = (sInfo*)malloc(sizeof(sInfo));
+  if (info == 0x0)
     return 0x0;
-  memset (windowData, 0, sizeof(sWindowData));
+  memset (info, 0, sizeof(sInfo));
 
-  sWindowDataWindows* windowData_win = (sWindowDataWindows*)calloc(1, sizeof(sWindowDataWindows));
-  if (windowData_win == 0x0) {
+  sInfoWindows* info_win = (sInfoWindows*)calloc(1, sizeof(sInfoWindows));
+  if (info_win == 0x0) {
     //{{{  error, return
-    free (windowData);
+    free (info);
     return 0x0;
     }
     //}}}
 
-  windowData->specific = windowData_win;
-  windowData->bufferWidth  = width;
-  windowData->bufferHeight = height;
-  windowData->bufferStride = width * 4;
+  info->specificInfo = info_win;
+  info->bufferWidth  = width;
+  info->bufferHeight = height;
+  info->bufferStride = width * 4;
 
   long s_window_style = WS_POPUP | WS_SYSMENU | WS_CAPTION;
   s_window_style = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME;
@@ -1100,97 +1100,97 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     }
     //}}}
 
-  windowData_win->wc.style         = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
-  windowData_win->wc.lpfnWndProc   = WndProc;
-  windowData_win->wc.hCursor       = LoadCursor(0, IDC_ARROW);
-  windowData_win->wc.lpszClassName = title;
-  RegisterClass (&windowData_win->wc);
+  info_win->wc.style         = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
+  info_win->wc.lpfnWndProc   = WndProc;
+  info_win->wc.hCursor       = LoadCursor(0, IDC_ARROW);
+  info_win->wc.lpszClassName = title;
+  RegisterClass (&info_win->wc);
 
-  calcDstFactor (windowData, width, height);
+  calcDstFactor (info, width, height);
 
-  windowData->window_width  = rect.right;
-  windowData->window_height = rect.bottom;
+  info->window_width  = rect.right;
+  info->window_height = rect.bottom;
 
-  windowData_win->window = CreateWindowEx (0,
+  info_win->window = CreateWindowEx (0,
                                            title, title,
                                            s_window_style,
                                            x, y,
-                                           windowData->window_width, windowData->window_height,
+                                           info->window_width, info->window_height,
                                            0, 0, 0, 0);
-  if (!windowData_win->window) {
+  if (!info_win->window) {
     //{{{  error, return
-    free (windowData);
-    free (windowData_win);
+    free (info);
+    free (info_win);
     return 0x0;
     }
     //}}}
 
-  SetWindowLongPtr (windowData_win->window, GWLP_USERDATA, (LONG_PTR) windowData);
+  SetWindowLongPtr (info_win->window, GWLP_USERDATA, (LONG_PTR) info);
 
   if (flags & WF_ALWAYS_ON_TOP)
-    SetWindowPos (windowData_win->window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-  ShowWindow (windowData_win->window, SW_NORMAL);
+    SetWindowPos (info_win->window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+  ShowWindow (info_win->window, SW_NORMAL);
 
-  windowData_win->hdc = GetDC (windowData_win->window);
+  info_win->hdc = GetDC (info_win->window);
 
-  createGLcontext (windowData);
-  windowData->timer = timerCreate();
-  setKeyCallback ((sMiniWindow*)windowData, keyDefault);
+  createGLcontext (info);
+  info->timer = timerCreate();
+  setKeyCallback ((sWindow*)info, keyDefault);
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
   #ifdef USE_WINTAB
     // enable winTab, mainly for WT_PROXIMITY, get WT_PACKET
-    if (!winTabLoad (windowData_win->window))
+    if (!winTabLoad (info_win->window))
       cLog::log (LOGERROR, fmt::format ("winTab load failed"));
   #endif
 
   // enable WM_POINTER wndProc messaging, to tell mouse from pen
   EnableMouseInPointer (true);
 
-  windowData->isInitialized = true;
-  return (sMiniWindow*)windowData;
+  info->isInitialized = true;
+  return (sWindow*)info;
   }
 //}}}
 //{{{
-eUpdateState updateEx (sMiniWindow* window, void* buffer, unsigned width, unsigned height) {
+eUpdateState updateEx (sWindow* window, void* buffer, unsigned width, unsigned height) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
 
-  sWindowData* windowData = (sWindowData*)window;
-  if (windowData->closed) {
-    freeResources (windowData);
+  sInfo* info = (sInfo*)window;
+  if (info->closed) {
+    freeResources (info);
     return STATE_EXIT;
     }
 
   if (!buffer)
     return STATE_INVALID_BUFFER;
 
-  windowData->draw_buffer = buffer;
-  windowData->bufferWidth = width;
-  windowData->bufferStride = width * 4;
-  windowData->bufferHeight = height;
-  redrawGL (windowData, buffer);
+  info->draw_buffer = buffer;
+  info->bufferWidth = width;
+  info->bufferStride = width * 4;
+  info->bufferHeight = height;
+  redrawGL (info, buffer);
 
   return STATE_OK;
   }
 //}}}
 //{{{
-eUpdateState updateEvents (sMiniWindow* window) {
+eUpdateState updateEvents (sWindow* window) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
 
-  sWindowData* windowData = (sWindowData*)window;
-  if (windowData->closed) {
-    freeResources (windowData);
+  sInfo* info = (sInfo*)window;
+  if (info->closed) {
+    freeResources (info);
     return STATE_EXIT;
     }
 
   MSG msg;
-  sWindowDataWindows* windowData_win = (sWindowDataWindows*)windowData->specific;
-  while (!windowData->closed && PeekMessage (&msg, windowData_win->window, 0, 0, PM_REMOVE)) {
+  sInfoWindows* info_win = (sInfoWindows*)info->specificInfo;
+  while (!info->closed && PeekMessage (&msg, info_win->window, 0, 0, PM_REMOVE)) {
     TranslateMessage (&msg);
     DispatchMessage (&msg);
     }
@@ -1200,61 +1200,61 @@ eUpdateState updateEvents (sMiniWindow* window) {
 //}}}
 
 //{{{
-void getMonitorScale (sMiniWindow* window, float* scale_x, float* scale_y) {
+void getMonitorScale (sWindow* window, float* scale_x, float* scale_y) {
 
   HWND hWnd = 0x0;
 
   if (window) {
-    sWindowData* windowData = (sWindowData*)window;
-    sWindowDataWindows* windowData_win = (sWindowDataWindows*)windowData->specific;
-    hWnd = windowData_win->window;
+    sInfo* info = (sInfo*)window;
+    sInfoWindows* info_win = (sInfoWindows*)info->specificInfo;
+    hWnd = info_win->window;
     }
 
   getWindowsMonitorScale (hWnd, scale_x, scale_y);
   }
 //}}}
 //{{{
-bool setViewport (sMiniWindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
+bool setViewport (sWindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
 
-  sWindowData* windowData = (sWindowData*)window;
-  sWindowDataWindows* windowData_win = 0x0;
+  sInfo* info = (sInfo*)window;
+  sInfoWindows* info_win = 0x0;
 
-  if (!windowData)
+  if (!info)
     return false;
 
-  if (offset_x + width > windowData->window_width)
+  if (offset_x + width > info->window_width)
     return false;
 
-  if (offset_y + height > windowData->window_height)
+  if (offset_y + height > info->window_height)
     return false;
 
-  windowData_win = (sWindowDataWindows*)windowData->specific;
+  info_win = (sInfoWindows*)info->specificInfo;
 
   float scale_x, scale_y;
-  getWindowsMonitorScale (windowData_win->window, &scale_x, &scale_y);
+  getWindowsMonitorScale (info_win->window, &scale_x, &scale_y);
 
-  windowData->dst_offset_x = (uint32_t)(offset_x * scale_x);
-  windowData->dst_offset_y = (uint32_t)(offset_y * scale_y);
+  info->dst_offset_x = (uint32_t)(offset_x * scale_x);
+  info->dst_offset_y = (uint32_t)(offset_y * scale_y);
 
-  windowData->dst_width = (uint32_t)(width  * scale_x);
-  windowData->dst_height = (uint32_t)(height * scale_y);
+  info->dst_width = (uint32_t)(width  * scale_x);
+  info->dst_height = (uint32_t)(height * scale_y);
 
-  calcDstFactor (windowData, windowData->window_width, windowData->window_height);
+  calcDstFactor (info, info->window_width, info->window_height);
 
   return true;
   }
 //}}}
 
 //{{{
-bool waitSync (sMiniWindow* window) {
+bool waitSync (sWindow* window) {
 
   if (!window)
     return false;
 
-  sWindowData* windowData = (sWindowData*)window;
-  if (windowData->closed) {
+  sInfo* info = (sInfo*)window;
+  if (info->closed) {
     //{{{  return false
-    freeResources (windowData);
+    freeResources (info);
     return false;
     }
     //}}}
@@ -1262,13 +1262,13 @@ bool waitSync (sMiniWindow* window) {
   if (gUseHardwareSync)
     return true;
 
-  sWindowDataWindows* windowData_win = (sWindowDataWindows*)windowData->specific;
+  sInfoWindows* info_win = (sInfoWindows*)info->specificInfo;
 
   double current;
   while (true) {
-    current = timerNow (windowData->timer);
+    current = timerNow (info->timer);
     if (current >= gTimeForFrame) {
-      timerReset (windowData->timer);
+      timerReset (info->timer);
       return true;
       }
     else if (gTimeForFrame - current > 2.0 / 1000.0) {
@@ -1277,13 +1277,13 @@ bool waitSync (sMiniWindow* window) {
       timeEndPeriod (1);
 
       MSG msg;
-      if (PeekMessage (&msg, windowData_win->window, 0, 0, PM_REMOVE)) {
+      if (PeekMessage (&msg, info_win->window, 0, 0, PM_REMOVE)) {
         TranslateMessage (&msg);
         DispatchMessage (&msg);
 
-        if (windowData->closed) {
+        if (info->closed) {
           //{{{  return false
-          freeResources (windowData);
+          freeResources (info);
           return false;
           }
           //}}}

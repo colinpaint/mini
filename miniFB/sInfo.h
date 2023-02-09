@@ -1,11 +1,10 @@
-// sWindowData - sMiniWindow is opaque pointer
+// sInfo - non opaque sWindow
 #pragma once
-#include "miniFBenums.h"
 #include <functional>
 
-struct sWindowData {
-  void* specific;
-  void* user_data;
+struct sInfo {
+  void* specificInfo;
+  void* userData;
 
   activeFuncType         activeFunc;
   resizeFuncType         resizeFunc;

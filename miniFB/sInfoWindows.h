@@ -1,9 +1,8 @@
-// sWindowDataWindows - specific is opaque pointer
+// sInfoWindows - specific is opaque pointer
 #pragma once
-#include "miniFBenums.h"
 #include <windows.h>
 
-struct sWindowDataWindows {
+struct sInfoWindows {
   HWND           window;
   WNDCLASS       wc;
   HDC            hdc;

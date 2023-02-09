@@ -3,202 +3,117 @@
 
 #include <vector>
 #include "miniFBinternal.h"
-#include "sWindowData.h"
+#include "sInfo.h"
 
 short int gKeycodes[512] = { 0 };
 
 //{{{
-sMiniWindow* open (const char* title, unsigned width, unsigned height) {
+sWindow* open (const char* title, unsigned width, unsigned height) {
 
   return openEx (title, width, height, 0);
   }
 //}}}
-
 //{{{
-eUpdateState update (sMiniWindow* window, void *buffer) {
+eUpdateState update (sWindow* window, void *buffer) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
 
-  return updateEx (window, buffer, ((sWindowData*)(window))->bufferWidth, ((sWindowData*)(window))->bufferHeight);
+  return updateEx (window, buffer, ((sInfo*)(window))->bufferWidth, ((sInfo*)(window))->bufferHeight);
   }
 //}}}
 //{{{
-void setActiveCallback (sMiniWindow* window, activeFuncType callback) {
+void close (sWindow* window) {
 
   if (window)
-    ((sWindowData*)(window))->activeFunc = callback;
-  }
-//}}}
-//{{{
-void setResizeCallback (sMiniWindow* window, resizeFuncType callback) {
-
-  if (window)
-    ((sWindowData*)(window))->resizeFunc = callback;
-  }
-//}}}
-//{{{
-void setCloseCallback (sMiniWindow* window, closeFuncType callback) {
-
-  if (window)
-    ((sWindowData*)(window))->closeFunc = callback;
+    ((sInfo*)(window))->closed = true;
   }
 //}}}
 
+// gets
 //{{{
-void setKeyCallback (sMiniWindow* window, keyFuncType callback) {
+cStub* cStub::GetInstance (sWindow *window) {
 
-  if (window)
-    ((sWindowData*)(window))->keyFunc = callback;
+  //{{{
+  struct stub_vector {
+    std::vector<cStub*> instances;
+
+    stub_vector() = default;
+    //{{{
+    ~stub_vector() {
+      for (cStub* instance : instances)
+        delete instance;
+      }
+    //}}}
+
+    cStub* Get (sWindow *window) {
+      for(cStub *instance : instances) {
+        if(instance->m_window == window) {
+          return instance;
+          }
+        }
+      instances.push_back (new cStub);
+      instances.back()->m_window = window;
+      return instances.back();
+      }
+    };
+  //}}}
+  static stub_vector gInstances;
+
+  return gInstances.Get (window);
   }
 //}}}
-//{{{
-void setCharCallback (sMiniWindow* window, charFuncType callback) {
+void* getUserData (sWindow* window) { return window ? ((sInfo*)(window))->userData : 0; }
 
-  if (window)
-    ((sWindowData*)(window))->charFunc = callback;
-  }
+//{{{
+bool isWindowActive (sWindow* window)  {
+  return window ? ((sInfo*)(window))->isActive : 0; }
+//}}}
+//{{{
+unsigned getWindowWidth (sWindow* window)  {
+  return window ? ((sInfo*)(window))->window_width : 0; }
+//}}}
+//{{{
+unsigned getWindowHeight (sWindow* window) {
+  return window ? ((sInfo*)(window))->window_height : 0; }
 //}}}
 
 //{{{
-void setPointerButtonCallback (sMiniWindow* window, pointerButtonFuncType callback) {
-
-  if (window)
-    ((sWindowData*)(window))->pointerButtonFunc = callback;
-  }
+int getPointerX (sWindow* window) {
+  return window ? ((sInfo*)(window))->pointerPosX : 0; }
 //}}}
 //{{{
-void setPointerMoveCallback (sMiniWindow* window, pointerMoveFuncType callback) {
-
-  if (window)
-    ((sWindowData*)(window))->pointerMoveFunc = callback;
-  }
+int getPointerY (sWindow* window) {
+  return window ? ((sInfo*)(window))->pointerPosY : 0; }
 //}}}
 //{{{
-void setPointerWheelCallback (sMiniWindow* window, pointerWheelFuncType callback) {
-
-  if (window)
-    ((sWindowData*)(window))->pointerWheelFunc = callback;
-  }
+int getPointerPressure (sWindow* window) {
+  return window ? ((sInfo*)(window))->pointerPressure : 0; }
 //}}}
 //{{{
-void setPointerEnterCallback (sMiniWindow* window, pointerEnterFuncType callback) {
-
-  if (window)
-    ((sWindowData*)(window))->pointerEnterFunc = callback;
-  }
+int64_t getPointerTimestamp (sWindow* window) {
+  return window ? ((sInfo*)(window))->timestamp : 0; }
 //}}}
 
 //{{{
-void mfb_set_user_data (sMiniWindow* window, void* user_data) {
-
-  if (window)
-    ((sWindowData*)(window))->user_data = user_data;
-  }
-//}}}
-
-void* getUserData (sMiniWindow* window) { return window ? ((sWindowData*)(window))->user_data : 0; }
-
-//{{{
-void close (sMiniWindow* window) {
-
-  if (window)
-    ((sWindowData*)(window))->closed = true;
-  }
+float getPointerWheelX (sWindow* window) {
+  return window ? ((sInfo*)(window))->pointerWheelX : 0; }
 //}}}
 //{{{
-void keyDefault (sMiniWindow* window, mfb_key key, eKeyModifier mod, bool isPressed) {
-
-  (void)(mod);
-  (void)(isPressed);
-
-  if (key == KB_KEY_ESCAPE) {
-    if (!((sWindowData*)(window))->closeFunc ||
-         ((sWindowData*)(window))->closeFunc ((sMiniWindow*)window))
-      ((sWindowData*)(window))->closed = true;
-    }
-  }
+float getPointerWheelY (sWindow* window) {
+  return window ? ((sInfo*)(window))->pointerWheelY : 0; }
 //}}}
 
 //{{{
-bool setViewportBestFit (sMiniWindow* window, unsigned old_width, unsigned old_height) {
-
-  if (window) {
-    unsigned new_width  = ((sWindowData*)(window))->window_width;
-    unsigned new_height = ((sWindowData*)(window))->window_height;
-
-    float scale_x = new_width  / (float) old_width;
-    float scale_y = new_height / (float) old_height;
-    if (scale_x >= scale_y)
-      scale_x = scale_y;
-    else
-      scale_y = scale_x;
-
-    unsigned finalWidth  = (unsigned)((old_width  * scale_x) + 0.5f);
-    unsigned finalHeight = (unsigned)((old_height * scale_y) + 0.5f);
-
-    unsigned offset_x = (new_width  - finalWidth)  >> 1;
-    unsigned offset_y = (new_height - finalHeight) >> 1;
-
-    getMonitorScale (window, &scale_x, &scale_y);
-    return setViewport (window, (unsigned)(offset_x / scale_x), (unsigned)(offset_y / scale_y),
-                                   (unsigned)(finalWidth / scale_x), (unsigned)(finalHeight / scale_y));
-    }
-
-  return false;
-  }
-//}}}
-
-//{{{
-bool isWindowActive (sMiniWindow* window)  {
-  return window ? ((sWindowData*)(window))->isActive : 0; }
+const uint8_t* getPointerButtonBuffer (sWindow* window) {
+  return window ? ((sInfo*)(window))->pointerButtonStatus : 0; }
 //}}}
 //{{{
-unsigned getWindowWidth (sMiniWindow* window)  {
-  return window ? ((sWindowData*)(window))->window_width : 0; }
+const uint8_t* getKeyBuffer (sWindow* window)  {
+  return window ? ((sInfo*)(window))->keyStatus : 0; }
 //}}}
 //{{{
-unsigned getWindowHeight (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->window_height : 0; }
-//}}}
-
-//{{{
-int getPointerX (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->pointerPosX : 0; }
-//}}}
-//{{{
-int getPointerY (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->pointerPosY : 0; }
-//}}}
-//{{{
-int getPointerPressure (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->pointerPressure : 0; }
-//}}}
-//{{{
-int64_t getPointerTimestamp (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->timestamp : 0; }
-//}}}
-
-//{{{
-float getPointerWheelX (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->pointerWheelX : 0; }
-//}}}
-//{{{
-float getPointerWheelY (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->pointerWheelY : 0; }
-//}}}
-
-//{{{
-const uint8_t* getPointerButtonBuffer (sMiniWindow* window) {
-  return window ? ((sWindowData*)(window))->pointerButtonStatus : 0; }
-//}}}
-//{{{
-const uint8_t* getKeyBuffer (sMiniWindow* window)  {
-  return window ? ((sWindowData*)(window))->keyStatus : 0; }
-//}}}
-
-//{{{
-const char* getKeyName (mfb_key key) {
+const char* getKeyName (eKey key) {
 
   switch (key) {
     case KB_KEY_SPACE: return "Space";
@@ -344,196 +259,281 @@ const char* getKeyName (mfb_key key) {
   return "Unknown";
   }
 //}}}
+
+// sets
 //{{{
-mfbStub* mfbStub::GetInstance (sMiniWindow *window) {
+void setUserData (sWindow* window, void* user_data) {
 
-  //{{{
-  struct stub_vector {
-    std::vector<mfbStub*> instances;
-
-    stub_vector() = default;
-    //{{{
-    ~stub_vector() {
-      for (mfbStub* instance : instances)
-        delete instance;
-      }
-    //}}}
-
-    mfbStub* Get (sMiniWindow *window) {
-      for(mfbStub *instance : instances) {
-        if(instance->m_window == window) {
-          return instance;
-          }
-        }
-      instances.push_back (new mfbStub);
-      instances.back()->m_window = window;
-      return instances.back();
-      }
-    };
-  //}}}
-  static stub_vector s_instances;
-
-  return s_instances.Get (window);
-  }
-//}}}
-
-// stubs
-//{{{
-void mfbStub::activeStub (sMiniWindow* window, bool isActive) {
-
-  mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_active (window, isActive);
+  if (window)
+    ((sInfo*)(window))->userData = user_data;
   }
 //}}}
 //{{{
-void mfbStub::resizeStub (sMiniWindow* window, int width, int height) {
+bool setViewportBestFit (sWindow* window, unsigned old_width, unsigned old_height) {
 
-  mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_resize (window, width, height);
-  }
-//}}}
-//{{{
-bool mfbStub::closeStub (sMiniWindow* window) {
+  if (window) {
+    unsigned new_width  = ((sInfo*)(window))->window_width;
+    unsigned new_height = ((sInfo*)(window))->window_height;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
-  return stub->m_close (window);
+    float scale_x = new_width  / (float) old_width;
+    float scale_y = new_height / (float) old_height;
+    if (scale_x >= scale_y)
+      scale_x = scale_y;
+    else
+      scale_y = scale_x;
+
+    unsigned finalWidth  = (unsigned)((old_width  * scale_x) + 0.5f);
+    unsigned finalHeight = (unsigned)((old_height * scale_y) + 0.5f);
+
+    unsigned offset_x = (new_width  - finalWidth)  >> 1;
+    unsigned offset_y = (new_height - finalHeight) >> 1;
+
+    getMonitorScale (window, &scale_x, &scale_y);
+    return setViewport (window, (unsigned)(offset_x / scale_x), (unsigned)(offset_y / scale_y),
+                                   (unsigned)(finalWidth / scale_x), (unsigned)(finalHeight / scale_y));
+    }
+
+  return false;
   }
 //}}}
 
 //{{{
-void mfbStub::keyStub (sMiniWindow* window, mfb_key key, eKeyModifier mod, bool isPressed) {
+void setActiveCallback (sWindow* window, activeFuncType callback) {
 
-  mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_key (window, key, mod, isPressed);
+  if (window)
+    ((sInfo*)(window))->activeFunc = callback;
   }
 //}}}
 //{{{
-void mfbStub::charStub (sMiniWindow* window, unsigned int code) {
+void setResizeCallback (sWindow* window, resizeFuncType callback) {
 
-  mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_char (window, code);
+  if (window)
+    ((sInfo*)(window))->resizeFunc = callback;
+  }
+//}}}
+//{{{
+void setCloseCallback (sWindow* window, closeFuncType callback) {
+
+  if (window)
+    ((sInfo*)(window))->closeFunc = callback;
   }
 //}}}
 
 //{{{
-void mfbStub::pointerButtonStub (sMiniWindow* window, ePointerButton button, eKeyModifier mod, bool isPressed) {
+void setKeyCallback (sWindow* window, keyFuncType callback) {
 
-  mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_pointer_button (window, button, mod, isPressed);
+  if (window)
+    ((sInfo*)(window))->keyFunc = callback;
   }
 //}}}
 //{{{
-void mfbStub::pointerMoveStub (sMiniWindow* window, int x, int y, int pressure, int timestamp) {
+void setCharCallback (sWindow* window, charFuncType callback) {
 
-  mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_pointer_move (window, x, y, pressure, timestamp);
+  if (window)
+    ((sInfo*)(window))->charFunc = callback;
+  }
+//}}}
+
+//{{{
+void setPointerButtonCallback (sWindow* window, pointerButtonFuncType callback) {
+
+  if (window)
+    ((sInfo*)(window))->pointerButtonFunc = callback;
   }
 //}}}
 //{{{
-void mfbStub::pointerWheelStub (sMiniWindow* window, eKeyModifier mod, float deltaX, float deltaY) {
+void setPointerMoveCallback (sWindow* window, pointerMoveFuncType callback) {
 
-  mfbStub* stub = mfbStub::GetInstance (window);
-  stub->m_pointer_wheel (window, mod, deltaX, deltaY);
+  if (window)
+    ((sInfo*)(window))->pointerMoveFunc = callback;
   }
 //}}}
 //{{{
-void mfbStub::pointerEnterStub (sMiniWindow* window, bool enter) {
+void setPointerWheelCallback (sWindow* window, pointerWheelFuncType callback) {
 
-  mfbStub* stub = mfbStub::GetInstance (window);
-  stub->mPointerEnter (window, enter);
+  if (window)
+    ((sInfo*)(window))->pointerWheelFunc = callback;
+  }
+//}}}
+//{{{
+void setPointerEnterCallback (sWindow* window, pointerEnterFuncType callback) {
+
+  if (window)
+    ((sInfo*)(window))->pointerEnterFunc = callback;
+  }
+//}}}
+
+//{{{
+void keyDefault (sWindow* window, eKey key, eKeyModifier mod, bool isPressed) {
+
+  (void)(mod);
+  (void)(isPressed);
+
+  if (key == KB_KEY_ESCAPE) {
+    if (!((sInfo*)(window))->closeFunc ||
+         ((sInfo*)(window))->closeFunc ((sWindow*)window))
+      ((sInfo*)(window))->closed = true;
+    }
   }
 //}}}
 
 // set callbacks
 //{{{
-void setActiveCallback (std::function <void (sMiniWindow*, bool)> func, sMiniWindow* window) {
+void setActiveCallback (std::function <void (sWindow*, bool)> func, sWindow* window) {
 
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->m_active = std::bind (func, _1, _2);
-  setActiveCallback (window, mfbStub::activeStub);
+  setActiveCallback (window, cStub::activeStub);
   }
 //}}}
 //{{{
-void setResizeCallback (std::function <void (sMiniWindow*, int, int)> func, sMiniWindow* window) {
+void setResizeCallback (std::function <void (sWindow*, int, int)> func, sWindow* window) {
 
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance(window);
+  cStub* stub = cStub::GetInstance(window);
   stub->m_resize = std::bind(func, _1, _2, _3);
-  setResizeCallback(window, mfbStub::resizeStub);
+  setResizeCallback(window, cStub::resizeStub);
   }
 //}}}
 //{{{
-void setCloseCallback (std::function <bool (sMiniWindow*)> func, sMiniWindow* window) {
+void setCloseCallback (std::function <bool (sWindow*)> func, sWindow* window) {
 
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance(window);
+  cStub* stub = cStub::GetInstance(window);
   stub->m_close = std::bind(func, _1);
-  setCloseCallback(window, mfbStub::closeStub);
+  setCloseCallback(window, cStub::closeStub);
   }
 //}}}
 
 //{{{
-void setKeyCallback (std::function <void (sMiniWindow*, mfb_key, eKeyModifier, bool)> func, sMiniWindow *window) {
+void setKeyCallback (std::function <void (sWindow*, eKey, eKeyModifier, bool)> func, sWindow *window) {
 
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance(window);
+  cStub* stub = cStub::GetInstance(window);
   stub->m_key = std::bind (func, _1, _2, _3, _4);
-  setKeyCallback (window, mfbStub::keyStub);
+  setKeyCallback (window, cStub::keyStub);
   }
 //}}}
 //{{{
-void setCharCallback (std::function <void (sMiniWindow*, unsigned int)> func, sMiniWindow* window) {
+void setCharCallback (std::function <void (sWindow*, unsigned int)> func, sWindow* window) {
 
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->m_char = std::bind (func, _1, _2);
-  setCharCallback (window, mfbStub::charStub);
+  setCharCallback (window, cStub::charStub);
   }
 //}}}
 
 //{{{
-void setPointerButtonCallback (std::function <void (sMiniWindow*, ePointerButton, eKeyModifier, bool)> func, sMiniWindow *window) {
+void setPointerButtonCallback (std::function <void (sWindow*, ePointerButton, eKeyModifier, bool)> func, sWindow *window) {
 
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->m_pointer_button = std::bind (func, _1, _2, _3, _4);
-  setPointerButtonCallback (window, mfbStub::pointerButtonStub);
+  setPointerButtonCallback (window, cStub::pointerButtonStub);
   }
 //}}}
 //{{{
-void setPointerMoveCallback (std::function <void (sMiniWindow*, int, int, int, int)> func, sMiniWindow* window) {
+void setPointerMoveCallback (std::function <void (sWindow*, int, int, int, int)> func, sWindow* window) {
 
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->m_pointer_move = std::bind (func, _1, _2, _3, _4, _5);
-  setPointerMoveCallback (window, mfbStub::pointerMoveStub);
+  setPointerMoveCallback (window, cStub::pointerMoveStub);
   }
 //}}}
 //{{{
-void setPointerWheelCallback (std::function <void (sMiniWindow*, eKeyModifier, float, float)> func, sMiniWindow *window) {
+void setPointerWheelCallback (std::function <void (sWindow*, eKeyModifier, float, float)> func, sWindow *window) {
 
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->m_pointer_wheel = std::bind (func, _1, _2, _3, _4);
-  setPointerWheelCallback (window, mfbStub::pointerWheelStub);
+  setPointerWheelCallback (window, cStub::pointerWheelStub);
   }
 //}}}
 //{{{
-void setPointerEnterCallback (std::function <void (sMiniWindow*, bool)> func, sMiniWindow *window) {
+void setPointerEnterCallback (std::function <void (sWindow*, bool)> func, sWindow *window) {
 
   using namespace std::placeholders;
 
-  mfbStub* stub = mfbStub::GetInstance (window);
+  cStub* stub = cStub::GetInstance (window);
   stub->mPointerEnter = std::bind (func, _1, _2);
-  setPointerEnterCallback (window, mfbStub::pointerEnterStub);
+  setPointerEnterCallback (window, cStub::pointerEnterStub);
+  }
+//}}}
+
+// stubs
+//{{{
+void cStub::activeStub (sWindow* window, bool isActive) {
+
+  cStub* stub = cStub::GetInstance (window);
+  stub->m_active (window, isActive);
+  }
+//}}}
+//{{{
+void cStub::resizeStub (sWindow* window, int width, int height) {
+
+  cStub* stub = cStub::GetInstance (window);
+  stub->m_resize (window, width, height);
+  }
+//}}}
+//{{{
+bool cStub::closeStub (sWindow* window) {
+
+  cStub* stub = cStub::GetInstance (window);
+  return stub->m_close (window);
+  }
+//}}}
+
+//{{{
+void cStub::keyStub (sWindow* window, eKey key, eKeyModifier mod, bool isPressed) {
+
+  cStub* stub = cStub::GetInstance (window);
+  stub->m_key (window, key, mod, isPressed);
+  }
+//}}}
+//{{{
+void cStub::charStub (sWindow* window, unsigned int code) {
+
+  cStub* stub = cStub::GetInstance (window);
+  stub->m_char (window, code);
+  }
+//}}}
+
+//{{{
+void cStub::pointerButtonStub (sWindow* window, ePointerButton button, eKeyModifier mod, bool isPressed) {
+
+  cStub* stub = cStub::GetInstance (window);
+  stub->m_pointer_button (window, button, mod, isPressed);
+  }
+//}}}
+//{{{
+void cStub::pointerMoveStub (sWindow* window, int x, int y, int pressure, int timestamp) {
+
+  cStub* stub = cStub::GetInstance (window);
+  stub->m_pointer_move (window, x, y, pressure, timestamp);
+  }
+//}}}
+//{{{
+void cStub::pointerWheelStub (sWindow* window, eKeyModifier mod, float deltaX, float deltaY) {
+
+  cStub* stub = cStub::GetInstance (window);
+  stub->m_pointer_wheel (window, mod, deltaX, deltaY);
+  }
+//}}}
+//{{{
+void cStub::pointerEnterStub (sWindow* window, bool enter) {
+
+  cStub* stub = cStub::GetInstance (window);
+  stub->mPointerEnter (window, enter);
   }
 //}}}

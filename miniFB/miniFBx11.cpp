@@ -20,10 +20,10 @@
 
 #include "miniFB.h"
 #include "miniFBinternal.h"
-#include "sWindowData.h"
+#include "sInfo.h"
 
 #include "miniFBgl.h"
-#include "sWindowDataX11.h"
+#include "sInfoX11.h"
 
 #include "../common/cLog.h"
 //}}}
@@ -229,7 +229,7 @@ namespace {
   //}}}
 
   //{{{
-  void initKeycodes (sWindowDataX11* windowDataX11) {
+  void initKeycodes (sInfoX11* infoX11) {
 
     // clear keys
     for (size_t i = 0; i < sizeof(gKeycodes) / sizeof(gKeycodes[0]); ++i)
@@ -238,10 +238,10 @@ namespace {
     // valid key code range is  [8,255], according to the Xlib manual
     for (size_t i = 8; i <= 255; ++i) {
       // try secondary keysym, for numeric keypad keys
-      int keySym  = XkbKeycodeToKeysym (windowDataX11->display, i, 0, 1);
+      int keySym  = XkbKeycodeToKeysym (infoX11->display, i, 0, 1);
       gKeycodes[i] = translateKeyCodeB (keySym);
       if (gKeycodes[i] == KB_KEY_UNKNOWN) {
-        keySym = XkbKeycodeToKeysym (windowDataX11->display, i, 0, 0);
+        keySym = XkbKeycodeToKeysym (infoX11->display, i, 0, 0);
         gKeycodes[i] = translateKeyCodeA (keySym);
         }
       }
@@ -329,19 +329,19 @@ namespace {
   //}}}
 
   //{{{
-  void processEvent (sWindowData* windowData, XEvent* event) {
+  void processEvent (sInfo* info, XEvent* event) {
 
     switch (event->type) {
       case KeyPress:
       //{{{
       case KeyRelease:
         {
-        mfb_key key_code = (mfb_key)translateKey (event->xkey.keycode);
+        eKey key_code = (eKey)translateKey (event->xkey.keycode);
         int is_pressed = (event->type == KeyPress);
-        windowData->modifierKeys = translateModEx (key_code, event->xkey.state, is_pressed);
+        info->modifierKeys = translateModEx (key_code, event->xkey.state, is_pressed);
 
-        windowData->keyStatus[key_code] = is_pressed;
-        kCall (keyFunc, key_code, (eKeyModifier)windowData->modifierKeys, is_pressed);
+        info->keyStatus[key_code] = is_pressed;
+        kCall (keyFunc, key_code, (eKeyModifier)info->modifierKeys, is_pressed);
 
         if (event->type == KeyPress) {
           KeySym keysym;
@@ -371,7 +371,7 @@ namespace {
         {
         ePointerButton button = (ePointerButton)event->xbutton.button;
         int is_pressed = (event->type == ButtonPress);
-        windowData->modifierKeys = translateMod (event->xkey.state);
+        info->modifierKeys = translateMod (event->xkey.state);
 
         // Swap pointer right and middle for parity with other platforms:
         // https://github.com/emoon/minifb/issues/65
@@ -389,33 +389,33 @@ namespace {
           case Button1:
           case Button2:
           case Button3:
-            windowData->pointerButtonStatus[button & 0x07] = is_pressed;
-            kCall (pointerButtonFunc, button, (eKeyModifier) windowData->modifierKeys, is_pressed);
+            info->pointerButtonStatus[button & 0x07] = is_pressed;
+            kCall (pointerButtonFunc, button, (eKeyModifier) info->modifierKeys, is_pressed);
             break;
 
           case Button4:
-            windowData->pointerWheelY = 1.0f;
-            kCall (pointerWheelFunc, (eKeyModifier) windowData->modifierKeys, 0.0f, windowData->pointerWheelY);
+            info->pointerWheelY = 1.0f;
+            kCall (pointerWheelFunc, (eKeyModifier) info->modifierKeys, 0.0f, info->pointerWheelY);
             break;
 
           case Button5:
-            windowData->pointerWheelY = -1.0f;
-            kCall (pointerWheelFunc, (eKeyModifier) windowData->modifierKeys, 0.0f, windowData->pointerWheelY);
+            info->pointerWheelY = -1.0f;
+            kCall (pointerWheelFunc, (eKeyModifier) info->modifierKeys, 0.0f, info->pointerWheelY);
             break;
 
           case 6:
-            windowData->pointerWheelX = 1.0f;
-            kCall (pointerWheelFunc, (eKeyModifier) windowData->modifierKeys, windowData->pointerWheelX, 0.0f);
+            info->pointerWheelX = 1.0f;
+            kCall (pointerWheelFunc, (eKeyModifier) info->modifierKeys, info->pointerWheelX, 0.0f);
             break;
 
           case 7:
-            windowData->pointerWheelX = -1.0f;
-            kCall (pointerWheelFunc, (eKeyModifier) windowData->modifierKeys, windowData->pointerWheelX, 0.0f);
+            info->pointerWheelX = -1.0f;
+            kCall (pointerWheelFunc, (eKeyModifier) info->modifierKeys, info->pointerWheelX, 0.0f);
             break;
 
           default:
-            windowData->pointerButtonStatus[(button - 4) & 0x07] = is_pressed;
-            kCall (pointerButtonFunc, (ePointerButton) (button - 4), (eKeyModifier) windowData->modifierKeys, is_pressed);
+            info->pointerButtonStatus[(button - 4) & 0x07] = is_pressed;
+            kCall (pointerButtonFunc, (ePointerButton) (button - 4), (eKeyModifier) info->modifierKeys, is_pressed);
             break;
           }
         }
@@ -430,23 +430,23 @@ namespace {
         cLog::log (LOGINFO, fmt::format ("motionNotify {},{} {}",
                                          event->xmotion.x, event->xmotion.y, motionEvent->serial));
 
-        windowData->pointerPosX = event->xmotion.x;
-        windowData->pointerPosY = event->xmotion.y;
-        kCall (pointerMoveFunc, windowData->pointerPosX, windowData->pointerPosY,
-                                windowData->pointerButtonStatus[Button1] * 1024, 0);
+        info->pointerPosX = event->xmotion.x;
+        info->pointerPosY = event->xmotion.y;
+        kCall (pointerMoveFunc, info->pointerPosX, info->pointerPosY,
+                                info->pointerButtonStatus[Button1] * 1024, 0);
         }
         break;
       //}}}
 
       //{{{
       case ConfigureNotify:
-        windowData->window_width  = event->xconfigure.width;
-        windowData->window_height = event->xconfigure.height;
+        info->window_width  = event->xconfigure.width;
+        info->window_height = event->xconfigure.height;
 
-        resizeDst (windowData, event->xconfigure.width, event->xconfigure.height);
-        resizeGL (windowData);
+        resizeDst (info, event->xconfigure.width, event->xconfigure.height);
+        resizeGL (info);
 
-        kCall (resizeFunc, windowData->window_width, windowData->window_height);
+        kCall (resizeFunc, info->window_width, info->window_height);
 
         break;
       //}}}
@@ -464,14 +464,14 @@ namespace {
 
       //{{{
       case FocusIn:
-        windowData->isActive = true;
+        info->isActive = true;
         kCall (activeFunc, true);
 
         break;
       //}}}
       //{{{
       case FocusOut:
-        windowData->isActive = false;
+        info->isActive = false;
         kCall (activeFunc, false);
 
         break;
@@ -479,18 +479,18 @@ namespace {
 
       //{{{
       case DestroyNotify:
-        windowData->closed = true;
+        info->closed = true;
         return;
       //}}}
       //{{{
       case ClientMessage:
         if ((Atom)event->xclient.data.l[0] == gDeleteWindowAtom) {
-          if (windowData) {
+          if (info) {
             bool destroy = false;
-            if (!windowData->closeFunc || windowData->closeFunc ((sMiniWindow*)windowData))
+            if (!info->closeFunc || info->closeFunc ((sWindow*)info))
               destroy = true;
             if (destroy) {
-              windowData->closed = true;
+              info->closed = true;
               return;
               }
             }
@@ -517,30 +517,30 @@ namespace {
     }
   //}}}
   //{{{
-  void processEvents (sWindowData* windowData) {
+  void processEvents (sInfo* info) {
 
-    sWindowDataX11* windowDataX11 = (sWindowDataX11*)windowData->specific;
-    while (!windowData->closed && XPending (windowDataX11->display)) {
+    sInfoX11* infoX11 = (sInfoX11*)info->specificInfo;
+    while (!info->closed && XPending (infoX11->display)) {
       XEvent event;
-      XNextEvent (windowDataX11->display, &event);
-      processEvent (windowData, &event);
+      XNextEvent (infoX11->display, &event);
+      processEvent (info, &event);
       }
     }
   //}}}
   //{{{
-  void freeResources (sWindowData* windowData)  {
+  void freeResources (sInfo* info)  {
 
     if (gDevice) {
-      sWindowDataX11* windowDataX11 = (sWindowDataX11*)windowData->specific;
-      if (windowDataX11)
-        XCloseDevice (windowDataX11->display, gDevice);
+      sInfoX11* infoX11 = (sInfoX11*)info->specificInfo;
+      if (infoX11)
+        XCloseDevice (infoX11->display, gDevice);
       }
 
-    if (windowData) {
-      destroyGLcontext (windowData);
-      timerDestroy (windowData->timer);
-      free (windowData->specific);
-      free (windowData);
+    if (info) {
+      destroyGLcontext (info);
+      timerDestroy (info->timer);
+      free (info->specificInfo);
+      free (info);
       }
     }
   //}}}
@@ -548,47 +548,47 @@ namespace {
 
 // interface
 //{{{
-sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+sWindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
-  sWindowData* windowData = (sWindowData*)calloc (1, sizeof(sWindowData));
-  if (!windowData) {
+  sInfo* info = (sInfo*)calloc (1, sizeof(sInfo));
+  if (!info) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create window data"));
     return 0;
     }
     //}}}
 
-  sWindowDataX11* windowDataX11 = (sWindowDataX11*)calloc (1, sizeof(sWindowDataX11));
-  if (!windowDataX11) {
+  sInfoX11* infoX11 = (sInfoX11*)calloc (1, sizeof(sInfoX11));
+  if (!infoX11) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create X11 data"));
-    free (windowData);
+    free (info);
     return 0;
     }
     //}}}
-  windowData->specific = windowDataX11;
+  info->specificInfo = infoX11;
 
-  windowDataX11->display = XOpenDisplay (0);
-  if (!windowDataX11->display) {
+  infoX11->display = XOpenDisplay (0);
+  if (!infoX11->display) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create display"));
-    free (windowData);
-    free (windowDataX11);
+    free (info);
+    free (infoX11);
     return 0;
     }
     //}}}
 
-  initKeycodes (windowDataX11);
-  XAutoRepeatOff (windowDataX11->display);
+  initKeycodes (infoX11);
+  XAutoRepeatOff (infoX11->display);
 
-  windowDataX11->screen = DefaultScreen (windowDataX11->display);
-  Visual* visual = DefaultVisual (windowDataX11->display, windowDataX11->screen);
+  infoX11->screen = DefaultScreen (infoX11->display);
+  Visual* visual = DefaultVisual (infoX11->display, infoX11->screen);
   //{{{  set format
   int formatCount;
   int convDepth = -1;
-  XPixmapFormatValues* formats = XListPixmapFormats (windowDataX11->display, &formatCount);
-  int depth = DefaultDepth (windowDataX11->display, windowDataX11->screen);
-  Window defaultRootWindow = DefaultRootWindow (windowDataX11->display);
+  XPixmapFormatValues* formats = XListPixmapFormats (infoX11->display, &formatCount);
+  int depth = DefaultDepth (infoX11->display, infoX11->screen);
+  Window defaultRootWindow = DefaultRootWindow (infoX11->display);
   for (int i = 0; i < formatCount; ++i) {
     if (depth == formats[i].depth) {
       convDepth = formats[i].bits_per_pixel;
@@ -601,26 +601,26 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
   if (convDepth != 32) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create 32 bir depth"));
-    XCloseDisplay (windowDataX11->display);
+    XCloseDisplay (infoX11->display);
     return 0;
     }
     //}}}
   //}}}
   //{{{  set width, height
-  int screenWidth = DisplayWidth (windowDataX11->display, windowDataX11->screen);
-  int screenHeight = DisplayHeight (windowDataX11->display, windowDataX11->screen);
+  int screenWidth = DisplayWidth (infoX11->display, infoX11->screen);
+  int screenHeight = DisplayHeight (infoX11->display, infoX11->screen);
 
   XSetWindowAttributes windowAttributes;
-  windowAttributes.border_pixel = BlackPixel (windowDataX11->display, windowDataX11->screen);
-  windowAttributes.background_pixel = BlackPixel (windowDataX11->display, windowDataX11->screen);
+  windowAttributes.border_pixel = BlackPixel (infoX11->display, infoX11->screen);
+  windowAttributes.background_pixel = BlackPixel (infoX11->display, infoX11->screen);
   windowAttributes.backing_store = NotUseful;
 
-  windowData->window_width  = width;
-  windowData->window_height = height;
-  windowData->bufferWidth  = width;
-  windowData->bufferHeight = height;
-  windowData->bufferStride = width * 4;
-  calcDstFactor (windowData, width, height);
+  info->window_width  = width;
+  info->window_height = height;
+  info->bufferWidth  = width;
+  info->bufferHeight = height;
+  info->bufferStride = width * 4;
+  calcDstFactor (info, width, height);
 
   int posX, posY;
   int windowWidth, windowHeight;
@@ -644,25 +644,25 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     //}}}
   //}}}
 
-  windowDataX11->window = XCreateWindow (windowDataX11->display, defaultRootWindow,
+  infoX11->window = XCreateWindow (infoX11->display, defaultRootWindow,
                                          posX, posY, windowWidth, windowHeight,
                                          0, depth, InputOutput, visual,
                                          CWBackPixel | CWBorderPixel | CWBackingStore,
                                          &windowAttributes);
-  if (!windowDataX11->window) {
+  if (!infoX11->window) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create X11 window"));
     return 0;
     }
     //}}}
 
-  XSelectInput (windowDataX11->display, windowDataX11->window,
+  XSelectInput (infoX11->display, infoX11->window,
                 StructureNotifyMask | ExposureMask |
                 FocusChangeMask |
                 KeyPressMask | KeyReleaseMask |
                 ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
                 EnterWindowMask | LeaveWindowMask);
-  XStoreName (windowDataX11->display, windowDataX11->window, title);
+  XStoreName (infoX11->display, infoX11->window, title);
 
   if (flags & WF_BORDERLESS) {
     //{{{  borderless
@@ -674,32 +674,32 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
       unsigned long status;
       } sh = {2, 0, 0, 0, 0};
 
-    Atom sh_p = XInternAtom (windowDataX11->display, "_MOTIF_WM_HINTS", True);
-    XChangeProperty (windowDataX11->display, windowDataX11->window, sh_p, sh_p, 32,
+    Atom sh_p = XInternAtom (infoX11->display, "_MOTIF_WM_HINTS", True);
+    XChangeProperty (infoX11->display, infoX11->window, sh_p, sh_p, 32,
                      PropModeReplace, (unsigned char*)&sh, 5);
     }
     //}}}
   if (flags & WF_ALWAYS_ON_TOP) {
     //{{{  always on top
-    Atom sa_p = XInternAtom (windowDataX11->display, "_NET_WM_STATE_ABOVE", False);
-    XChangeProperty (windowDataX11->display, windowDataX11->window,
-                     XInternAtom (windowDataX11->display, "_NET_WM_STATE", False), XA_ATOM, 32,
+    Atom sa_p = XInternAtom (infoX11->display, "_NET_WM_STATE_ABOVE", False);
+    XChangeProperty (infoX11->display, infoX11->window,
+                     XInternAtom (infoX11->display, "_NET_WM_STATE", False), XA_ATOM, 32,
                      PropModeReplace, (unsigned char*)&sa_p, 1);
     }
     //}}}
   if (flags & WF_FULLSCREEN) {
     //{{{  full screen
-    Atom sf_p = XInternAtom (windowDataX11->display, "_NET_WM_STATE_FULLSCREEN", True);
-    XChangeProperty (windowDataX11->display, windowDataX11->window,
-                     XInternAtom (windowDataX11->display, "_NET_WM_STATE", True), XA_ATOM, 32,
+    Atom sf_p = XInternAtom (infoX11->display, "_NET_WM_STATE_FULLSCREEN", True);
+    XChangeProperty (infoX11->display, infoX11->window,
+                     XInternAtom (infoX11->display, "_NET_WM_STATE", True), XA_ATOM, 32,
                      PropModeReplace, (unsigned char*)&sf_p, 1);
     }
     //}}}
 
-  gDeleteWindowAtom = XInternAtom (windowDataX11->display, "WM_DELETE_WINDOW", False);
-  XSetWMProtocols (windowDataX11->display, windowDataX11->window, &gDeleteWindowAtom, 1);
+  gDeleteWindowAtom = XInternAtom (infoX11->display, "WM_DELETE_WINDOW", False);
+  XSetWMProtocols (infoX11->display, infoX11->window, &gDeleteWindowAtom, 1);
 
-  if (!createGLcontext (windowData)) {
+  if (!createGLcontext (info)) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("fialed to create GL context"));
     return 0;
@@ -725,17 +725,17 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
     sizeHints.max_height = height;
     }
     //}}}
-  XSetWMNormalHints (windowDataX11->display, windowDataX11->window, &sizeHints);
+  XSetWMNormalHints (infoX11->display, infoX11->window, &sizeHints);
   //}}}
-  XClearWindow (windowDataX11->display, windowDataX11->window);
-  XMapRaised (windowDataX11->display, windowDataX11->window);
-  XFlush (windowDataX11->display);
+  XClearWindow (infoX11->display, infoX11->window);
+  XMapRaised (infoX11->display, infoX11->window);
+  XFlush (infoX11->display);
 
-  windowDataX11->gc = DefaultGC (windowDataX11->display, windowDataX11->screen);
+  infoX11->gc = DefaultGC (infoX11->display, infoX11->screen);
   cLog::log (LOGINFO, "using X11 API");
 
   int32_t count;
-  XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (windowDataX11->display, &count);
+  XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (infoX11->display, &count);
   if (!devices) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("X11 - no input device list"));
@@ -748,7 +748,7 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
   for (int32_t i = 0; i < count; i++) {
     cLog::log (LOGINFO, fmt::format ("- device:{} name:{} id:{}", i, devices[i].name, devices[i].id));
     if (strstr (devices[i].name, "stylus")) { // "eraser"
-      gDevice = XOpenDevice (windowDataX11->display, devices[i].id);
+      gDevice = XOpenDevice (infoX11->display, devices[i].id);
       XAnyClassPtr classPtr = devices[i].inputclassinfo;
       for (int32_t j = 0; j < devices[i].num_classes; j++) {
         switch (classPtr->c_class) {
@@ -791,92 +791,92 @@ sMiniWindow* openEx (const char* title, unsigned width, unsigned height, unsigne
         classPtr = (XAnyClassPtr)((uint8_t*)classPtr + classPtr->length);
         }
       }
-    XSelectExtensionEvent (windowDataX11->display, windowDataX11->window, gEventClasses, gNumEventClasses);
+    XSelectExtensionEvent (infoX11->display, infoX11->window, gEventClasses, gNumEventClasses);
     }
   XFreeDeviceList (devices);
   //}}}
 
-  windowData->timer = timerCreate();
-  setKeyCallback ((sMiniWindow*)windowData, keyDefault);
+  info->timer = timerCreate();
+  setKeyCallback ((sWindow*)info, keyDefault);
 
-  windowData->isInitialized = true;
-  return (sMiniWindow*)windowData;
+  info->isInitialized = true;
+  return (sWindow*)info;
   }
 //}}}
 //{{{
-eUpdateState updateEx (sMiniWindow* window, void* buffer, unsigned width, unsigned height) {
+eUpdateState updateEx (sWindow* window, void* buffer, unsigned width, unsigned height) {
 
   if (window == 0x0)
     return STATE_INVALID_WINDOW;
 
-  sWindowData* windowData = (sWindowData*)window;
-  if (windowData->closed) {
-    freeResources (windowData);
+  sInfo* info = (sInfo*)window;
+  if (info->closed) {
+    freeResources (info);
     return STATE_EXIT;
     }
 
   if (buffer == 0x0)
     return STATE_INVALID_BUFFER;
 
-  if (windowData->bufferWidth != width || windowData->bufferHeight != height) {
-    windowData->bufferWidth  = width;
-    windowData->bufferStride = width * 4;
-    windowData->bufferHeight = height;
+  if (info->bufferWidth != width || info->bufferHeight != height) {
+    info->bufferWidth  = width;
+    info->bufferStride = width * 4;
+    info->bufferHeight = height;
     }
 
-  redrawGL (windowData, buffer);
+  redrawGL (info, buffer);
 
-  processEvents (windowData);
+  processEvents (info);
 
   return STATE_OK;
   }
 //}}}
 //{{{
-eUpdateState updateEvents (sMiniWindow* window) {
+eUpdateState updateEvents (sWindow* window) {
 
   if (window == 0x0)
     return STATE_INVALID_WINDOW;
 
-  sWindowData* windowData = (sWindowData*)window;
-  if (windowData->closed) {
-    freeResources (windowData);
+  sInfo* info = (sInfo*)window;
+  if (info->closed) {
+    freeResources (info);
     return STATE_EXIT;
     }
 
-  sWindowDataX11* windowDataX11 = (sWindowDataX11*)windowData->specific;
-  XFlush (windowDataX11->display);
+  sInfoX11* infoX11 = (sInfoX11*)info->specificInfo;
+  XFlush (infoX11->display);
 
-  processEvents (windowData);
+  processEvents (info);
 
   return STATE_OK;
   }
 //}}}
 
 //{{{
-bool waitSync (sMiniWindow* window) {
+bool waitSync (sWindow* window) {
 
   if (window == 0x0)
     return false;
 
-  sWindowData* windowData = (sWindowData*)window;
-  if (windowData->closed) {
-    freeResources (windowData);
+  sInfo* info = (sInfo*)window;
+  if (info->closed) {
+    freeResources (info);
     return false;
     }
 
   if (gUseHardwareSync)
     return true;
 
-  sWindowDataX11* windowDataX11 = (sWindowDataX11*)windowData->specific;
-  XFlush (windowDataX11->display);
+  sInfoX11* infoX11 = (sInfoX11*)info->specificInfo;
+  XFlush (infoX11->display);
 
   XEvent event;
   double current;
   uint32_t millis = 1;
   while(1) {
-    current = timerNow (windowData->timer);
+    current = timerNow (info->timer);
     if (current >= gTimeForFrame * 0.96) {
-      timerReset (windowData->timer);
+      timerReset (info->timer);
       return true;
       }
     else if (current >= gTimeForFrame * 0.8)
@@ -885,12 +885,12 @@ bool waitSync (sMiniWindow* window) {
     usleep (millis * 1000);
     //sched_yield();
 
-    if (millis == 1 && XEventsQueued (windowDataX11->display, QueuedAlready) > 0) {
-      XNextEvent (windowDataX11->display, &event);
-      processEvent (windowData, &event);
+    if (millis == 1 && XEventsQueued (infoX11->display, QueuedAlready) > 0) {
+      XNextEvent (infoX11->display, &event);
+      processEvent (info, &event);
 
-      if (windowData->closed) {
-        freeResources (windowData);
+      if (info->closed) {
+        freeResources (info);
         return false;
         }
       }
@@ -901,33 +901,33 @@ bool waitSync (sMiniWindow* window) {
 //}}}
 
 //{{{
-bool setViewport (sMiniWindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
+bool setViewport (sWindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
 
-  sWindowData* windowData = (sWindowData*)window;
+  sInfo* info = (sInfo*)window;
 
-  if (offset_x + width > windowData->window_width)
+  if (offset_x + width > info->window_width)
     return false;
-  if (offset_y + height > windowData->window_height)
+  if (offset_y + height > info->window_height)
     return false;
 
-  windowData->dst_offset_x = offset_x;
-  windowData->dst_offset_y = offset_y;
-  windowData->dst_width = width;
-  windowData->dst_height = height;
-  calcDstFactor (windowData, windowData->window_width, windowData->window_height);
+  info->dst_offset_x = offset_x;
+  info->dst_offset_y = offset_y;
+  info->dst_width = width;
+  info->dst_height = height;
+  calcDstFactor (info, info->window_width, info->window_height);
 
   return true;
   }
 //}}}
 //{{{
-void getMonitorScale (sMiniWindow* window, float* scale_x, float* scale_y) {
+void getMonitorScale (sWindow* window, float* scale_x, float* scale_y) {
 
   float x = 96.0;
   float y = 96.0;
 
   if (window != 0x0) {
-    //sWindowData     *windowData     = (sWindowData *) window;
-    //sWindowDataX11 *windowDataX11 = (sWindowDataX11 *) windowData->specific;
+    //sInfo     *info     = (sInfo *) window;
+    //sInfoX11 *infoX11 = (sInfoX11 *) info->specificInfo;
     // I cannot find a way to get dpi under VirtualBox
     // XrmGetResource "Xft.dpi", "Xft.Dpi"
     // XRRGetOutputInfo

@@ -45,14 +45,14 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // state callbacks
   //{{{
-  setActiveCallback ([&](sMiniWindow* window, bool isActive) {
+  setActiveCallback ([&](sWindow* window, bool isActive) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("active {}", isActive));
       },
     mWindow);
   //}}}
   //{{{
-  setResizeCallback ([&](struct sMiniWindow* window, int width, int height) {
+  setResizeCallback ([&](struct sWindow* window, int width, int height) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("resize {} {}", width, height));
       uint32_t x = 0;
@@ -70,7 +70,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setCloseCallback ([&](sMiniWindow* window) {
+  setCloseCallback ([&](sWindow* window) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("close"));
       return true; // false for don't close
@@ -80,7 +80,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // keyboard callbacks
   //{{{
-  setKeyCallback ([&](sMiniWindow* window, mfb_key key, eKeyModifier mod, bool isPressed) {
+  setKeyCallback ([&](sWindow* window, eKey key, eKeyModifier mod, bool isPressed) {
 
       if (key == KB_KEY_ESCAPE)
         close (window);
@@ -94,7 +94,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setCharCallback ([&](sMiniWindow* window, uint32_t charCode) {
+  setCharCallback ([&](sWindow* window, uint32_t charCode) {
       (void)window;
       cLog::log (LOGINFO, fmt::format ("char code:{}", charCode));
       },
@@ -103,7 +103,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // mouse callbacks
   //{{{
-  setPointerButtonCallback ([&](sMiniWindow* window, ePointerButton button, eKeyModifier mod, bool isPressed) {
+  setPointerButtonCallback ([&](sWindow* window, ePointerButton button, eKeyModifier mod, bool isPressed) {
 
       (void)mod;
       //cLog::log (LOGINFO, fmt::format ("mouseButton {} button:{} pressed:{} at:{} {} mod:{}",
@@ -134,7 +134,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setPointerMoveCallback ([&](sMiniWindow* window, int x, int y, int pressure, int timestamp) {
+  setPointerMoveCallback ([&](sWindow* window, int x, int y, int pressure, int timestamp) {
       (void)window;
 
       //cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}", x, y, pressure, timestamp));
@@ -155,7 +155,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setPointerWheelCallback ([&](sMiniWindow* window, eKeyModifier mod, float deltaX, float deltaY) {
+  setPointerWheelCallback ([&](sWindow* window, eKeyModifier mod, float deltaX, float deltaY) {
       // lambda
       (void)window;
       (void)mod;
@@ -173,7 +173,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setPointerEnterCallback ([&](sMiniWindow* window, bool enter) {
+  setPointerEnterCallback ([&](sWindow* window, bool enter) {
       // lambda
       (void)window;
       cLog::log (LOGINFO, fmt::format ("pointerEnter {}", enter));

@@ -21,13 +21,13 @@ enum eKeyModifier { KB_MOD_SHIFT     = 0x0001,
                     KB_MOD_CAPS_LOCK = 0x0010,
                     KB_MOD_NUM_LOCK  = 0x0020 };
 
-enum sMiniWindow_flags { WF_RESIZABLE          = 0x01,
+enum sWindow_flags { WF_RESIZABLE          = 0x01,
                          WF_FULLSCREEN         = 0x02,
                          WF_FULLSCREEN_DESKTOP = 0x04,
                          WF_BORDERLESS         = 0x08,
                          WF_ALWAYS_ON_TOP      = 0x10 };
 //{{{
-enum mfb_key {
+enum eKey {
   KB_KEY_UNKNOWN       = -1,
 
   KB_KEY_SPACE         = 32,
@@ -154,19 +154,3 @@ enum mfb_key {
   };
 //}}}
 #define KB_KEY_LAST KB_KEY_MENU
-
-// opaque window pointer
-struct sMiniWindow;
-
-// Event callbacks
-typedef void(*activeFuncType)(sMiniWindow* window, bool isActive);
-typedef void(*resizeFuncType)(sMiniWindow* window, int width, int height);
-typedef bool(*closeFuncType)(sMiniWindow* window);
-
-typedef void(*keyFuncType)(sMiniWindow* window, mfb_key key, eKeyModifier mod, bool isPressed);
-typedef void(*charFuncType)(sMiniWindow* window, unsigned int code);
-
-typedef void(*pointerButtonFuncType)(sMiniWindow* window, ePointerButton button, eKeyModifier mod, bool isPressed);
-typedef void(*pointerMoveFuncType)(sMiniWindow* window, int x, int y, int pressure, int timestamp);
-typedef void(*pointerWheelFuncType)(sMiniWindow* window, eKeyModifier mod, float deltaX, float deltaY);
-typedef void(*pointerEnterFuncType)(sMiniWindow* window, bool enter);

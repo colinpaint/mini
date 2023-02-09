@@ -77,7 +77,7 @@
   //}
 //}}}
 //{{{
-void calcDstFactor (sWindowData *window_data, uint32_t width, uint32_t height) {
+void calcDstFactor (sInfo *window_data, uint32_t width, uint32_t height) {
 
   if (window_data->dst_width == 0)
     window_data->dst_width = width;
@@ -93,7 +93,7 @@ void calcDstFactor (sWindowData *window_data, uint32_t width, uint32_t height) {
   }
 //}}}
 //{{{
-void resizeDst (sWindowData *window_data, uint32_t width, uint32_t height) {
+void resizeDst (sInfo *window_data, uint32_t width, uint32_t height) {
 
   window_data->dst_offset_x = (uint32_t) (width  * window_data->factor_x);
   window_data->dst_offset_y = (uint32_t) (height * window_data->factor_y);
