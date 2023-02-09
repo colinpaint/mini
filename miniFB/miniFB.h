@@ -17,9 +17,10 @@ eUpdateState updateEvents (sOpaqueInfo* opaqueInfo);
 void close (sOpaqueInfo* opaqueInfo);
 
 // gets
-bool isOpaqueInfoActive (sOpaqueInfo* opaqueInfo);
+bool isWindowActive (sOpaqueInfo* opaqueInfo);
 unsigned getWindowWidth (sOpaqueInfo* opaqueInfo);
 unsigned getWindowHeight (sOpaqueInfo* opaqueInfo);
+void getMonitorScale (sOpaqueInfo* opaqueInfo, float* scale_x, float* scale_y);
 
 int getPointerX (sOpaqueInfo* opaqueInfo);          // Last Pointer pos X
 int getPointerY (sOpaqueInfo* opaqueInfo);          // Last Pointer pos Y
@@ -30,15 +31,13 @@ float getPointerWheelX (sOpaqueInfo* opaqueInfo); // Pointer wheel X as a sum. W
 float getPointerWheelY (sOpaqueInfo* opaqueInfo); // Pointer wheel Y as a sum. When you call this function it resets.
 
 const uint8_t* getPointerButtonBuffer (sOpaqueInfo* opaqueInfo); // One byte for every button. Press (1), Release 0. (up to 8 buttons)
-const uint8_t* getKeyBuffer (sOpaqueInfo* opaqueInfo);          // One byte for every key. Press (1), Release 0.
+const uint8_t* getKeyBuffer (sOpaqueInfo* opaqueInfo);           // One byte for every key. Press (1), Release 0.
 const char* getKeyName (eKey key);
 
-void getMonitorScale (sOpaqueInfo* opaqueInfo, float* scale_x, float* scale_y);
+void* getUserData (sOpaqueInfo* opaqueInfo);
 
 // sets
 void setUserData (sOpaqueInfo* opaqueInfo, void* user_data);
-void* getUserData (sOpaqueInfo* opaqueInfo);
-
 bool setViewport (sOpaqueInfo* opaqueInfo, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
 bool setViewportBestFit (sOpaqueInfo* opaqueInfo, unsigned old_width, unsigned old_height);
 

@@ -18,6 +18,8 @@ struct sInfo {
 
   uint32_t window_width;
   uint32_t window_height;
+  uint32_t windowScaledWidth;
+  uint32_t windowScaledHeight;
 
   uint32_t dst_offset_x;
   uint32_t dst_offset_y;
@@ -34,19 +36,24 @@ struct sInfo {
   uint32_t bufferHeight;
   uint32_t bufferStride;
 
+  int32_t  pointerTimestamp;
+  uint8_t  pointerButtonStatus[8];
   int32_t  pointerPosX;
   int32_t  pointerPosY;
   int32_t  pointerPressure;
-  int32_t  timestamp;
-
+  int32_t  pointerTiltX;
+  int32_t  pointerTiltY;
   float    pointerWheelX;
   float    pointerWheelY;
-  uint8_t  pointerButtonStatus[8];
 
+  uint32_t isPressed;
   bool     isActive;
   bool     isInitialized;
+  bool     isDown;
+  bool     pointerInside;
   bool     closed;
 
+  uint32_t codepoint;
   uint8_t  keyStatus[512];
   uint32_t modifierKeys;
 

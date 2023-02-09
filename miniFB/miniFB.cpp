@@ -66,7 +66,7 @@ cStub* cStub::GetInstance (sOpaqueInfo *opaqueInfo) {
 void* getUserData (sOpaqueInfo* opaqueInfo) { return opaqueInfo ? ((sInfo*)(opaqueInfo))->userData : 0; }
 
 //{{{
-bool isOpaqueInfoActive (sOpaqueInfo* opaqueInfo)  {
+bool isWindowActive (sOpaqueInfo* opaqueInfo)  {
   return opaqueInfo ? ((sInfo*)(opaqueInfo))->isActive : 0; }
 //}}}
 //{{{
@@ -92,7 +92,7 @@ int getPointerPressure (sOpaqueInfo* opaqueInfo) {
 //}}}
 //{{{
 int64_t getPointerTimestamp (sOpaqueInfo* opaqueInfo) {
-  return opaqueInfo ? ((sInfo*)(opaqueInfo))->timestamp : 0; }
+  return opaqueInfo ? ((sInfo*)(opaqueInfo))->pointerTimestamp : 0; }
 //}}}
 
 //{{{

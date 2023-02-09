@@ -804,18 +804,18 @@ sOpaqueInfo* openEx (const char* title, unsigned width, unsigned height, unsigne
   }
 //}}}
 //{{{
-eUpdateState updateEx (sOpaqueInfo* window, void* buffer, unsigned width, unsigned height) {
+eUpdateState updateEx (sOpaqueInfo* opaqueInfo, void* buffer, unsigned width, unsigned height) {
 
-  if (window == 0x0)
+  if (!opaqueInfo)
     return STATE_INVALID_WINDOW;
 
-  sInfo* info = (sInfo*)window;
+  sInfo* info = (sInfo*)opaqueInfo;
   if (info->closed) {
     freeResources (info);
     return STATE_EXIT;
     }
 
-  if (buffer == 0x0)
+  if (!buffer)
     return STATE_INVALID_BUFFER;
 
   if (info->bufferWidth != width || info->bufferHeight != height) {
@@ -832,12 +832,12 @@ eUpdateState updateEx (sOpaqueInfo* window, void* buffer, unsigned width, unsign
   }
 //}}}
 //{{{
-eUpdateState updateEvents (sOpaqueInfo* window) {
+eUpdateState updateEvents (sOpaqueInfo* opaqueInfo) {
 
-  if (window == 0x0)
+  if (!opaqueInfo)
     return STATE_INVALID_WINDOW;
 
-  sInfo* info = (sInfo*)window;
+  sInfo* info = (sInfo*)opaqueInfo;
   if (info->closed) {
     freeResources (info);
     return STATE_EXIT;
@@ -853,12 +853,12 @@ eUpdateState updateEvents (sOpaqueInfo* window) {
 //}}}
 
 //{{{
-bool waitSync (sOpaqueInfo* window) {
+bool waitSync (sOpaqueInfo* opaqueInfo) {
 
-  if (window == 0x0)
+  if (!opaqueInfo)
     return false;
 
-  sInfo* info = (sInfo*)window;
+  sInfo* info = (sInfo*)opaqueInfo;
   if (info->closed) {
     freeResources (info);
     return false;
@@ -901,9 +901,9 @@ bool waitSync (sOpaqueInfo* window) {
 //}}}
 
 //{{{
-bool setViewport (sOpaqueInfo* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
+bool setViewport (sOpaqueInfo* opaqueInfo, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
 
-  sInfo* info = (sInfo*)window;
+  sInfo* info = (sInfo*)opaqueInfo;
 
   if (offset_x + width > info->window_width)
     return false;
@@ -920,12 +920,12 @@ bool setViewport (sOpaqueInfo* window, unsigned offset_x, unsigned offset_y, uns
   }
 //}}}
 //{{{
-void getMonitorScale (sOpaqueInfo* window, float* scale_x, float* scale_y) {
+void getMonitorScale (sOpaqueInfo* opaqueInfo, float* scale_x, float* scale_y) {
 
   float x = 96.0;
   float y = 96.0;
 
-  if (window != 0x0) {
+  if (opaqueInfo) {
     //sInfo     *info     = (sInfo *) window;
     //sInfoX11 *infoX11 = (sInfoX11 *) info->specificInfo;
     // I cannot find a way to get dpi under VirtualBox

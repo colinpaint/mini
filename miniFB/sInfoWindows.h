@@ -7,5 +7,4 @@ struct sInfoWindows {
   WNDCLASS       wc;
   HDC            hdc;
   HGLRC          hGLRC;
-  bool           pointerInside;
   };
