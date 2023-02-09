@@ -1,6 +1,5 @@
 // sInfo - non opaque sOpaqueInfo
 #pragma once
-#include <functional>
 
 struct sInfo {
   void* specificInfo;
