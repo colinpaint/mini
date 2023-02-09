@@ -21,7 +21,7 @@ enum eKeyModifier { KB_MOD_SHIFT     = 0x0001,
                     KB_MOD_CAPS_LOCK = 0x0010,
                     KB_MOD_NUM_LOCK  = 0x0020 };
 
-enum sWindow_flags { WF_RESIZABLE          = 0x01,
+enum sOpaqueInfo_flags { WF_RESIZABLE          = 0x01,
                          WF_FULLSCREEN         = 0x02,
                          WF_FULLSCREEN_DESKTOP = 0x04,
                          WF_BORDERLESS         = 0x08,

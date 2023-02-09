@@ -4,7 +4,7 @@
 
 #define kCall(func, ...)  \
   if (info && info->func) \
-    info->func ((sWindow*)info, __VA_ARGS__);
+    info->func ((sOpaqueInfo*)info, __VA_ARGS__);
 
 //{{{
 struct sMiniFBtimer {
@@ -15,7 +15,7 @@ struct sMiniFBtimer {
 //}}}
 
 extern short int gKeycodes[512];
-void keyDefault (sWindow* window, eKey key, eKeyModifier mod, bool isPressed);
+void keyDefault (sOpaqueInfo* window, eKey key, eKeyModifier mod, bool isPressed);
 
 void calcDstFactor (sInfo* info, uint32_t width, uint32_t height);
 void resizeDst (sInfo* info, uint32_t width, uint32_t height);

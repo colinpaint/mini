@@ -1,4 +1,4 @@
-// sInfo - non opaque sWindow
+// sInfo - non opaque sOpaqueInfo
 #pragma once
 #include <functional>
 

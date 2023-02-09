@@ -593,7 +593,7 @@ namespace {
           bool destroy = false;
 
           // Obtain a confirmation of close
-          if (!info->closeFunc || info->closeFunc ((sWindow*)info))
+          if (!info->closeFunc || info->closeFunc ((sOpaqueInfo*)info))
             destroy = true;
 
           if (destroy) {
@@ -1008,7 +1008,7 @@ namespace {
 
 // interface
 //{{{
-sWindow* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+sOpaqueInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   RECT rect = { 0 };
   int x = 0;
@@ -1135,7 +1135,7 @@ sWindow* openEx (const char* title, unsigned width, unsigned height, unsigned fl
 
   createGLcontext (info);
   info->timer = timerCreate();
-  setKeyCallback ((sWindow*)info, keyDefault);
+  setKeyCallback ((sOpaqueInfo*)info, keyDefault);
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
@@ -1149,11 +1149,11 @@ sWindow* openEx (const char* title, unsigned width, unsigned height, unsigned fl
   EnableMouseInPointer (true);
 
   info->isInitialized = true;
-  return (sWindow*)info;
+  return (sOpaqueInfo*)info;
   }
 //}}}
 //{{{
-eUpdateState updateEx (sWindow* window, void* buffer, unsigned width, unsigned height) {
+eUpdateState updateEx (sOpaqueInfo* window, void* buffer, unsigned width, unsigned height) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
@@ -1177,7 +1177,7 @@ eUpdateState updateEx (sWindow* window, void* buffer, unsigned width, unsigned h
   }
 //}}}
 //{{{
-eUpdateState updateEvents (sWindow* window) {
+eUpdateState updateEvents (sOpaqueInfo* window) {
 
   if (!window)
     return STATE_INVALID_WINDOW;
@@ -1200,7 +1200,7 @@ eUpdateState updateEvents (sWindow* window) {
 //}}}
 
 //{{{
-void getMonitorScale (sWindow* window, float* scale_x, float* scale_y) {
+void getMonitorScale (sOpaqueInfo* window, float* scale_x, float* scale_y) {
 
   HWND hWnd = 0x0;
 
@@ -1214,7 +1214,7 @@ void getMonitorScale (sWindow* window, float* scale_x, float* scale_y) {
   }
 //}}}
 //{{{
-bool setViewport (sWindow* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
+bool setViewport (sOpaqueInfo* window, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
 
   sInfo* info = (sInfo*)window;
   sInfoWindows* info_win = 0x0;
@@ -1246,7 +1246,7 @@ bool setViewport (sWindow* window, unsigned offset_x, unsigned offset_y, unsigne
 //}}}
 
 //{{{
-bool waitSync (sWindow* window) {
+bool waitSync (sOpaqueInfo* window) {
 
   if (!window)
     return false;
