@@ -20,8 +20,6 @@
 
 #include "miniFB.h"
 #include "miniFBinternal.h"
-#include "sInfo.h"
-
 #include "miniFBgl.h"
 #include "sInfoX11.h"
 
@@ -370,15 +368,15 @@ namespace {
       //{{{
       case ButtonRelease:
         {
-        ePointerButton button = (ePointerButton)event->xbutton.button;
-        info->isPressed = (event->type == ButtonPress);
+        info->isDown = (event->type == ButtonPress);
         info->modifierKeys = translateMod (event->xkey.state);
 
         // swap 2 & 3 ?
+        ePointerButton button = (ePointerButton)event->xbutton.button;
         switch (button) {
           case Button1:
           case Button3:
-            info->pointerButtonStatus[button & 0x07] = info->isPressed;
+            info->pointerButtonStatus[button & 0x07] = info->isDown;
             if (info->buttonFunc)
               info->buttonFunc (info);
             break;
