@@ -335,17 +335,14 @@ namespace {
       case KeyPress:
       //{{{
       case KeyRelease:
-        {
         info->keyCode = (eKey)translateKey (event->xkey.keycode);
         info->isDown = (event->type == KeyPress);
-        info->modifierKeys = translateModEx (key_code, event->xkey.state, is_pressed);
-
-        info->keyStatus[info->keyCode] = is_pressed;
-        kCall (keyFunc, info->keyCode, (eKeyModifier)info->modifierKeys, is_pressed);
+        info->modifierKeys = translateModEx (info->keyCode, event->xkey.state, info->isDown);
+        info->keyStatus[info->keyCode] = info->isDown;
         if (info->keyFunc)
           info->keyFunc ((sOpaqueInfo*)info);
 
-        if (event->type == KeyPress) {
+        if (info->isDown) {
           KeySym keysym;
           XLookupString (&event->xkey, NULL, 0, &keysym, NULL);
           if ((keysym >= 0x0020 && keysym <= 0x007e) ||
@@ -365,7 +362,6 @@ namespace {
           // if (codepoint != 0)
           //    kCall(char_inputFunc, codepoint);
           }
-        }
 
         break;
       //}}}
@@ -423,14 +419,14 @@ namespace {
       //{{{
       case MotionNotify: {
         XDeviceMotionEvent* motionEvent = (XDeviceMotionEvent*)(event);
-
         cLog::log (LOGINFO, fmt::format ("motionNotify {},{} {}",
                                          event->xmotion.x, event->xmotion.y, motionEvent->serial));
-
+        info->pointerTimestamp = 0;
         info->pointerPosX = event->xmotion.x;
         info->pointerPosY = event->xmotion.y;
-        kCall (pointerMoveFunc, info->pointerPosX, info->pointerPosY,
-                                info->pointerButtonStatus[Button1] * 1024, 0);
+        info->pointerPressure = info->pointerButtonStatus[Button1] * 1024;
+        if (info->moveFunc)
+          info->moveFunc ((sOpaqueInfo*)info);
         }
         break;
       //}}}
@@ -439,37 +435,48 @@ namespace {
       case ConfigureNotify:
         info->window_width  = event->xconfigure.width;
         info->window_height = event->xconfigure.height;
+        info->windowScaledWidth  = info->window_width;
+        info->windowScaledHeight = info->window_height;
 
         resizeDst (info, event->xconfigure.width, event->xconfigure.height);
         resizeGL (info);
 
-        kCall (resizeFunc, info->window_width, info->window_height);
+        if (info->resizeFunc)
+          info->resizeFunc ((sOpaqueInfo*)info);
 
         break;
       //}}}
 
       //{{{
       case EnterNotify:
-        kCall (pointerEnterFunc, true);
+        info->pointerInside = true;
+        if (info->activeFunc)
+          info->activeFunc ((sOpaqueInfo*)info);
+
         break;
       //}}}
       //{{{
       case LeaveNotify:
-        kCall (pointerEnterFunc, false);
+        info->pointerInside = false;
+        if (info->activeFunc)
+          info->activeFunc ((sOpaqueInfo*)info);
+
         break;
       //}}}
 
       //{{{
       case FocusIn:
         info->isActive = true;
-        kCall (activeFunc, true);
+        if (info->activeFunc)
+          info->activeFunc ((sOpaqueInfo*)info);
 
         break;
       //}}}
       //{{{
       case FocusOut:
         info->isActive = false;
-        kCall (activeFunc, false);
+        if (info->activeFunc)
+          info->activeFunc ((sOpaqueInfo*)info);
 
         break;
       //}}}

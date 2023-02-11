@@ -582,7 +582,6 @@ namespace {
             info->windowScaledHeight = (uint32_t)(info->window_height / scale_y);
             if (info->resizeFunc)
               info->resizeFunc ((sOpaqueInfo*)info);
-
             }
           }
 
