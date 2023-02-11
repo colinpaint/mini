@@ -336,25 +336,30 @@ namespace {
       //{{{
       case KeyRelease:
         {
-        eKey key_code = (eKey)translateKey (event->xkey.keycode);
-        int is_pressed = (event->type == KeyPress);
+        info->keyCode = (eKey)translateKey (event->xkey.keycode);
+        info->isDown = (event->type == KeyPress);
         info->modifierKeys = translateModEx (key_code, event->xkey.state, is_pressed);
 
-        info->keyStatus[key_code] = is_pressed;
-        kCall (keyFunc, key_code, (eKeyModifier)info->modifierKeys, is_pressed);
+        info->keyStatus[info->keyCode] = is_pressed;
+        kCall (keyFunc, info->keyCode, (eKeyModifier)info->modifierKeys, is_pressed);
+        if (info->keyFunc)
+          info->keyFunc ((sOpaqueInfo*)info);
 
         if (event->type == KeyPress) {
           KeySym keysym;
           XLookupString (&event->xkey, NULL, 0, &keysym, NULL);
           if ((keysym >= 0x0020 && keysym <= 0x007e) ||
               (keysym >= 0x00a0 && keysym <= 0x00ff)) {
-            kCall (charFunc, keysym);
+            info->codepoint = keysym;
+            if (info->charFunc)
+              info->charFunc ((sOpaqueInfo*)info);
             }
           else if ((keysym & 0xff000000) == 0x01000000)
             keysym = keysym & 0x00ffffff;
 
-          kCall (charFunc, keysym);
-          // TODO: Investigate a bit more the xkbcommon api
+          info->codepoint = keysym;
+          if (info->charFunc)
+            info->charFunc ((sOpaqueInfo*)info);
           // This does not seem to be working properly
           // unsigned int codepoint = xkb_state_key_get_utf32(state, keysym);
           // if (codepoint != 0)
@@ -370,52 +375,44 @@ namespace {
       case ButtonRelease:
         {
         ePointerButton button = (ePointerButton)event->xbutton.button;
-        int is_pressed = (event->type == ButtonPress);
+        info->isPressed = (event->type == ButtonPress);
         info->modifierKeys = translateMod (event->xkey.state);
 
-        // Swap pointer right and middle for parity with other platforms:
-        // https://github.com/emoon/minifb/issues/65
-        switch (button) {
-          case Button2:
-            button = (ePointerButton)Button3;
-            break;
-          case Button3:
-            button = (ePointerButton)Button2;
-            break;
-          default:;
-          }
-
+        // swap 2 & 3 ?
         switch (button) {
           case Button1:
-          case Button2:
           case Button3:
-            info->pointerButtonStatus[button & 0x07] = is_pressed;
-            kCall (pointerButtonFunc, button, (eKeyModifier) info->modifierKeys, is_pressed);
+            info->pointerButtonStatus[button & 0x07] = info->isPressed;
+            if (info->buttonFunc)
+              info->buttonFunc ((sOpaqueInfo*)info);
             break;
 
+          // wheel
           case Button4:
             info->pointerWheelY = 1.0f;
-            kCall (pointerWheelFunc, (eKeyModifier) info->modifierKeys, 0.0f, info->pointerWheelY);
+            if (info->wheelFunc)
+              info->wheelFunc ((sOpaqueInfo*)info);
             break;
 
           case Button5:
             info->pointerWheelY = -1.0f;
-            kCall (pointerWheelFunc, (eKeyModifier) info->modifierKeys, 0.0f, info->pointerWheelY);
+            if (info->wheelFunc)
+              info->wheelFunc ((sOpaqueInfo*)info);
             break;
 
           case 6:
             info->pointerWheelX = 1.0f;
-            kCall (pointerWheelFunc, (eKeyModifier) info->modifierKeys, info->pointerWheelX, 0.0f);
+            if (info->wheelFunc)
+              info->wheelFunc ((sOpaqueInfo*)info);
             break;
 
           case 7:
             info->pointerWheelX = -1.0f;
-            kCall (pointerWheelFunc, (eKeyModifier) info->modifierKeys, info->pointerWheelX, 0.0f);
+            if (info->wheelFunc)
+              info->wheelFunc ((sOpaqueInfo*)info);
             break;
 
           default:
-            info->pointerButtonStatus[(button - 4) & 0x07] = is_pressed;
-            kCall (pointerButtonFunc, (ePointerButton) (button - 4), (eKeyModifier) info->modifierKeys, is_pressed);
             break;
           }
         }
