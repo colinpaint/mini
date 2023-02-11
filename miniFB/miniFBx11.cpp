@@ -546,7 +546,7 @@ namespace {
 //{{{
 sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
-  sInfo* info = (sInfo*)calloc (1, sizeof(sInfo));
+  sInfo* info = new sInfo();
   if (!info) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create window data"));
@@ -558,7 +558,7 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   if (!info->display) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create display"));
-    free (info);
+    delete (info);
     return 0;
     }
     //}}}
@@ -597,7 +597,7 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
 
   XSetWindowAttributes windowAttributes;
   windowAttributes.border_pixel = BlackPixel (info->display, info->screen);
-  windowAttributes.background_pixel = BlackPixel (info->display, info->screen);
+  windowAttributes.background_pixel = BlackPixel (info->display,info-> screen);
   windowAttributes.backing_store = NotUseful;
 
   info->window_width  = width;
@@ -738,25 +738,25 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
       for (int32_t j = 0; j < devices[i].num_classes; j++) {
         switch (classPtr->c_class) {
           case ValuatorClass: {
-            XValuatorInfo* info = (XValuatorInfo*)classPtr;
-            if (info->num_axes > 0) {
+            XValuatorInfo* valuatorInfo = (XValuatorInfo*)classPtr;
+            if (valuatorInfo->num_axes > 0) {
               // x
-              int32_t minX = info->axes[0].min_value;
-              gRangeX = info->axes[0].max_value;
+              int32_t minX = valuatorInfo->axes[0].min_value;
+              gRangeX = valuatorInfo->axes[0].max_value;
               cLog::log (LOGINFO, fmt::format ("- stylus xRange {}:{}", minX, gRangeX));
               }
 
-            if (info->num_axes > 1) {
+            if (valuatorInfo->num_axes > 1) {
               // y
-              int32_t minY = info->axes[1].min_value;
-              gRangeY = info->axes[1].max_value;
+              int32_t minY = valuatorInfo->axes[1].min_value;
+              gRangeY = valuatorInfo->axes[1].max_value;
               cLog::log (LOGINFO, fmt::format ("- stylus yRange {}:{}", minY, gRangeY));
               }
 
-            if (info->num_axes > 2) {
+            if (valuatorInfo->num_axes > 2) {
               // pressure
-              int32_t minPressure = info->axes[2].min_value;
-              gMaxPressure = info->axes[2].max_value;
+              int32_t minPressure = valuatorInfo->axes[2].min_value;
+              gMaxPressure = valuatorInfo->axes[2].max_value;
               cLog::log (LOGINFO, fmt::format ("- stylus pressureRange {}:{}", minPressure, gMaxPressure));
               }
 
@@ -788,56 +788,50 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   return info;
   }
 //}}}
+
 //{{{
-eUpdateState updateEx (sInfo* info, void* buffer, unsigned width, unsigned height) {
+eUpdateState sInfo::updateEx (void* buffer, unsigned width, unsigned height) {
 
-  if (!info)
-    return STATE_INVALID_WINDOW;
-
-  if (info->closed) {
-    freeResources (info);
+  if (closed) {
+    freeResources (this);
     return STATE_EXIT;
     }
 
   if (!buffer)
     return STATE_INVALID_BUFFER;
 
-  if (info->bufferWidth != width || info->bufferHeight != height) {
-    info->bufferWidth  = width;
-    info->bufferStride = width * 4;
-    info->bufferHeight = height;
+  if (bufferWidth != width || bufferHeight != height) {
+    bufferWidth  = width;
+    bufferStride = width * 4;
+    bufferHeight = height;
     }
 
-  redrawGL (info, buffer);
+  redrawGL (this, buffer);
 
-  processEvents (info);
+  processEvents (this);
 
   return STATE_OK;
   }
 //}}}
 //{{{
-eUpdateState updateEvents (sInfo* info) {
+eUpdateState sInfo::updateEvents() {
 
-  if (!info)
-    return STATE_INVALID_WINDOW;
-
-  if (info->closed) {
-    freeResources (info);
+  if (closed) {
+    freeResources (this);
     return STATE_EXIT;
     }
 
-  XFlush (info->display);
+  XFlush (display);
 
-  processEvents (info);
+  processEvents (this);
 
   return STATE_OK;
   }
 //}}}
 
 //{{{
-void getMonitorScale (sInfo* info, float* scale_x, float* scale_y) {
+void sInfo::getMonitorScale (float* scale_x, float* scale_y) {
 
-  (void)info;
   float x = 96.0;
   float y = 96.0;
 
@@ -855,28 +849,28 @@ void getMonitorScale (sInfo* info, float* scale_x, float* scale_y) {
   }
 //}}}
 //{{{
-bool setViewport (sInfo* info, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
+bool sInfo::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
 
-  if (offset_x + width > info->window_width)
+  if (offset_x + width > window_width)
     return false;
-  if (offset_y + height > info->window_height)
+  if (offset_y + height > window_height)
     return false;
 
-  info->dst_offset_x = offset_x;
-  info->dst_offset_y = offset_y;
-  info->dst_width = width;
-  info->dst_height = height;
-  calcDstFactor (info, info->window_width, info->window_height);
+  dst_offset_x = offset_x;
+  dst_offset_y = offset_y;
+  dst_width = width;
+  dst_height = height;
+  calcDstFactor (this, window_width, window_height);
 
   return true;
   }
 //}}}
 
 //{{{
-bool cInfo::waitSync() {
+bool sInfo::waitSync() {
 
-  if (infoclosed) {
-    freeResources (info);
+  if (closed) {
+    freeResources (this);
     return false;
     }
 
@@ -902,10 +896,10 @@ bool cInfo::waitSync() {
 
     if (millis == 1 && XEventsQueued (display, QueuedAlready) > 0) {
       XNextEvent (display, &event);
-      processEvent (info, &event);
+      processEvent (this, &event);
 
       if (closed) {
-        freeResources (info);
+        freeResources (this);
         return false;
         }
       }
