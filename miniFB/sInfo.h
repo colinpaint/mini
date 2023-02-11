@@ -1,9 +1,15 @@
 // sInfo - non opaque sOpaqueInfo
 #pragma once
 
+struct sMiniFBtimer;
+
+struct sOpaqueInfo;
+typedef void(*infoFuncType)(sOpaqueInfo* opaqueInfo);
+typedef bool(*closeFuncType)(sOpaqueInfo* opaqueInfo);
+
 struct sInfo {
-  void* specificInfo;
   void* userData;
+  void* specificInfo;
 
   infoFuncType  activeFunc;
   infoFuncType  resizeFunc;
@@ -35,16 +41,6 @@ struct sInfo {
   uint32_t bufferHeight;
   uint32_t bufferStride;
 
-  int32_t  pointerTimestamp;
-  uint8_t  pointerButtonStatus[8];
-  int32_t  pointerPosX;
-  int32_t  pointerPosY;
-  int32_t  pointerPressure;
-  int32_t  pointerTiltX;
-  int32_t  pointerTiltY;
-  float    pointerWheelX;
-  float    pointerWheelY;
-
   uint32_t isPressed;
   bool     isActive;
   bool     isInitialized;
@@ -57,6 +53,16 @@ struct sInfo {
   uint8_t  keyStatus[512];
   uint32_t modifierKeys;
 
-  uint32_t textureId;
+  int32_t  pointerTimestamp;
+  uint8_t  pointerButtonStatus[8];
+  int32_t  pointerPosX;
+  int32_t  pointerPosY;
+  int32_t  pointerPressure;
+  int32_t  pointerTiltX;
+  int32_t  pointerTiltY;
+  float    pointerWheelX;
+  float    pointerWheelY;
+
   sMiniFBtimer* timer;
+  uint32_t textureId;
   };

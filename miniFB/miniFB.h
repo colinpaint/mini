@@ -1,11 +1,13 @@
 // miniFB.h - main interface to miniFB
 #pragma once
-#include "miniFBenums.h"
 #include <functional>
+#include "miniFBenums.h"
+#include "sInfo.h"
 
 #define MFB_RGB(r,g,b) (((uint32_t)r) << 16) | (((uint32_t)g) << 8) | ((uint32_t)b)
 
-struct sOpaqueInfo;
+
+// func callbacks
 
 sOpaqueInfo* open (const char* title, unsigned width, unsigned height);
 sOpaqueInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags);
@@ -57,10 +59,6 @@ double timerGetFrequency();
 double timerGetResolution();
 
 //{{{  callbacks
-// func callbacks
-typedef void(*infoFuncType)(sOpaqueInfo* opaqueInfo);
-typedef bool(*closeFuncType)(sOpaqueInfo* opaqueInfo);
-
 void setActiveCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback);
 void setResizeCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback);
 void setCloseCallback  (sOpaqueInfo* opaqueInfo, closeFuncType callback);
@@ -81,17 +79,6 @@ void setButtonCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* o
 void setMoveCallback   (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
 void setWheelCallback  (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
 void setEnterCallback  (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
-
-// templates
-template <class T> void setActiveCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
-template <class T> void setResizeCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
-template <class T> void setCloseCallback  (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
-template <class T> void setKeyCallback    (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
-template <class T> void setCharCallback   (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*t));
-template <class T> void setButtonCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
-template <class T> void setMoveCallback   (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
-template <class T> void setWheelCallback  (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*t));
-template <class T> void setEnterCallback  (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*l));
 
 //{{{
 class cStub {
