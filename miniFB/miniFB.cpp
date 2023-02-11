@@ -298,14 +298,14 @@ bool setViewportBestFit (sOpaqueInfo* opaqueInfo, unsigned old_width, unsigned o
 //}}}
 
 //{{{
-void setActiveCallback (sOpaqueInfo* opaqueInfo, activeFuncType callback) {
+void setActiveCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback) {
 
   if (opaqueInfo)
     ((sInfo*)(opaqueInfo))->activeFunc = callback;
   }
 //}}}
 //{{{
-void setResizeCallback (sOpaqueInfo* opaqueInfo, resizeFuncType callback) {
+void setResizeCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback) {
 
   if (opaqueInfo)
     ((sInfo*)(opaqueInfo))->resizeFunc = callback;
@@ -364,12 +364,9 @@ void setPointerEnterCallback (sOpaqueInfo* opaqueInfo, pointerEnterFuncType call
 //}}}
 
 //{{{
-void keyDefault (sOpaqueInfo* opaqueInfo, eKey key, eKeyModifier mod, bool isPressed) {
+void keyDefault (sOpaqueInfo* opaqueInfo) {
 
-  (void)(mod);
-  (void)(isPressed);
-
-  if (key == KB_KEY_ESCAPE) {
+  if (((sInfo*)(opaqueInfo))->keyCode == KB_KEY_ESCAPE) {
     if (!((sInfo*)(opaqueInfo))->closeFunc ||
          ((sInfo*)(opaqueInfo))->closeFunc ((sOpaqueInfo*)opaqueInfo))
       ((sInfo*)(opaqueInfo))->closed = true;
@@ -379,22 +376,22 @@ void keyDefault (sOpaqueInfo* opaqueInfo, eKey key, eKeyModifier mod, bool isPre
 
 // set callbacks
 //{{{
-void setActiveCallback (std::function <void (sOpaqueInfo*, bool)> func, sOpaqueInfo* opaqueInfo) {
+void setActiveCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo) {
 
   using namespace std::placeholders;
 
   cStub* stub = cStub::GetInstance (opaqueInfo);
-  stub->m_active = std::bind (func, _1, _2);
+  stub->m_active = std::bind (func, _1);
   setActiveCallback (opaqueInfo, cStub::activeStub);
   }
 //}}}
 //{{{
-void setResizeCallback (std::function <void (sOpaqueInfo*, int, int)> func, sOpaqueInfo* opaqueInfo) {
+void setResizeCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo) {
 
   using namespace std::placeholders;
 
   cStub* stub = cStub::GetInstance(opaqueInfo);
-  stub->m_resize = std::bind(func, _1, _2, _3);
+  stub->m_resize = std::bind(func, _1);
   setResizeCallback(opaqueInfo, cStub::resizeStub);
   }
 //}}}
@@ -410,12 +407,12 @@ void setCloseCallback (std::function <bool (sOpaqueInfo*)> func, sOpaqueInfo* op
 //}}}
 
 //{{{
-void setKeyCallback (std::function <void (sOpaqueInfo*, eKey, eKeyModifier, bool)> func, sOpaqueInfo *opaqueInfo) {
+void setKeyCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo *opaqueInfo) {
 
   using namespace std::placeholders;
 
   cStub* stub = cStub::GetInstance(opaqueInfo);
-  stub->m_key = std::bind (func, _1, _2, _3, _4);
+  stub->m_key = std::bind (func, _1);
   setKeyCallback (opaqueInfo, cStub::keyStub);
   }
 //}}}
@@ -473,17 +470,17 @@ void setPointerEnterCallback (std::function <void (sOpaqueInfo*, bool)> func, sO
 
 // stubs
 //{{{
-void cStub::activeStub (sOpaqueInfo* opaqueInfo, bool isActive) {
+void cStub::activeStub (sOpaqueInfo* opaqueInfo) {
 
   cStub* stub = cStub::GetInstance (opaqueInfo);
-  stub->m_active (opaqueInfo, isActive);
+  stub->m_active (opaqueInfo);
   }
 //}}}
 //{{{
-void cStub::resizeStub (sOpaqueInfo* opaqueInfo, int width, int height) {
+void cStub::resizeStub (sOpaqueInfo* opaqueInfo) {
 
   cStub* stub = cStub::GetInstance (opaqueInfo);
-  stub->m_resize (opaqueInfo, width, height);
+  stub->m_resize (opaqueInfo);
   }
 //}}}
 //{{{
@@ -495,10 +492,10 @@ bool cStub::closeStub (sOpaqueInfo* opaqueInfo) {
 //}}}
 
 //{{{
-void cStub::keyStub (sOpaqueInfo* opaqueInfo, eKey key, eKeyModifier mod, bool isPressed) {
+void cStub::keyStub (sOpaqueInfo* opaqueInfo) {
 
   cStub* stub = cStub::GetInstance (opaqueInfo);
-  stub->m_key (opaqueInfo, key, mod, isPressed);
+  stub->m_key (opaqueInfo);
   }
 //}}}
 //{{{

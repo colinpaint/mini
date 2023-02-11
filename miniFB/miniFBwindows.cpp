@@ -580,7 +580,9 @@ namespace {
           if (info->window_width && info->window_height) {
             info->windowScaledWidth  = (uint32_t)(info->window_width  / scale_x);
             info->windowScaledHeight = (uint32_t)(info->window_height / scale_y);
-            kCall (resizeFunc, info->windowScaledWidth, info->windowScaledHeight);
+            if (info->resizeFunc)
+              info->resizeFunc ((sOpaqueInfo*)info);
+
             }
           }
 
@@ -617,7 +619,8 @@ namespace {
       case WM_SETFOCUS:
         if (info) {
           info->isActive = true;
-          kCall (activeFunc, info->isActive);
+          if (info->activeFunc)
+            info->activeFunc ((sOpaqueInfo*)info);
           }
 
         break;
@@ -626,7 +629,8 @@ namespace {
       case WM_KILLFOCUS:
         if (info) {
           info->isActive = false;
-          kCall (activeFunc, info->isActive);
+          if (info->activeFunc)
+            info->activeFunc ((sOpaqueInfo*)info);
           }
 
         break;
@@ -638,15 +642,17 @@ namespace {
       //{{{
       case WM_KEYUP:
         if (info) {
-          eKey key_code = translateKey ((unsigned int)wParam, (unsigned long)lParam);
+          eKey keyCode = translateKey ((unsigned int)wParam, (unsigned long)lParam);
           info->isPressed = !((lParam >> 31) & 1);
           info->modifierKeys = translateMod();
 
-          if (key_code == KB_KEY_UNKNOWN)
+          if (keyCode == KB_KEY_UNKNOWN)
             return 0;
 
-          info->keyStatus[key_code] = (uint8_t)info->isPressed;
-          kCall (keyFunc, key_code, (eKeyModifier)info->modifierKeys, info->isPressed);
+          info->keyCode = keyCode;
+          info->keyStatus[keyCode] = (uint8_t)info->isPressed;
+          if (info->keyFunc)
+            info->keyFunc ((sOpaqueInfo*)info);
           }
 
         break;

@@ -5,8 +5,8 @@ struct sInfo {
   void* specificInfo;
   void* userData;
 
-  activeFuncType         activeFunc;
-  resizeFuncType         resizeFunc;
+  infoFuncType         activeFunc;
+  infoFuncType         resizeFunc;
   closeFuncType          closeFunc;
   keyFuncType            keyFunc;
   charFuncType           charFunc;
@@ -53,6 +53,7 @@ struct sInfo {
   bool     closed;
 
   uint32_t codepoint;
+  eKey     keyCode;
   uint8_t  keyStatus[512];
   uint32_t modifierKeys;
 

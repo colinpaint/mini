@@ -15,7 +15,7 @@ struct sMiniFBtimer {
 //}}}
 
 extern short int gKeycodes[512];
-void keyDefault (sOpaqueInfo* window, eKey key, eKeyModifier mod, bool isPressed);
+void keyDefault (sOpaqueInfo* window);
 
 void calcDstFactor (sInfo* info, uint32_t width, uint32_t height);
 void resizeDst (sInfo* info, uint32_t width, uint32_t height);
