@@ -835,6 +835,44 @@ eUpdateState updateEvents (sInfo* info) {
 //}}}
 
 //{{{
+void getMonitorScale (sInfo* info, float* scale_x, float* scale_y) {
+
+  (void)info;
+  float x = 96.0;
+  float y = 96.0;
+
+  if (scale_x) {
+    *scale_x = x / 96.0f;
+    if (*scale_x == 0)
+      *scale_x = 1.0f;
+    }
+
+  if (scale_y) {
+    *scale_y = y / 96.0f;
+    if (*scale_y == 0)
+      *scale_y = 1.0f;
+    }
+  }
+//}}}
+//{{{
+bool setViewport (sInfo* info, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
+
+  if (offset_x + width > info->window_width)
+    return false;
+  if (offset_y + height > info->window_height)
+    return false;
+
+  info->dst_offset_x = offset_x;
+  info->dst_offset_y = offset_y;
+  info->dst_width = width;
+  info->dst_height = height;
+  calcDstFactor (info, info->window_width, info->window_height);
+
+  return true;
+  }
+//}}}
+
+//{{{
 bool waitSync (sInfo* info) {
 
   if (!info)
@@ -877,43 +915,5 @@ bool waitSync (sInfo* info) {
     }
 
   return true;
-  }
-//}}}
-
-//{{{
-bool setViewport (sInfo* info, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
-
-  if (offset_x + width > info->window_width)
-    return false;
-  if (offset_y + height > info->window_height)
-    return false;
-
-  info->dst_offset_x = offset_x;
-  info->dst_offset_y = offset_y;
-  info->dst_width = width;
-  info->dst_height = height;
-  calcDstFactor (info, info->window_width, info->window_height);
-
-  return true;
-  }
-//}}}
-//{{{
-void getMonitorScale (sInfo* info, float* scale_x, float* scale_y) {
-
-  (void)info;
-  float x = 96.0;
-  float y = 96.0;
-
-  if (scale_x) {
-    *scale_x = x / 96.0f;
-    if (*scale_x == 0)
-      *scale_x = 1.0f;
-    }
-
-  if (scale_y) {
-    *scale_y = y / 96.0f;
-    if (*scale_y == 0)
-      *scale_y = 1.0f;
-    }
   }
 //}}}

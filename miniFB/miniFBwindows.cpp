@@ -991,6 +991,26 @@ namespace {
   //}}}
   }
 
+//{{{
+void timerInit() {
+
+  uint64_t frequency;
+  QueryPerformanceFrequency ((LARGE_INTEGER*)&frequency);
+
+  gTimerFrequency  = (double)((int64_t) frequency);
+  gTimerResolution = 1.0 / gTimerFrequency;
+  }
+//}}}
+//{{{
+uint64_t timerTick() {
+
+  int64_t counter;
+  QueryPerformanceCounter ((LARGE_INTEGER*) &counter);
+
+  return counter;
+  }
+//}}}
+
 // interface
 //{{{
 sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
@@ -1253,25 +1273,5 @@ bool waitSync (sInfo* info) {
     }
 
   return true;
-  }
-//}}}
-
-//{{{
-void timerInit() {
-
-  uint64_t frequency;
-  QueryPerformanceFrequency ((LARGE_INTEGER*)&frequency);
-
-  gTimerFrequency  = (double)((int64_t) frequency);
-  gTimerResolution = 1.0 / gTimerFrequency;
-  }
-//}}}
-//{{{
-uint64_t timerTick() {
-
-  int64_t counter;
-  QueryPerformanceCounter ((LARGE_INTEGER*) &counter);
-
-  return counter;
   }
 //}}}
