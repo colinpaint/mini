@@ -3,10 +3,7 @@
 #include <cstdint>
 
 #include "miniFB.h"
-#include "miniFBinternal.h"
 #include <windowsx.h>
-
-#include "miniFBgl.h"
 
 #include "../common/cLog.h"
 
@@ -18,10 +15,6 @@ using namespace std;
   #include "pktDef.h"
 #endif
 
-extern bool gUseHardwareSync;
-extern double gTimeForFrame;
-extern double gTimerFrequency;
-extern double gTimerResolution;
 extern short int gKeycodes[512];
 
 namespace {
@@ -549,7 +542,7 @@ namespace {
   //{{{
   LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
-    sInfo* info = (sInfo*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+    cInfo* info = (cInfo*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
     switch (message) {
       //{{{
       case WM_NCCREATE:
@@ -568,7 +561,7 @@ namespace {
           getWindowsMonitorScale (hWnd, &scale_x, &scale_y);
           info->window_width = GET_X_LPARAM(lParam);
           info->window_height =  GET_Y_LPARAM(lParam);
-          resizeDst (info, info->window_width, info->window_height);
+          info->resizeDst (info->window_width, info->window_height);
 
           resizeGL (info);
           if (info->window_width && info->window_height) {
@@ -963,7 +956,7 @@ namespace {
     }
   //}}}
   //{{{
-  void freeResources (sInfo* info) {
+  void freeResources (cInfo* info) {
 
     if (!info)
       return;
@@ -978,9 +971,6 @@ namespace {
     info->window = 0;
     info->hdc = 0;
 
-    timerDestroy (info->timer);
-    info->timer = 0x0;
-
     info->draw_buffer = 0x0;
     info->closed = true;
 
@@ -991,29 +981,9 @@ namespace {
   //}}}
   }
 
-//{{{
-void timerInit() {
-
-  uint64_t frequency;
-  QueryPerformanceFrequency ((LARGE_INTEGER*)&frequency);
-
-  gTimerFrequency  = (double)((int64_t) frequency);
-  gTimerResolution = 1.0 / gTimerFrequency;
-  }
-//}}}
-//{{{
-uint64_t timerTick() {
-
-  int64_t counter;
-  QueryPerformanceCounter ((LARGE_INTEGER*) &counter);
-
-  return counter;
-  }
-//}}}
-
 // interface
 //{{{
-sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   RECT rect = { 0 };
   int x = 0;
@@ -1023,8 +993,8 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   dpiAware();
   initKeycodes();
 
-  sInfo* info = new sInfo();
-  memset (info, 0, sizeof(sInfo));
+  cInfo* info = new cInfo();
+  memset (info, 0, sizeof(cInfo));
 
   info->bufferWidth  = width;
   info->bufferHeight = height;
@@ -1100,7 +1070,7 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   info->wc.lpszClassName = title;
   RegisterClass (&info->wc);
 
-  calcDstFactor (info, width, height);
+  info->calcDstFactor (width, height);
 
   info->window_width  = rect.right;
   info->window_height = rect.bottom;
@@ -1127,8 +1097,6 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   info->hdc = GetDC (info->window);
 
   createGLcontext (info);
-  info->timer = timerCreate();
-  setKeyCallback (info, keyDefault);
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
@@ -1146,7 +1114,7 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   }
 //}}}
 //{{{
-eUpdateState sInfo::updateEx (void* buffer, unsigned width, unsigned height) {
+eUpdateState cInfo::updateEx (void* buffer, unsigned width, unsigned height) {
 
   if (closed) {
     freeResources (this);
@@ -1166,7 +1134,7 @@ eUpdateState sInfo::updateEx (void* buffer, unsigned width, unsigned height) {
   }
 //}}}
 //{{{
-eUpdateState sInfo::updateEvents() {
+eUpdateState cInfo::updateEvents() {
 
   if (closed) {
     freeResources (this);
@@ -1184,12 +1152,12 @@ eUpdateState sInfo::updateEvents() {
 //}}}
 
 //{{{
-void sInfo::getMonitorScale (float* scale_x, float* scale_y) {
+void cInfo::getMonitorScale (float* scale_x, float* scale_y) {
   getWindowsMonitorScale (window, scale_x, scale_y);
   }
 //}}}
 //{{{
-bool sInfo::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
+bool cInfo::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
 
   if (offset_x + width > window_width)
     return false;
@@ -1206,49 +1174,7 @@ bool sInfo::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, u
   dst_width = (uint32_t)(width  * scale_x);
   dst_height = (uint32_t)(height * scale_y);
 
-  calcDstFactor (this, window_width, window_height);
-
-  return true;
-  }
-//}}}
-
-//{{{
-bool sInfo::waitSync() {
-
-  if (closed) {
-    //{{{  return false
-    freeResources (this);
-    return false;
-    }
-    //}}}
-
-  if (gUseHardwareSync)
-    return true;
-
-  double current;
-  while (true) {
-    current = timerNow (timer);
-    if (current >= gTimeForFrame) {
-      timerReset (timer);
-      return true;
-      }
-    else if (gTimeForFrame - current > 2.0 / 1000.0) {
-      timeBeginPeriod (1);
-      Sleep (1);
-      timeEndPeriod (1);
-
-      MSG msg;
-      if (PeekMessage (&msg, window, 0, 0, PM_REMOVE)) {
-        TranslateMessage (&msg);
-        DispatchMessage (&msg);
-
-        if (closed) {
-          freeResources (this);
-          return false;
-          }
-        }
-      }
-    }
+  calcDstFactor (window_width, window_height);
 
   return true;
   }

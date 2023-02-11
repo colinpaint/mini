@@ -597,7 +597,7 @@ private:
   inline static int mDayLightSeconds = 0;
   //}}}
 
-  sInfo* mWindow = nullptr;
+  cInfo* mWindow = nullptr;
 
   cPoint mMousePos = {0.f};
   bool mMousePress = false;

@@ -45,13 +45,13 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // state callbacks
   //{{{
-  setActiveCallback ([&](sInfo* info) {
+  setActiveCallback ([&](cInfo* info) {
       cLog::log (LOGINFO, fmt::format ("active {}", info->isActive));
       },
     mWindow);
   //}}}
   //{{{
-  setResizeCallback ([&](struct sInfo* info) {
+  setResizeCallback ([&](struct cInfo* info) {
       int width = info->windowScaledWidth;
       int height = info->windowScaledHeight;
 
@@ -71,7 +71,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setCloseCallback ([&](sInfo* info) {
+  setCloseCallback ([&](cInfo* info) {
       (void)info;
       cLog::log (LOGINFO, fmt::format ("close"));
       return true; // false for don't close
@@ -81,20 +81,20 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // keyboard callbacks
   //{{{
-  setKeyCallback ([&](sInfo* info) {
+  setKeyCallback ([&](cInfo* info) {
       if (info->keyCode == KB_KEY_ESCAPE)
         info->close();
 
       if (info->isPressed)
         if (!keyDown (info->keyCode))
           cLog::log (LOGINFO, fmt::format ("keyboard key:{} pressed:{} mod:{}",
-                                           sInfo::getKeyName (info->keyCode), info->isPressed, (int)info->modifierKeys));
+                                           cInfo::getKeyName (info->keyCode), info->isPressed, (int)info->modifierKeys));
       },
 
     mWindow);
   //}}}
   //{{{
-  setCharCallback ([&](sInfo* info) {
+  setCharCallback ([&](cInfo* info) {
       cLog::log (LOGINFO, fmt::format ("char code:{}", info->codepoint));
       },
     mWindow);
@@ -102,7 +102,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // mouse callbacks
   //{{{
-  setButtonCallback ([&](sInfo* info) {
+  setButtonCallback ([&](cInfo* info) {
       if (info->isDown) {
         mMousePress = true;
         mMouseMoved = false;
@@ -126,7 +126,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setMoveCallback ([&](sInfo* info) { //, int x, int y, int pressure, int timestamp) {
+  setMoveCallback ([&](cInfo* info) { //, int x, int y, int pressure, int timestamp) {
       //cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}", x, y, pressure, timestamp));
       mMousePos.x = (float)info->pointerPosX;
       mMousePos.y = (float)info->pointerPosY;
@@ -144,7 +144,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setWheelCallback ([&](sInfo* info) {
+  setWheelCallback ([&](cInfo* info) {
       mScale *= (info->pointerWheelY > 0.f) ? 1.05f : 1.f / 1.05f;
       cLog::log (LOGINFO, fmt::format ("mouseWheel problem - deltaY:{} int(deltaY):{}", info->pointerWheelY, int(info->pointerWheelY)));
       if (mouseWheel ((int)info->pointerWheelY, mMousePos))
@@ -155,7 +155,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setEnterCallback ([&](sInfo* info) {
+  setEnterCallback ([&](cInfo* info) {
       cLog::log (LOGINFO, fmt::format ("pointerEnter {}", info->pointerInside));
       },
     mWindow);
@@ -205,8 +205,6 @@ void cWindow::uiLoop (bool useChanged, bool drawPerf,
       // update window with our texture
       mWindow->update (getPixels());
       frameUs = duration_cast<microseconds>(system_clock::now() - time).count();
-      if (!useChanged)
-        mWindow->waitSync();
       }
     else {
       this_thread::sleep_for (1ms);

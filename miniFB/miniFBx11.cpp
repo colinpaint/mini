@@ -19,8 +19,6 @@
 #include <X11/extensions/XInput.h>
 
 #include "miniFB.h"
-#include "miniFBinternal.h"
-#include "miniFBgl.h"
 
 #include "../common/cLog.h"
 //}}}
@@ -226,7 +224,7 @@ namespace {
   //}}}
 
   //{{{
-  void initKeycodes (sInfo* info) {
+  void initKeycodes (cInfo* info) {
 
     // clear keys
     for (size_t i = 0; i < sizeof(gKeycodes) / sizeof(gKeycodes[0]); ++i)
@@ -326,7 +324,7 @@ namespace {
   //}}}
 
   //{{{
-  void processEvent (sInfo* info, XEvent* event) {
+  void processEvent (cInfo* info, XEvent* event) {
 
     switch (event->type) {
       case KeyPress:
@@ -435,7 +433,7 @@ namespace {
         info->windowScaledWidth  = info->window_width;
         info->windowScaledHeight = info->window_height;
 
-        resizeDst (info, event->xconfigure.width, event->xconfigure.height);
+        info->resizeDst (event->xconfigure.width, event->xconfigure.height);
         resizeGL (info);
 
         if (info->resizeFunc)
@@ -518,7 +516,7 @@ namespace {
     }
   //}}}
   //{{{
-  void processEvents (sInfo* info) {
+  void processEvents (cInfo* info) {
 
     while (!info->closed && XPending (info->display)) {
       XEvent event;
@@ -528,14 +526,13 @@ namespace {
     }
   //}}}
   //{{{
-  void freeResources (sInfo* info)  {
+  void freeResources (cInfo* info)  {
 
     if (gDevice)
       XCloseDevice (info->display, gDevice);
 
     if (info) {
       destroyGLcontext (info);
-      timerDestroy (info->timer);
       free (info);
       }
     }
@@ -544,9 +541,9 @@ namespace {
 
 // interface
 //{{{
-sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
-  sInfo* info = new sInfo();
+  cInfo* info = new cInfo();
   if (!info) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create window data"));
@@ -605,7 +602,7 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   info->bufferWidth  = width;
   info->bufferHeight = height;
   info->bufferStride = width * 4;
-  calcDstFactor (info, width, height);
+  info->calcDstFactor (width, height);
 
   int posX, posY;
   int windowWidth, windowHeight;
@@ -781,16 +778,13 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   XFreeDeviceList (devices);
   //}}}
 
-  info->timer = timerCreate();
-  setKeyCallback (info, keyDefault);
-
   info->isInitialized = true;
   return info;
   }
 //}}}
 
 //{{{
-eUpdateState sInfo::updateEx (void* buffer, unsigned width, unsigned height) {
+eUpdateState cInfo::updateEx (void* buffer, unsigned width, unsigned height) {
 
   if (closed) {
     freeResources (this);
@@ -814,7 +808,7 @@ eUpdateState sInfo::updateEx (void* buffer, unsigned width, unsigned height) {
   }
 //}}}
 //{{{
-eUpdateState sInfo::updateEvents() {
+eUpdateState cInfo::updateEvents() {
 
   if (closed) {
     freeResources (this);
@@ -830,7 +824,7 @@ eUpdateState sInfo::updateEvents() {
 //}}}
 
 //{{{
-void sInfo::getMonitorScale (float* scale_x, float* scale_y) {
+void cInfo::getMonitorScale (float* scale_x, float* scale_y) {
 
   float x = 96.0;
   float y = 96.0;
@@ -849,7 +843,7 @@ void sInfo::getMonitorScale (float* scale_x, float* scale_y) {
   }
 //}}}
 //{{{
-bool sInfo::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
+bool cInfo::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
 
   if (offset_x + width > window_width)
     return false;
@@ -860,50 +854,7 @@ bool sInfo::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, u
   dst_offset_y = offset_y;
   dst_width = width;
   dst_height = height;
-  calcDstFactor (this, window_width, window_height);
-
-  return true;
-  }
-//}}}
-
-//{{{
-bool sInfo::waitSync() {
-
-  if (closed) {
-    freeResources (this);
-    return false;
-    }
-
-  if (gUseHardwareSync)
-    return true;
-
-  XFlush (display);
-
-  XEvent event;
-  double current;
-  uint32_t millis = 1;
-  while(1) {
-    current = timerNow (timer);
-    if (current >= gTimeForFrame * 0.96) {
-      timerReset (timer);
-      return true;
-      }
-    else if (current >= gTimeForFrame * 0.8)
-      millis = 0;
-
-    usleep (millis * 1000);
-    //sched_yield();
-
-    if (millis == 1 && XEventsQueued (display, QueuedAlready) > 0) {
-      XNextEvent (display, &event);
-      processEvent (this, &event);
-
-      if (closed) {
-        freeResources (this);
-        return false;
-        }
-      }
-    }
+  calcDstFactor (window_width, window_height);
 
   return true;
   }
