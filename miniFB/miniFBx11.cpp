@@ -340,7 +340,7 @@ namespace {
         info->modifierKeys = translateModEx (info->keyCode, event->xkey.state, info->isDown);
         info->keyStatus[info->keyCode] = info->isDown;
         if (info->keyFunc)
-          info->keyFunc ((sOpaqueInfo*)info);
+          info->keyFunc (info);
 
         if (info->isDown) {
           KeySym keysym;
@@ -349,14 +349,14 @@ namespace {
               (keysym >= 0x00a0 && keysym <= 0x00ff)) {
             info->codepoint = keysym;
             if (info->charFunc)
-              info->charFunc ((sOpaqueInfo*)info);
+              info->charFunc (info);
             }
           else if ((keysym & 0xff000000) == 0x01000000)
             keysym = keysym & 0x00ffffff;
 
           info->codepoint = keysym;
           if (info->charFunc)
-            info->charFunc ((sOpaqueInfo*)info);
+            info->charFunc (info);
           // This does not seem to be working properly
           // unsigned int codepoint = xkb_state_key_get_utf32(state, keysym);
           // if (codepoint != 0)
@@ -380,32 +380,32 @@ namespace {
           case Button3:
             info->pointerButtonStatus[button & 0x07] = info->isPressed;
             if (info->buttonFunc)
-              info->buttonFunc ((sOpaqueInfo*)info);
+              info->buttonFunc (info);
             break;
 
           // wheel
           case Button4:
             info->pointerWheelY = 1.0f;
             if (info->wheelFunc)
-              info->wheelFunc ((sOpaqueInfo*)info);
+              info->wheelFunc (info);
             break;
 
           case Button5:
             info->pointerWheelY = -1.0f;
             if (info->wheelFunc)
-              info->wheelFunc ((sOpaqueInfo*)info);
+              info->wheelFunc (info);
             break;
 
           case 6:
             info->pointerWheelX = 1.0f;
             if (info->wheelFunc)
-              info->wheelFunc ((sOpaqueInfo*)info);
+              info->wheelFunc (info);
             break;
 
           case 7:
             info->pointerWheelX = -1.0f;
             if (info->wheelFunc)
-              info->wheelFunc ((sOpaqueInfo*)info);
+              info->wheelFunc (info);
             break;
 
           default:
@@ -426,7 +426,7 @@ namespace {
         info->pointerPosY = event->xmotion.y;
         info->pointerPressure = info->pointerButtonStatus[Button1] * 1024;
         if (info->moveFunc)
-          info->moveFunc ((sOpaqueInfo*)info);
+          info->moveFunc (info);
         }
         break;
       //}}}
@@ -442,7 +442,7 @@ namespace {
         resizeGL (info);
 
         if (info->resizeFunc)
-          info->resizeFunc ((sOpaqueInfo*)info);
+          info->resizeFunc (info);
 
         break;
       //}}}
@@ -451,7 +451,7 @@ namespace {
       case EnterNotify:
         info->pointerInside = true;
         if (info->activeFunc)
-          info->activeFunc ((sOpaqueInfo*)info);
+          info->activeFunc (info);
 
         break;
       //}}}
@@ -459,7 +459,7 @@ namespace {
       case LeaveNotify:
         info->pointerInside = false;
         if (info->activeFunc)
-          info->activeFunc ((sOpaqueInfo*)info);
+          info->activeFunc (info);
 
         break;
       //}}}
@@ -468,7 +468,7 @@ namespace {
       case FocusIn:
         info->isActive = true;
         if (info->activeFunc)
-          info->activeFunc ((sOpaqueInfo*)info);
+          info->activeFunc (info);
 
         break;
       //}}}
@@ -476,7 +476,7 @@ namespace {
       case FocusOut:
         info->isActive = false;
         if (info->activeFunc)
-          info->activeFunc ((sOpaqueInfo*)info);
+          info->activeFunc (info);
 
         break;
       //}}}
@@ -491,7 +491,7 @@ namespace {
         if ((Atom)event->xclient.data.l[0] == gDeleteWindowAtom) {
           if (info) {
             bool destroy = false;
-            if (!info->closeFunc || info->closeFunc ((sOpaqueInfo*)info))
+            if (!info->closeFunc || info->closeFunc (info))
               destroy = true;
             if (destroy) {
               info->closed = true;
@@ -523,7 +523,7 @@ namespace {
   //{{{
   void processEvents (sInfo* info) {
 
-    sInfoX11* infoX11 = (sInfoX11*)info->specificInfo;
+    sInfoX11* infoX11 = (sInfoX11*)info->platformInfo;
     while (!info->closed && XPending (infoX11->display)) {
       XEvent event;
       XNextEvent (infoX11->display, &event);
@@ -535,7 +535,7 @@ namespace {
   void freeResources (sInfo* info)  {
 
     if (gDevice) {
-      sInfoX11* infoX11 = (sInfoX11*)info->specificInfo;
+      sInfoX11* infoX11 = (sInfoX11*)info->platformInfo;
       if (infoX11)
         XCloseDevice (infoX11->display, gDevice);
       }
@@ -543,7 +543,7 @@ namespace {
     if (info) {
       destroyGLcontext (info);
       timerDestroy (info->timer);
-      free (info->specificInfo);
+      free (info->platformInfo);
       free (info);
       }
     }
@@ -552,7 +552,7 @@ namespace {
 
 // interface
 //{{{
-sOpaqueInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   sInfo* info = (sInfo*)calloc (1, sizeof(sInfo));
   if (!info) {
@@ -570,7 +570,7 @@ sOpaqueInfo* openEx (const char* title, unsigned width, unsigned height, unsigne
     return 0;
     }
     //}}}
-  info->specificInfo = infoX11;
+  info->platformInfo = infoX11;
 
   infoX11->display = XOpenDisplay (0);
   if (!infoX11->display) {
@@ -801,19 +801,18 @@ sOpaqueInfo* openEx (const char* title, unsigned width, unsigned height, unsigne
   //}}}
 
   info->timer = timerCreate();
-  setKeyCallback ((sOpaqueInfo*)info, keyDefault);
+  setKeyCallback (info, keyDefault);
 
   info->isInitialized = true;
-  return (sOpaqueInfo*)info;
+  return info;
   }
 //}}}
 //{{{
-eUpdateState updateEx (sOpaqueInfo* opaqueInfo, void* buffer, unsigned width, unsigned height) {
+eUpdateState updateEx (sInfo* info, void* buffer, unsigned width, unsigned height) {
 
-  if (!opaqueInfo)
+  if (!info)
     return STATE_INVALID_WINDOW;
 
-  sInfo* info = (sInfo*)opaqueInfo;
   if (info->closed) {
     freeResources (info);
     return STATE_EXIT;
@@ -836,18 +835,17 @@ eUpdateState updateEx (sOpaqueInfo* opaqueInfo, void* buffer, unsigned width, un
   }
 //}}}
 //{{{
-eUpdateState updateEvents (sOpaqueInfo* opaqueInfo) {
+eUpdateState updateEvents (sInfo* info) {
 
-  if (!opaqueInfo)
+  if (!info)
     return STATE_INVALID_WINDOW;
 
-  sInfo* info = (sInfo*)opaqueInfo;
   if (info->closed) {
     freeResources (info);
     return STATE_EXIT;
     }
 
-  sInfoX11* infoX11 = (sInfoX11*)info->specificInfo;
+  sInfoX11* infoX11 = (sInfoX11*)info->platformInfo;
   XFlush (infoX11->display);
 
   processEvents (info);
@@ -857,12 +855,11 @@ eUpdateState updateEvents (sOpaqueInfo* opaqueInfo) {
 //}}}
 
 //{{{
-bool waitSync (sOpaqueInfo* opaqueInfo) {
+bool waitSync (sInfo* info) {
 
-  if (!opaqueInfo)
+  if (!info)
     return false;
 
-  sInfo* info = (sInfo*)opaqueInfo;
   if (info->closed) {
     freeResources (info);
     return false;
@@ -871,7 +868,7 @@ bool waitSync (sOpaqueInfo* opaqueInfo) {
   if (gUseHardwareSync)
     return true;
 
-  sInfoX11* infoX11 = (sInfoX11*)info->specificInfo;
+  sInfoX11* infoX11 = (sInfoX11*)info->platformInfo;
   XFlush (infoX11->display);
 
   XEvent event;
@@ -905,9 +902,7 @@ bool waitSync (sOpaqueInfo* opaqueInfo) {
 //}}}
 
 //{{{
-bool setViewport (sOpaqueInfo* opaqueInfo, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
-
-  sInfo* info = (sInfo*)opaqueInfo;
+bool setViewport (sInfo* info, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
 
   if (offset_x + width > info->window_width)
     return false;
@@ -924,14 +919,14 @@ bool setViewport (sOpaqueInfo* opaqueInfo, unsigned offset_x, unsigned offset_y,
   }
 //}}}
 //{{{
-void getMonitorScale (sOpaqueInfo* opaqueInfo, float* scale_x, float* scale_y) {
+void getMonitorScale (sInfo* info, float* scale_x, float* scale_y) {
 
   float x = 96.0;
   float y = 96.0;
 
-  if (opaqueInfo) {
+  if (info) {
     //sInfo     *info     = (sInfo *) window;
-    //sInfoX11 *infoX11 = (sInfoX11 *) info->specificInfo;
+    //sInfoX11 *infoX11 = (sInfoX11 *) info->platformInfo;
     // I cannot find a way to get dpi under VirtualBox
     // XrmGetResource "Xft.dpi", "Xft.Dpi"
     // XRRGetOutputInfo

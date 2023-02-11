@@ -231,10 +231,10 @@ void resizeGL (sInfo* info) {
 
   if (info->isInitialized) {
     #if defined(_WIN32) || defined(WIN32)
-    sInfoWindows* info_ex = (sInfoWindows*) info->specificInfo;
+    sInfoWindows* info_ex = (sInfoWindows*) info->platformInfo;
       wglMakeCurrent (info_ex->hdc, info_ex->hGLRC);
     #else
-      sInfoX11* info_ex = (sInfoX11*) info->specificInfo;
+      sInfoX11* info_ex = (sInfoX11*) info->platformInfo;
       glXMakeCurrent (info_ex->display, info_ex->window, info_ex->context);
     #endif
 
@@ -252,10 +252,10 @@ void resizeGL (sInfo* info) {
 void redrawGL (sInfo* info, const void* pixels) {
 
   #if defined(_WIN32) || defined(WIN32)
-  sInfoWindows* info_ex = (sInfoWindows*)info->specificInfo;
+  sInfoWindows* info_ex = (sInfoWindows*)info->platformInfo;
     wglMakeCurrent (info_ex->hdc, info_ex->hGLRC);
   #else
-    sInfoX11* info_ex = (sInfoX11*)info->specificInfo;
+    sInfoX11* info_ex = (sInfoX11*)info->platformInfo;
     glXMakeCurrent (info_ex->display, info_ex->window, info_ex->context);
   #endif
 
@@ -305,7 +305,7 @@ void redrawGL (sInfo* info, const void* pixels) {
 bool createGLcontext (sInfo* info) {
 
   #if defined(_WIN32) || defined(WIN32)
-  sInfoWindows* info_win = (sInfoWindows*)info->specificInfo;
+  sInfoWindows* info_win = (sInfoWindows*)info->platformInfo;
     if (setup_pixel_format (info_win->hdc) == false)
       return false;
 
@@ -323,7 +323,7 @@ bool createGLcontext (sInfo* info) {
     setTargetFpsAux();
 
   #else
-    sInfoX11* infoX11 = (sInfoX11*) info->specificInfo;
+    sInfoX11* infoX11 = (sInfoX11*) info->platformInfo;
 
     GLint majorGLX = 0;
     GLint minorGLX = 0;
@@ -362,7 +362,7 @@ bool createGLcontext (sInfo* info) {
 void destroyGLcontext (sInfo* info) {
 
   #if defined(_WIN32) || defined(WIN32)
-  sInfoWindows* info_win = (sInfoWindows*)info->specificInfo;
+  sInfoWindows* info_win = (sInfoWindows*)info->platformInfo;
     if (info_win->hGLRC) {
       wglMakeCurrent (NULL, NULL);
       wglDeleteContext (info_win->hGLRC);
@@ -370,7 +370,7 @@ void destroyGLcontext (sInfo* info) {
       }
 
   #else
-    sInfoX11* infoX11 = (sInfoX11*)info->specificInfo;
+    sInfoX11* infoX11 = (sInfoX11*)info->platformInfo;
     glXDestroyContext (infoX11->display, infoX11->context);
   #endif
   }

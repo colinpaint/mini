@@ -3,36 +3,35 @@
 
 #include <vector>
 #include "miniFBinternal.h"
-#include "sInfo.h"
 
 short int gKeycodes[512] = { 0 };
 
 //{{{
-sOpaqueInfo* open (const char* title, unsigned width, unsigned height) {
+sInfo* open (const char* title, unsigned width, unsigned height) {
 
   return openEx (title, width, height, 0);
   }
 //}}}
 //{{{
-eUpdateState update (sOpaqueInfo* opaqueInfo, void *buffer) {
+eUpdateState update (sInfo* info, void *buffer) {
 
-  if (!opaqueInfo)
+  if (!info)
     return STATE_INVALID_WINDOW;
 
-  return updateEx (opaqueInfo, buffer, ((sInfo*)(opaqueInfo))->bufferWidth, ((sInfo*)(opaqueInfo))->bufferHeight);
+  return updateEx (info, buffer, info->bufferWidth, info->bufferHeight);
   }
 //}}}
 //{{{
-void close (sOpaqueInfo* opaqueInfo) {
+void close (sInfo* info) {
 
-  if (opaqueInfo)
-    ((sInfo*)(opaqueInfo))->closed = true;
+  if (info)
+    info->closed = true;
   }
 //}}}
 
 // gets
 //{{{
-cStub* cStub::getInstance (sOpaqueInfo *opaqueInfo) {
+cStub* cStub::getInstance (sInfo *info) {
 
   //{{{
   struct stub_vector {
@@ -46,71 +45,71 @@ cStub* cStub::getInstance (sOpaqueInfo *opaqueInfo) {
       }
     //}}}
 
-    cStub* Get (sOpaqueInfo *opaqueInfo) {
+    cStub* Get (sInfo *info) {
       for(cStub *instance : instances) {
-        if(instance->m_opaqueInfo == opaqueInfo) {
+        if(instance->m_info == info) {
           return instance;
           }
         }
       instances.push_back (new cStub);
-      instances.back()->m_opaqueInfo = opaqueInfo;
+      instances.back()->m_info = info;
       return instances.back();
       }
     };
   //}}}
   static stub_vector gInstances;
 
-  return gInstances.Get (opaqueInfo);
+  return gInstances.Get (info);
   }
 //}}}
-void* getUserData (sOpaqueInfo* opaqueInfo) { return opaqueInfo ? ((sInfo*)(opaqueInfo))->userData : 0; }
+void* getUserData (sInfo* info) { return info ? info->userData : 0; }
 
 //{{{
-bool isWindowActive (sOpaqueInfo* opaqueInfo)  {
-  return opaqueInfo ? ((sInfo*)(opaqueInfo))->isActive : 0; }
+bool isWindowActive (sInfo* info)  {
+  return info ? info->isActive : 0; }
 //}}}
 //{{{
-unsigned getWindowWidth (sOpaqueInfo* opaqueInfo)  {
-  return opaqueInfo ? ((sInfo*)(opaqueInfo))->window_width : 0; }
+unsigned getWindowWidth (sInfo* info)  {
+  return info ? info->window_width : 0; }
 //}}}
 //{{{
-unsigned getWindowHeight (sOpaqueInfo* opaqueInfo) {
-  return opaqueInfo ? ((sInfo*)(opaqueInfo))->window_height : 0; }
-//}}}
-
-//{{{
-int getPointerX (sOpaqueInfo* opaqueInfo) {
-  return opaqueInfo ? ((sInfo*)(opaqueInfo))->pointerPosX : 0; }
-//}}}
-//{{{
-int getPointerY (sOpaqueInfo* opaqueInfo) {
-  return opaqueInfo ? ((sInfo*)(opaqueInfo))->pointerPosY : 0; }
-//}}}
-//{{{
-int getPointerPressure (sOpaqueInfo* opaqueInfo) {
-  return opaqueInfo ? ((sInfo*)(opaqueInfo))->pointerPressure : 0; }
-//}}}
-//{{{
-int64_t getPointerTimestamp (sOpaqueInfo* opaqueInfo) {
-  return opaqueInfo ? ((sInfo*)(opaqueInfo))->pointerTimestamp : 0; }
+unsigned getWindowHeight (sInfo* info) {
+  return info ? info->window_height : 0; }
 //}}}
 
 //{{{
-float getPointerWheelX (sOpaqueInfo* opaqueInfo) {
-  return opaqueInfo ? ((sInfo*)(opaqueInfo))->pointerWheelX : 0; }
+int getPointerX (sInfo* info) {
+  return info ? info->pointerPosX : 0; }
 //}}}
 //{{{
-float getPointerWheelY (sOpaqueInfo* opaqueInfo) {
-  return opaqueInfo ? ((sInfo*)(opaqueInfo))->pointerWheelY : 0; }
+int getPointerY (sInfo* info) {
+  return info ? info->pointerPosY : 0; }
+//}}}
+//{{{
+int getPointerPressure (sInfo* info) {
+  return info ? info->pointerPressure : 0; }
+//}}}
+//{{{
+int64_t getPointerTimestamp (sInfo* info) {
+  return info ? info->pointerTimestamp : 0; }
 //}}}
 
 //{{{
-const uint8_t* getPointerButtonBuffer (sOpaqueInfo* opaqueInfo) {
-  return opaqueInfo ? ((sInfo*)(opaqueInfo))->pointerButtonStatus : 0; }
+float getPointerWheelX (sInfo* info) {
+  return info ? info->pointerWheelX : 0; }
 //}}}
 //{{{
-const uint8_t* getKeyBuffer (sOpaqueInfo* opaqueInfo)  {
-  return opaqueInfo ? ((sInfo*)(opaqueInfo))->keyStatus : 0; }
+float getPointerWheelY (sInfo* info) {
+  return info ? info->pointerWheelY : 0; }
+//}}}
+
+//{{{
+const uint8_t* getPointerButtonBuffer (sInfo* info) {
+  return info ? info->pointerButtonStatus : 0; }
+//}}}
+//{{{
+const uint8_t* getKeyBuffer (sInfo* info)  {
+  return info ? info->keyStatus : 0; }
 //}}}
 //{{{
 const char* getKeyName (eKey key) {
@@ -262,18 +261,18 @@ const char* getKeyName (eKey key) {
 
 // sets
 //{{{
-void setUserData (sOpaqueInfo* opaqueInfo, void* user_data) {
+void setUserData (sInfo* info, void* user_data) {
 
-  if (opaqueInfo)
-    ((sInfo*)(opaqueInfo))->userData = user_data;
+  if (info)
+    info->userData = user_data;
   }
 //}}}
 //{{{
-bool setViewportBestFit (sOpaqueInfo* opaqueInfo, unsigned old_width, unsigned old_height) {
+bool setViewportBestFit (sInfo* info, unsigned old_width, unsigned old_height) {
 
-  if (opaqueInfo) {
-    unsigned new_width  = ((sInfo*)(opaqueInfo))->window_width;
-    unsigned new_height = ((sInfo*)(opaqueInfo))->window_height;
+  if (info) {
+    unsigned new_width  = info->window_width;
+    unsigned new_height = info->window_height;
 
     float scale_x = new_width  / (float) old_width;
     float scale_y = new_height / (float) old_height;
@@ -288,8 +287,8 @@ bool setViewportBestFit (sOpaqueInfo* opaqueInfo, unsigned old_width, unsigned o
     unsigned offset_x = (new_width  - finalWidth)  >> 1;
     unsigned offset_y = (new_height - finalHeight) >> 1;
 
-    getMonitorScale (opaqueInfo, &scale_x, &scale_y);
-    return setViewport (opaqueInfo, (unsigned)(offset_x / scale_x), (unsigned)(offset_y / scale_y),
+    getMonitorScale (info, &scale_x, &scale_y);
+    return setViewport (info, (unsigned)(offset_x / scale_x), (unsigned)(offset_y / scale_y),
                                    (unsigned)(finalWidth / scale_x), (unsigned)(finalHeight / scale_y));
     }
 
@@ -298,207 +297,207 @@ bool setViewportBestFit (sOpaqueInfo* opaqueInfo, unsigned old_width, unsigned o
 //}}}
 
 //{{{
-void keyDefault (sOpaqueInfo* opaqueInfo) {
+void keyDefault (sInfo* info) {
 
-  if (((sInfo*)(opaqueInfo))->keyCode == KB_KEY_ESCAPE) {
-    if (!((sInfo*)(opaqueInfo))->closeFunc ||
-         ((sInfo*)(opaqueInfo))->closeFunc ((sOpaqueInfo*)opaqueInfo))
-      ((sInfo*)(opaqueInfo))->closed = true;
+  if (info->keyCode == KB_KEY_ESCAPE) {
+    if (!info->closeFunc ||
+         info->closeFunc (info))
+      info->closed = true;
     }
   }
 //}}}
 
 // set callbacks
 //{{{
-void setActiveCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback) {
+void setActiveCallback (sInfo* info, infoFuncType callback) {
 
-  if (opaqueInfo)
-    ((sInfo*)(opaqueInfo))->activeFunc = callback;
+  if (info)
+    info->activeFunc = callback;
   }
 //}}}
 //{{{
-void setResizeCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback) {
+void setResizeCallback (sInfo* info, infoFuncType callback) {
 
-  if (opaqueInfo)
-    ((sInfo*)(opaqueInfo))->resizeFunc = callback;
+  if (info)
+    info->resizeFunc = callback;
   }
 //}}}
 //{{{
-void setCloseCallback  (sOpaqueInfo* opaqueInfo, closeFuncType callback) {
+void setCloseCallback  (sInfo* info, closeFuncType callback) {
 
-  if (opaqueInfo)
-    ((sInfo*)(opaqueInfo))->closeFunc = callback;
+  if (info)
+    info->closeFunc = callback;
   }
 //}}}
 //{{{
-void setKeyCallback    (sOpaqueInfo* opaqueInfo, infoFuncType callback) {
+void setKeyCallback    (sInfo* info, infoFuncType callback) {
 
-  if (opaqueInfo)
-    ((sInfo*)(opaqueInfo))->keyFunc = callback;
+  if (info)
+    info->keyFunc = callback;
   }
 //}}}
 //{{{
-void setCharCallback   (sOpaqueInfo* opaqueInfo, infoFuncType callback) {
+void setCharCallback   (sInfo* info, infoFuncType callback) {
 
-  if (opaqueInfo)
-    ((sInfo*)(opaqueInfo))->charFunc = callback;
+  if (info)
+    info->charFunc = callback;
   }
 //}}}
 //{{{
-void setButtonCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback) {
+void setButtonCallback (sInfo* info, infoFuncType callback) {
 
-  if (opaqueInfo)
-    ((sInfo*)(opaqueInfo))->buttonFunc = callback;
+  if (info)
+    info->buttonFunc = callback;
   }
 //}}}
 //{{{
-void setMoveCallback   (sOpaqueInfo* opaqueInfo, infoFuncType callback) {
+void setMoveCallback   (sInfo* info, infoFuncType callback) {
 
-  if (opaqueInfo)
-    ((sInfo*)(opaqueInfo))->moveFunc = callback;
+  if (info)
+    info->moveFunc = callback;
   }
 //}}}
 //{{{
-void setWheelCallback  (sOpaqueInfo* opaqueInfo, infoFuncType callback) {
+void setWheelCallback  (sInfo* info, infoFuncType callback) {
 
-  if (opaqueInfo)
-    ((sInfo*)(opaqueInfo))->wheelFunc = callback;
+  if (info)
+    info->wheelFunc = callback;
   }
 //}}}
 //{{{
-void setEnterCallback  (sOpaqueInfo* opaqueInfo, infoFuncType callback) {
+void setEnterCallback  (sInfo* info, infoFuncType callback) {
 
-  if (opaqueInfo)
-    ((sInfo*)(opaqueInfo))->enterFunc = callback;
+  if (info)
+    info->enterFunc = callback;
   }
 //}}}
 
 // set callback lamdas
 //{{{
-void setActiveCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo) {
+void setActiveCallback (std::function <void (sInfo*)> func, sInfo* info) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (opaqueInfo)->mActiveFunc = std::bind (func, _1);
-  setActiveCallback (opaqueInfo, cStub::activeStub);
+  cStub::getInstance (info)->mActiveFunc = std::bind (func, _1);
+  setActiveCallback (info, cStub::activeStub);
   }
 //}}}
 //{{{
-void setResizeCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo) {
+void setResizeCallback (std::function <void (sInfo*)> func, sInfo* info) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (opaqueInfo)->mResizeFunc = std::bind(func, _1);
-  setResizeCallback(opaqueInfo, cStub::resizeStub);
+  cStub::getInstance (info)->mResizeFunc = std::bind(func, _1);
+  setResizeCallback(info, cStub::resizeStub);
   }
 //}}}
 //{{{
-void setCloseCallback  (std::function <bool (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo) {
+void setCloseCallback  (std::function <bool (sInfo*)> func, sInfo* info) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (opaqueInfo)->mCloseFunc = std::bind(func, _1);
-  setCloseCallback(opaqueInfo, cStub::closeStub);
+  cStub::getInstance (info)->mCloseFunc = std::bind(func, _1);
+  setCloseCallback(info, cStub::closeStub);
   }
 //}}}
 //{{{
-void setKeyCallback    (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo *opaqueInfo) {
+void setKeyCallback    (std::function <void (sInfo*)> func, sInfo *info) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (opaqueInfo)->mKeyFunc = std::bind (func, _1);
-  setKeyCallback (opaqueInfo, cStub::keyStub);
+  cStub::getInstance (info)->mKeyFunc = std::bind (func, _1);
+  setKeyCallback (info, cStub::keyStub);
   }
 //}}}
 //{{{
-void setCharCallback   (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo) {
+void setCharCallback   (std::function <void (sInfo*)> func, sInfo* info) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (opaqueInfo)->mCharFunc = std::bind (func, _1);
-  setCharCallback (opaqueInfo, cStub::charStub);
+  cStub::getInstance (info)->mCharFunc = std::bind (func, _1);
+  setCharCallback (info, cStub::charStub);
   }
 //}}}
 //{{{
-void setButtonCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo *opaqueInfo) {
+void setButtonCallback (std::function <void (sInfo*)> func, sInfo *info) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (opaqueInfo)->mButtonFunc = std::bind (func, _1);
-  setButtonCallback (opaqueInfo, cStub::buttonStub);
+  cStub::getInstance (info)->mButtonFunc = std::bind (func, _1);
+  setButtonCallback (info, cStub::buttonStub);
   }
 //}}}
 //{{{
-void setMoveCallback   (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo) {
+void setMoveCallback   (std::function <void (sInfo*)> func, sInfo* info) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (opaqueInfo)->mMoveFunc = std::bind (func, _1);
-  setMoveCallback (opaqueInfo, cStub::moveStub);
+  cStub::getInstance (info)->mMoveFunc = std::bind (func, _1);
+  setMoveCallback (info, cStub::moveStub);
   }
 //}}}
 //{{{
-void setWheelCallback  (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo *opaqueInfo) {
+void setWheelCallback  (std::function <void (sInfo*)> func, sInfo *info) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (opaqueInfo)->mWheelFunc = std::bind (func, _1);
-  setWheelCallback (opaqueInfo, cStub::wheelStub);
+  cStub::getInstance (info)->mWheelFunc = std::bind (func, _1);
+  setWheelCallback (info, cStub::wheelStub);
   }
 //}}}
 //{{{
-void setEnterCallback  (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo *opaqueInfo) {
+void setEnterCallback  (std::function <void (sInfo*)> func, sInfo *info) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (opaqueInfo)->mEnterFunc = std::bind (func, _1);
-  setEnterCallback (opaqueInfo, cStub::enterStub);
+  cStub::getInstance (info)->mEnterFunc = std::bind (func, _1);
+  setEnterCallback (info, cStub::enterStub);
   }
 //}}}
 
 // callback stubs
 //{{{
-void cStub::activeStub (sOpaqueInfo* opaqueInfo) {
-  cStub::getInstance (opaqueInfo)->mActiveFunc (opaqueInfo);
+void cStub::activeStub (sInfo* info) {
+  cStub::getInstance (info)->mActiveFunc (info);
   }
 //}}}
 //{{{
-void cStub::resizeStub (sOpaqueInfo* opaqueInfo) {
-  cStub::getInstance (opaqueInfo)->mResizeFunc (opaqueInfo);
+void cStub::resizeStub (sInfo* info) {
+  cStub::getInstance (info)->mResizeFunc (info);
   }
 //}}}
 //{{{
-bool cStub::closeStub  (sOpaqueInfo* opaqueInfo) {
-  return cStub::getInstance (opaqueInfo)->mCloseFunc (opaqueInfo);
+bool cStub::closeStub  (sInfo* info) {
+  return cStub::getInstance (info)->mCloseFunc (info);
   }
 //}}}
 //{{{
-void cStub::keyStub    (sOpaqueInfo* opaqueInfo) {
-  cStub::getInstance (opaqueInfo)->mKeyFunc(opaqueInfo);
+void cStub::keyStub    (sInfo* info) {
+  cStub::getInstance (info)->mKeyFunc(info);
   }
 //}}}
 //{{{
-void cStub::charStub   (sOpaqueInfo* opaqueInfo) {
-  cStub::getInstance (opaqueInfo)->mCharFunc(opaqueInfo);
+void cStub::charStub   (sInfo* info) {
+  cStub::getInstance (info)->mCharFunc(info);
   }
 //}}}
 //{{{
-void cStub::buttonStub (sOpaqueInfo* opaqueInfo) {
-  cStub::getInstance (opaqueInfo)->mButtonFunc(opaqueInfo);
+void cStub::buttonStub (sInfo* info) {
+  cStub::getInstance (info)->mButtonFunc(info);
   }
 //}}}
 //{{{
-void cStub::moveStub   (sOpaqueInfo* opaqueInfo) {
-  cStub::getInstance (opaqueInfo)->mMoveFunc(opaqueInfo);
+void cStub::moveStub   (sInfo* info) {
+  cStub::getInstance (info)->mMoveFunc(info);
   }
 //}}}
 //{{{
-void cStub::wheelStub  (sOpaqueInfo* opaqueInfo) {
-  cStub::getInstance (opaqueInfo)->mWheelFunc(opaqueInfo);
+void cStub::wheelStub  (sInfo* info) {
+  cStub::getInstance (info)->mWheelFunc(info);
   }
 //}}}
 //{{{
-void cStub::enterStub  (sOpaqueInfo* opaqueInfo) {
-  cStub::getInstance (opaqueInfo)->mEnterFunc(opaqueInfo);
+void cStub::enterStub  (sInfo* info) {
+  cStub::getInstance (info)->mEnterFunc(info);
   }
 //}}}

@@ -597,7 +597,7 @@ private:
   inline static int mDayLightSeconds = 0;
   //}}}
 
-  struct sOpaqueInfo* mWindow = nullptr;
+  struct sInfo* mWindow = nullptr;
 
   cPoint mMousePos = {0.f};
   bool mMousePress = false;

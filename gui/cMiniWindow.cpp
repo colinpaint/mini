@@ -9,7 +9,6 @@
 #include "../common/cLog.h"
 
 #include "../miniFB/miniFB.h"
-#include "../miniFB/sInfo.h"
 
 using namespace std;
 using namespace chrono;
@@ -46,15 +45,13 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // state callbacks
   //{{{
-  setActiveCallback ([&](sOpaqueInfo* opaqueInfo) {
-      sInfo* info = (sInfo*)opaqueInfo;
+  setActiveCallback ([&](sInfo* info) {
       cLog::log (LOGINFO, fmt::format ("active {}", info->isActive));
       },
     mWindow);
   //}}}
   //{{{
-  setResizeCallback ([&](struct sOpaqueInfo* opaqueInfo) {
-      sInfo* info = (sInfo*)opaqueInfo;
+  setResizeCallback ([&](struct sInfo* info) {
       int width = info->windowScaledWidth;
       int height = info->windowScaledHeight;
 
@@ -69,13 +66,12 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         y = (height - getHeight()) >> 1;
         setHeight (height);
         }
-      setViewport (opaqueInfo, x, y, width, height);
+      setViewport (info, x, y, width, height);
       },
     mWindow);
   //}}}
   //{{{
-  setCloseCallback ([&](sOpaqueInfo* opaqueInfo) {
-      sInfo* info = (sInfo*)opaqueInfo;
+  setCloseCallback ([&](sInfo* info) {
       (void)info;
       cLog::log (LOGINFO, fmt::format ("close"));
       return true; // false for don't close
@@ -85,10 +81,9 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // keyboard callbacks
   //{{{
-  setKeyCallback ([&](sOpaqueInfo* opaqueInfo) {
-      sInfo* info = (sInfo*)opaqueInfo;
+  setKeyCallback ([&](sInfo* info) {
       if (info->keyCode == KB_KEY_ESCAPE)
-        close (opaqueInfo);
+        close (info);
 
       if (info->isPressed)
         if (!keyDown (info->keyCode))
@@ -99,8 +94,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setCharCallback ([&](sOpaqueInfo* opaqueInfo) {
-      sInfo* info = (sInfo*)opaqueInfo;
+  setCharCallback ([&](sInfo* info) {
       cLog::log (LOGINFO, fmt::format ("char code:{}", info->codepoint));
       },
     mWindow);
@@ -108,12 +102,11 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // mouse callbacks
   //{{{
-  setButtonCallback ([&](sOpaqueInfo* opaqueInfo) {
-      sInfo* info = (sInfo*)opaqueInfo;
+  setButtonCallback ([&](sInfo* info) {
       if (info->isDown) {
         mMousePress = true;
         mMouseMoved = false;
-        mMousePressPos = cPoint ((float)getPointerX (opaqueInfo), (float)getPointerY (opaqueInfo));
+        mMousePressPos = cPoint ((float)getPointerX (info), (float)getPointerY (info));
         mMousePressRight = info->pointerButtonStatus[MOUSE_BTN_3];
         mMouseLastPos = mMousePressPos;
         mMousePressUsed = mouseDown (mMousePressRight, mMousePressPos);
@@ -122,7 +115,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         cursorChanged();
         }
       else {
-        mMouseLastPos = cPoint (getPointerX (opaqueInfo), getPointerY (opaqueInfo));
+        mMouseLastPos = cPoint (getPointerX (info), getPointerY (info));
         if (mouseUp (mMousePressRight, mMouseMoved, mMouseLastPos))
           changed();
         mMousePress = false;
@@ -133,9 +126,8 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setMoveCallback ([&](sOpaqueInfo* opaqueInfo) { //, int x, int y, int pressure, int timestamp) {
+  setMoveCallback ([&](sInfo* info) { //, int x, int y, int pressure, int timestamp) {
       //cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}", x, y, pressure, timestamp));
-      sInfo* info = (sInfo*)opaqueInfo;
       mMousePos.x = (float)info->pointerPosX;
       mMousePos.y = (float)info->pointerPosY;
       if (mMousePress) {
@@ -152,8 +144,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setWheelCallback ([&](sOpaqueInfo* opaqueInfo) {
-      sInfo* info = (sInfo*)opaqueInfo;
+  setWheelCallback ([&](sInfo* info) {
       mScale *= (info->pointerWheelY > 0.f) ? 1.05f : 1.f / 1.05f;
       cLog::log (LOGINFO, fmt::format ("mouseWheel problem - deltaY:{} int(deltaY):{}", info->pointerWheelY, int(info->pointerWheelY)));
       if (mouseWheel ((int)info->pointerWheelY, mMousePos))
@@ -164,8 +155,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setEnterCallback ([&](sOpaqueInfo* opaqueInfo) {
-      sInfo* info = (sInfo*)opaqueInfo;
+  setEnterCallback ([&](sInfo* info) {
       cLog::log (LOGINFO, fmt::format ("pointerEnter {}", info->pointerInside));
       },
     mWindow);

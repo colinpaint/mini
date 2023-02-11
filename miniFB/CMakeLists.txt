@@ -1,6 +1,6 @@
 project (miniFB)
 
-set (files miniFB.h miniFBenums.h sInfo.h miniFB.cpp
+set (files miniFB.h miniFBenums.h miniFB.cpp
            miniFBinternal.h miniFBinternal.cpp
            miniFBgl.h miniFBgl.cpp)
 

@@ -1,6 +1,5 @@
 #pragma once
 #include "miniFB.h"
-#include "sInfo.h"
 
 //{{{
 struct sMiniFBtimer {
@@ -11,7 +10,7 @@ struct sMiniFBtimer {
 //}}}
 
 extern short int gKeycodes[512];
-void keyDefault (sOpaqueInfo* window);
+void keyDefault (sInfo* window);
 
 void calcDstFactor (sInfo* info, uint32_t width, uint32_t height);
 void resizeDst (sInfo* info, uint32_t width, uint32_t height);

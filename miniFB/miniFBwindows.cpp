@@ -3,10 +3,7 @@
 #include <cstdint>
 
 #include "miniFB.h"
-
 #include "miniFBinternal.h"
-#include "sInfo.h"
-
 #include "sInfoWindows.h"
 #include <windowsx.h>
 
@@ -554,7 +551,7 @@ namespace {
   LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
     sInfo* info = (sInfo*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
-    sInfoWindows* infoWindows = info ? (sInfoWindows*)info->specificInfo : nullptr;
+    sInfoWindows* infoWindows = info ? (sInfoWindows*)info->platformInfo : nullptr;
 
     switch (message) {
       //{{{
@@ -581,7 +578,7 @@ namespace {
             info->windowScaledWidth  = (uint32_t)(info->window_width  / scale_x);
             info->windowScaledHeight = (uint32_t)(info->window_height / scale_y);
             if (info->resizeFunc)
-              info->resizeFunc ((sOpaqueInfo*)info);
+              info->resizeFunc (info);
             }
           }
 
@@ -594,7 +591,7 @@ namespace {
           bool destroy = false;
 
           // Obtain a confirmation of close
-          if (!info->closeFunc || info->closeFunc ((sOpaqueInfo*)info))
+          if (!info->closeFunc || info->closeFunc (info))
             destroy = true;
 
           if (destroy) {
@@ -619,7 +616,7 @@ namespace {
         if (info) {
           info->isActive = true;
           if (info->activeFunc)
-            info->activeFunc ((sOpaqueInfo*)info);
+            info->activeFunc (info);
           }
 
         break;
@@ -629,7 +626,7 @@ namespace {
         if (info) {
           info->isActive = false;
           if (info->activeFunc)
-            info->activeFunc ((sOpaqueInfo*)info);
+            info->activeFunc (info);
           }
 
         break;
@@ -651,7 +648,7 @@ namespace {
           info->keyCode = keyCode;
           info->keyStatus[keyCode] = (uint8_t)info->isPressed;
           if (info->keyFunc)
-            info->keyFunc ((sOpaqueInfo*)info);
+            info->keyFunc (info);
           }
 
         break;
@@ -680,7 +677,7 @@ namespace {
 
             highSurrogate = 0;
             if (info->charFunc)
-              info->charFunc ((sOpaqueInfo*)info);
+              info->charFunc (info);
             }
           }
         }
@@ -729,7 +726,7 @@ namespace {
       case WM_POINTERENTER:
         info->pointerInside = true;
         if (info->enterFunc)
-          info->enterFunc ((sOpaqueInfo*)info);
+          info->enterFunc (info);
 
         break;
       //}}}
@@ -737,7 +734,7 @@ namespace {
       case WM_POINTERLEAVE:
         info->pointerInside = false;
         if (info->enterFunc)
-          info->enterFunc ((sOpaqueInfo*)info);
+          info->enterFunc (info);
 
         break;
       //}}}
@@ -759,7 +756,7 @@ namespace {
             info->modifierKeys = translateMod();
             info->isDown = 1;
             if (info->buttonFunc)
-              info->buttonFunc ((sOpaqueInfo*)info);
+              info->buttonFunc (info);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerDown - no info"));
@@ -785,7 +782,7 @@ namespace {
             info->pointerButtonStatus[MOUSE_BTN_1] = 0;
             info->isDown = 0;
             if (info->buttonFunc)
-              info->buttonFunc ((sOpaqueInfo*)info);
+              info->buttonFunc (info);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerUp - no info"));
@@ -882,7 +879,7 @@ namespace {
               info->pointerPressure = info->pointerButtonStatus[MOUSE_BTN_1] * 1024;
               info->pointerTimestamp = 0;
               if (info->moveFunc)
-                info->moveFunc ((sOpaqueInfo*)info);
+                info->moveFunc (info);
               }
             else if (pointerInfo.pointerType == PT_PEN) {
               POINTER_PEN_INFO pointerPenInfos[10];
@@ -898,7 +895,7 @@ namespace {
                   info->pointerTiltX = 0;
                   info->pointerTiltY = 0;
                   if (info->moveFunc)
-                    info->moveFunc ((sOpaqueInfo*)info);
+                    info->moveFunc (info);
                   }
                 }
               }
@@ -919,7 +916,7 @@ namespace {
           info->pointerWheelX = 0;
           info->pointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
           if (info->wheelFunc)
-            info->wheelFunc ((sOpaqueInfo*)info);
+            info->wheelFunc (info);
           }
         else
           cLog::log (LOGERROR, fmt::format ("pointerWheel - no info"));
@@ -974,7 +971,7 @@ namespace {
     if (!info)
       return;
 
-    sInfoWindows* infoWindows = (sInfoWindows*)info->specificInfo;
+    sInfoWindows* infoWindows = (sInfoWindows*)info->platformInfo;
 
     destroyGLcontext (info);
 
@@ -1001,7 +998,7 @@ namespace {
 
 // interface
 //{{{
-sOpaqueInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   RECT rect = { 0 };
   int x = 0;
@@ -1024,7 +1021,7 @@ sOpaqueInfo* openEx (const char* title, unsigned width, unsigned height, unsigne
     }
     //}}}
 
-  info->specificInfo = infoWindows;
+  info->platformInfo = infoWindows;
   info->bufferWidth  = width;
   info->bufferHeight = height;
   info->bufferStride = width * 4;
@@ -1128,7 +1125,7 @@ sOpaqueInfo* openEx (const char* title, unsigned width, unsigned height, unsigne
 
   createGLcontext (info);
   info->timer = timerCreate();
-  setKeyCallback ((sOpaqueInfo*)info, keyDefault);
+  setKeyCallback (info, keyDefault);
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
@@ -1142,16 +1139,15 @@ sOpaqueInfo* openEx (const char* title, unsigned width, unsigned height, unsigne
   EnableMouseInPointer (true);
 
   info->isInitialized = true;
-  return (sOpaqueInfo*)info;
+  return info;
   }
 //}}}
 //{{{
-eUpdateState updateEx (sOpaqueInfo* opaqueInfo, void* buffer, unsigned width, unsigned height) {
+eUpdateState updateEx (sInfo* info, void* buffer, unsigned width, unsigned height) {
 
-  if (!opaqueInfo)
+  if (!info)
     return STATE_INVALID_WINDOW;
 
-  sInfo* info = (sInfo*)opaqueInfo;
   if (info->closed) {
     freeResources (info);
     return STATE_EXIT;
@@ -1170,19 +1166,18 @@ eUpdateState updateEx (sOpaqueInfo* opaqueInfo, void* buffer, unsigned width, un
   }
 //}}}
 //{{{
-eUpdateState updateEvents (sOpaqueInfo* opaqueInfo) {
+eUpdateState updateEvents (sInfo* info) {
 
-  if (!opaqueInfo)
+  if (!info)
     return STATE_INVALID_WINDOW;
 
-  sInfo* info = (sInfo*)opaqueInfo;
   if (info->closed) {
     freeResources (info);
     return STATE_EXIT;
     }
 
   MSG msg;
-  sInfoWindows* infoWindows = (sInfoWindows*)info->specificInfo;
+  sInfoWindows* infoWindows = (sInfoWindows*)info->platformInfo;
   while (!info->closed && PeekMessage (&msg, infoWindows->window, 0, 0, PM_REMOVE)) {
     TranslateMessage (&msg);
     DispatchMessage (&msg);
@@ -1193,13 +1188,12 @@ eUpdateState updateEvents (sOpaqueInfo* opaqueInfo) {
 //}}}
 
 //{{{
-void getMonitorScale (sOpaqueInfo* opaqueInfo, float* scale_x, float* scale_y) {
+void getMonitorScale (sInfo* info, float* scale_x, float* scale_y) {
 
   HWND hWnd = 0x0;
 
-  if (opaqueInfo) {
-    sInfo* info = (sInfo*)opaqueInfo;
-    sInfoWindows* infoWindows = (sInfoWindows*)info->specificInfo;
+  if (info) {
+    sInfoWindows* infoWindows = (sInfoWindows*)info->platformInfo;
     hWnd = infoWindows->window;
     }
 
@@ -1207,9 +1201,8 @@ void getMonitorScale (sOpaqueInfo* opaqueInfo, float* scale_x, float* scale_y) {
   }
 //}}}
 //{{{
-bool setViewport (sOpaqueInfo* opaqueInfo, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
+bool setViewport (sInfo* info, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
 
-  sInfo* info = (sInfo*)opaqueInfo;
   sInfoWindows* infoWindows = 0x0;
 
   if (!info)
@@ -1221,7 +1214,7 @@ bool setViewport (sOpaqueInfo* opaqueInfo, unsigned offset_x, unsigned offset_y,
   if (offset_y + height > info->window_height)
     return false;
 
-  infoWindows = (sInfoWindows*)info->specificInfo;
+  infoWindows = (sInfoWindows*)info->platformInfo;
 
   float scale_x, scale_y;
   getWindowsMonitorScale (infoWindows->window, &scale_x, &scale_y);
@@ -1239,12 +1232,11 @@ bool setViewport (sOpaqueInfo* opaqueInfo, unsigned offset_x, unsigned offset_y,
 //}}}
 
 //{{{
-bool waitSync (sOpaqueInfo* opaqueInfo) {
+bool waitSync (sInfo* info) {
 
-  if (!opaqueInfo)
+  if (!info)
     return false;
 
-  sInfo* info = (sInfo*)opaqueInfo;
   if (info->closed) {
     //{{{  return false
     freeResources (info);
@@ -1255,7 +1247,7 @@ bool waitSync (sOpaqueInfo* opaqueInfo) {
   if (gUseHardwareSync)
     return true;
 
-  sInfoWindows* infoWindows = (sInfoWindows*)info->specificInfo;
+  sInfoWindows* infoWindows = (sInfoWindows*)info->platformInfo;
 
   double current;
   while (true) {
