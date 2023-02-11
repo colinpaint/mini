@@ -47,15 +47,17 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   // state callbacks
   //{{{
   setActiveCallback ([&](sOpaqueInfo* opaqueInfo) {
-      cLog::log (LOGINFO, fmt::format ("active {}", ((sInfo*)(opaqueInfo))->isActive));
+      sInfo* info = (sInfo*)opaqueInfo;
+      cLog::log (LOGINFO, fmt::format ("active {}", info->isActive));
       },
     mWindow);
   //}}}
   //{{{
   setResizeCallback ([&](struct sOpaqueInfo* opaqueInfo) {
+      sInfo* info = (sInfo*)opaqueInfo;
+      int width = info->windowScaledWidth;
+      int height = info->windowScaledHeight;
 
-      int width = ((sInfo*)(opaqueInfo))->windowScaledWidth;
-      int height = ((sInfo*)(opaqueInfo))->windowScaledHeight;
       cLog::log (LOGINFO, fmt::format ("resize {} {}", width, height));
       uint32_t x = 0;
       if (width > getWidth()) {
@@ -73,7 +75,8 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   //}}}
   //{{{
   setCloseCallback ([&](sOpaqueInfo* opaqueInfo) {
-      (void)opaqueInfo;
+      sInfo* info = (sInfo*)opaqueInfo;
+      (void)info;
       cLog::log (LOGINFO, fmt::format ("close"));
       return true; // false for don't close
       },
@@ -83,43 +86,35 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   // keyboard callbacks
   //{{{
   setKeyCallback ([&](sOpaqueInfo* opaqueInfo) {
-
-      if (((sInfo*)(opaqueInfo))->keyCode == KB_KEY_ESCAPE)
+      sInfo* info = (sInfo*)opaqueInfo;
+      if (info->keyCode == KB_KEY_ESCAPE)
         close (opaqueInfo);
 
-      if (((sInfo*)(opaqueInfo))->isPressed)
-        if (!keyDown (((sInfo*)(opaqueInfo))->keyCode))
+      if (info->isPressed)
+        if (!keyDown (info->keyCode))
           cLog::log (LOGINFO, fmt::format ("keyboard key:{} pressed:{} mod:{}",
-                                           getKeyName (((sInfo*)(opaqueInfo))->keyCode),
-                                           ((sInfo*)(opaqueInfo))->isPressed,
-                                           (int)((sInfo*)(opaqueInfo))->modifierKeys));
+                                           getKeyName (info->keyCode), info->isPressed, (int)info->modifierKeys));
       },
 
     mWindow);
   //}}}
   //{{{
-  setCharCallback ([&](sOpaqueInfo* opaqueInfo, uint32_t charCode) {
-      (void)opaqueInfo;
-      cLog::log (LOGINFO, fmt::format ("char code:{}", charCode));
+  setCharCallback ([&](sOpaqueInfo* opaqueInfo) {
+      sInfo* info = (sInfo*)opaqueInfo;
+      cLog::log (LOGINFO, fmt::format ("char code:{}", info->codepoint));
       },
     mWindow);
   //}}}
 
   // mouse callbacks
   //{{{
-  setPointerButtonCallback ([&](sOpaqueInfo* opaqueInfo, ePointerButton button, eKeyModifier mod, bool isPressed) {
-
-      (void)mod;
-      //cLog::log (LOGINFO, fmt::format ("mouseButton {} button:{} pressed:{} at:{} {} mod:{}",
-      //                                 info ? (const char*)mfb_get_user_data(info) : "",
-      //                                 (int)button, isPressed,
-      //                                 mfb_get_mouse_x (info), mfb_get_mouse_y (info),
-      //                                 (int)mod));
-      if (isPressed) {
+  setButtonCallback ([&](sOpaqueInfo* opaqueInfo) {
+      sInfo* info = (sInfo*)opaqueInfo;
+      if (info->isDown) {
         mMousePress = true;
         mMouseMoved = false;
         mMousePressPos = cPoint ((float)getPointerX (opaqueInfo), (float)getPointerY (opaqueInfo));
-        mMousePressRight = button != 0;
+        mMousePressRight = info->pointerButtonStatus[MOUSE_BTN_3];
         mMouseLastPos = mMousePressPos;
         mMousePressUsed = mouseDown (mMousePressRight, mMousePressPos);
         if (mMousePressUsed)
@@ -138,15 +133,14 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setPointerMoveCallback ([&](sOpaqueInfo* opaqueInfo, int x, int y, int pressure, int timestamp) {
-      (void)opaqueInfo;
-
+  setMoveCallback ([&](sOpaqueInfo* opaqueInfo) { //, int x, int y, int pressure, int timestamp) {
       //cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}", x, y, pressure, timestamp));
-      mMousePos.x = (float)x;
-      mMousePos.y = (float)y;
+      sInfo* info = (sInfo*)opaqueInfo;
+      mMousePos.x = (float)info->pointerPosX;
+      mMousePos.y = (float)info->pointerPosY;
       if (mMousePress) {
         mMouseMoved = true;
-        if (mouseMove (mMousePressRight, mMousePos, mMousePos - mMouseLastPos, pressure, timestamp))
+        if (mouseMove (mMousePressRight, mMousePos, mMousePos - mMouseLastPos, info->pointerPressure, info->pointerTimestamp))
           changed();
         mMouseLastPos = mMousePos;
         }
@@ -158,17 +152,11 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setPointerWheelCallback ([&](sOpaqueInfo* opaqueInfo, eKeyModifier mod, float deltaX, float deltaY) {
-      // lambda
-      (void)opaqueInfo;
-      (void)mod;
-      (void)deltaX;
-
-      //cLog::log (LOGINFO, fmt::format ("mouseWheel {} x:{} y:{} mod:", info ? (const char*)mfb_get_user_data (info) : "",
-      //                                 deltaX, deltaY, (int)mod));
-      mScale *= (deltaY > 0.f) ? 1.05f : 1.f / 1.05f;
-      cLog::log (LOGINFO, fmt::format ("mouseWheel problem - deltaY:{} int(deltaY):{}", deltaY, int(deltaY)));
-      if (mouseWheel ((int)deltaY, mMousePos))
+  setWheelCallback ([&](sOpaqueInfo* opaqueInfo) {
+      sInfo* info = (sInfo*)opaqueInfo;
+      mScale *= (info->pointerWheelY > 0.f) ? 1.05f : 1.f / 1.05f;
+      cLog::log (LOGINFO, fmt::format ("mouseWheel problem - deltaY:{} int(deltaY):{}", info->pointerWheelY, int(info->pointerWheelY)));
+      if (mouseWheel ((int)info->pointerWheelY, mMousePos))
         changed();
 
       cursorChanged();
@@ -176,10 +164,9 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setPointerEnterCallback ([&](sOpaqueInfo* opaqueInfo, bool enter) {
-      // lambda
-      (void)opaqueInfo;
-      cLog::log (LOGINFO, fmt::format ("pointerEnter {}", enter));
+  setEnterCallback ([&](sOpaqueInfo* opaqueInfo) {
+      sInfo* info = (sInfo*)opaqueInfo;
+      cLog::log (LOGINFO, fmt::format ("pointerEnter {}", info->pointerInside));
       },
     mWindow);
   //}}}

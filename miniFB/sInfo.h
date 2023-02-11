@@ -5,15 +5,15 @@ struct sInfo {
   void* specificInfo;
   void* userData;
 
-  infoFuncType         activeFunc;
-  infoFuncType         resizeFunc;
-  closeFuncType          closeFunc;
-  keyFuncType            keyFunc;
-  charFuncType           charFunc;
-  pointerButtonFuncType  pointerButtonFunc;
-  pointerMoveFuncType    pointerMoveFunc;
-  pointerWheelFuncType   pointerWheelFunc;
-  pointerEnterFuncType   pointerEnterFunc;
+  infoFuncType  activeFunc;
+  infoFuncType  resizeFunc;
+  closeFuncType closeFunc;
+  infoFuncType  keyFunc;
+  infoFuncType  charFunc;
+  infoFuncType  buttonFunc;
+  infoFuncType  moveFunc;
+  infoFuncType  wheelFunc;
+  infoFuncType  enterFunc;
 
   uint32_t window_width;
   uint32_t window_height;

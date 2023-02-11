@@ -680,11 +680,11 @@ namespace {
               info->codepoint = (WCHAR) wParam;
 
             highSurrogate = 0;
-            kCall (charFunc, info->codepoint);
+            if (info->charFunc)
+              info->charFunc ((sOpaqueInfo*)info);
             }
           }
         }
-
         break;
       //}}}
 
@@ -728,19 +728,17 @@ namespace {
 
       //{{{
       case WM_POINTERENTER:
-        cLog::log (LOGINFO, fmt::format ("pointerEnter {:x} {:x}", wParam, lParam));
         info->pointerInside = true;
-        kCall (pointerEnterFunc, info->pointerInside);
+        if (info->enterFunc)
+          info->enterFunc ((sOpaqueInfo*)info);
+
         break;
       //}}}
       //{{{
       case WM_POINTERLEAVE:
-        //cLog::log (LOGINFO, fmt::format ("pointerleave {}{}pos:{},{}",
-        //                                 IS_POINTER_INRANGE_WPARAM(wParam) ? "inRange " : "",
-        //                                 IS_POINTER_INCONTACT_WPARAM(wParam) ? "inContact " : "",
-        //                                 GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) ));
         info->pointerInside = false;
-        kCall (pointerEnterFunc, info->pointerInside);
+        if (info->enterFunc)
+          info->enterFunc ((sOpaqueInfo*)info);
 
         break;
       //}}}
@@ -758,10 +756,11 @@ namespace {
             else // unused PT_TOUCH, PT_TOUCHPAD
               cLog::log (LOGERROR, fmt::format ("pointerDown - unknown type:{}", pointerInfo.pointerType));
 
-            info->modifierKeys = translateMod();
             info->pointerButtonStatus[MOUSE_BTN_1] = 1;
+            info->modifierKeys = translateMod();
             info->isDown = 1;
-            kCall (pointerButtonFunc, MOUSE_BTN_1, (eKeyModifier)info->modifierKeys, info->isDown);
+            if (info->buttonFunc)
+              info->buttonFunc ((sOpaqueInfo*)info);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerDown - no info"));
@@ -786,7 +785,8 @@ namespace {
             info->modifierKeys = translateMod();
             info->pointerButtonStatus[MOUSE_BTN_1] = 0;
             info->isDown = 0;
-            kCall (pointerButtonFunc, MOUSE_BTN_1, (eKeyModifier)info->modifierKeys, info->isDown);
+            if (info->buttonFunc)
+              info->buttonFunc ((sOpaqueInfo*)info);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerUp - no info"));
@@ -882,7 +882,8 @@ namespace {
               info->pointerPosY = clientPos.y;
               info->pointerPressure = info->pointerButtonStatus[MOUSE_BTN_1] * 1024;
               info->pointerTimestamp = 0;
-              kCall (pointerMoveFunc, info->pointerPosX, info->pointerPosY, info->pointerPressure, info->pointerTimestamp);
+              if (info->moveFunc)
+                info->moveFunc ((sOpaqueInfo*)info);
               }
             else if (pointerInfo.pointerType == PT_PEN) {
               POINTER_PEN_INFO pointerPenInfos[10];
@@ -897,12 +898,8 @@ namespace {
                   info->pointerPressure = pointerPenInfos[i-1].pressure;
                   info->pointerTiltX = 0;
                   info->pointerTiltY = 0;
-
-                  kCall (pointerMoveFunc, info->pointerPosX, info->pointerPosY, info->pointerPressure, info->pointerTimestamp);
-
-                  //cLog::log (LOGINFO, fmt::format ("pointerUpdate pen {} {},{} press:{} time:{}",
-                  //                                 i, info->mousePosX, info->mousePosY,
-                  //                                 info->mousePressure, info->time));
+                  if (info->moveFunc)
+                    info->moveFunc ((sOpaqueInfo*)info);
                   }
                 }
               }
@@ -922,7 +919,8 @@ namespace {
           cLog::log (LOGINFO, fmt::format ("pointerWheel"));
           info->pointerWheelX = 0;
           info->pointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-          kCall (pointerWheelFunc, (eKeyModifier)translateMod(), info->pointerWheelX, info->pointerWheelY);
+          if (info->wheelFunc)
+            info->wheelFunc ((sOpaqueInfo*)info);
           }
         else
           cLog::log (LOGERROR, fmt::format ("pointerWheel - no info"));

@@ -61,111 +61,89 @@ double timerGetResolution();
 typedef void(*infoFuncType)(sOpaqueInfo* opaqueInfo);
 typedef bool(*closeFuncType)(sOpaqueInfo* opaqueInfo);
 
-typedef void(*keyFuncType)(sOpaqueInfo* opaqueInfo);
-typedef void(*charFuncType)(sOpaqueInfo* opaqueInfo, unsigned int code);
-
-typedef void(*pointerButtonFuncType)(sOpaqueInfo* opaqueInfo, ePointerButton button, eKeyModifier mod, bool isPressed);
-typedef void(*pointerMoveFuncType)(sOpaqueInfo* opaqueInfo, int x, int y, int pressure, int timestamp);
-typedef void(*pointerWheelFuncType)(sOpaqueInfo* opaqueInfo, eKeyModifier mod, float deltaX, float deltaY);
-typedef void(*pointerEnterFuncType)(sOpaqueInfo* opaqueInfo, bool enter);
-
 void setActiveCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback);
 void setResizeCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback);
 void setCloseCallback (sOpaqueInfo* opaqueInfo, closeFuncType callback);
-
 void setKeyCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback);
-void setCharCallback (sOpaqueInfo* opaqueInfo, charFuncType callback);
-
-void setPointerButtonCallback (sOpaqueInfo* opaqueInfo, pointerButtonFuncType callback);
-void setPointerMoveCallback (sOpaqueInfo* opaqueInfo, pointerMoveFuncType callback);
-void setPointerWheelCallback (sOpaqueInfo* opaqueInfo, pointerWheelFuncType callback);
-void setPointerEnterCallback (sOpaqueInfo* opaqueInfo, pointerEnterFuncType callback);
+void setCharCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback);
+void setButtonCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback);
+void setMoveCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback);
+void setWheelCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback);
+void setEnterCallback (sOpaqueInfo* opaqueInfo, infoFuncType callback);
 
 // lambda callbacks
 void setActiveCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
 void setResizeCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
-void setCloseCallback (std::function <bool (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
-
-void setKeyCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
-void setCharCallback (std::function <void (sOpaqueInfo*, unsigned int)> func, sOpaqueInfo* opaqueInfo);
-
-void setPointerButtonCallback (std::function <void (sOpaqueInfo*, ePointerButton, eKeyModifier, bool)> func, sOpaqueInfo* opaqueInfo);
-void setPointerMoveCallback (std::function <void (sOpaqueInfo*, int, int, int, int)>func, sOpaqueInfo* opaqueInfo);
-void setPointerWheelCallback (std::function <void (sOpaqueInfo*, eKeyModifier, float, float)> func, sOpaqueInfo* opaqueInfo);
-void setPointerEnterCallback (std::function <void (sOpaqueInfo*, bool)> func, sOpaqueInfo* opaqueInfo);
+void setCloseCallback  (std::function <bool (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
+void setKeyCallback  (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
+void setCharCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
+void setButtonCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
+void setMoveCallback   (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
+void setWheelCallback  (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
+void setEnterCallback  (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
 
 // templates
 template <class T> void setActiveCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
 template <class T> void setResizeCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
 template <class T> void setCloseCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
-
 template <class T> void setKeyCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
-template <class T> void setCharCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*, unsigned int));
-
-template <class T> void setPointerButtonCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*, ePointerButton, eKeyModifier, bool));
-template <class T> void setPointerMoveCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*, int, int, int, int));
-template <class T> void setPointerWheelCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*, eKeyModifier, float, float));
-template <class T> void setPointerEnterCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*, bool));
+template <class T> void setCharCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*t));
+template <class T> void setButtonCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
+template <class T> void setMoveCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
+template <class T> void setWheelCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*t));
+template <class T> void setEnterCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*l));
 
 //{{{
 class cStub {
-  cStub() : m_opaqueInfo(nullptr) {}
+  cStub() {}
 
   // friends
   friend void setActiveCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
   friend void setResizeCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
   friend void setCloseCallback (std::function <bool (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
-
   friend void setKeyCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
-  friend void setCharCallback (std::function <void (sOpaqueInfo*, unsigned int)> func, sOpaqueInfo* opaqueInfo);
-
-  friend void setPointerButtonCallback (std::function <void (sOpaqueInfo*, ePointerButton, eKeyModifier, bool)> func, sOpaqueInfo* opaqueInfo);
-  friend void setPointerMoveCallback (std::function <void (sOpaqueInfo*, int, int, int, int)> func, sOpaqueInfo* opaqueInfo);
-  friend void setPointerWheelCallback (std::function <void (sOpaqueInfo*, eKeyModifier, float, float)> func, sOpaqueInfo* opaqueInfo);
-  friend void setPointerEnterCallback (std::function <void (sOpaqueInfo*, bool)> func, sOpaqueInfo* opaqueInfo);
+  friend void setCharCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
+  friend void setButtonCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
+  friend void setMoveCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
+  friend void setWheelCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
+  friend void setEnterCallback (std::function <void (sOpaqueInfo*)> func, sOpaqueInfo* opaqueInfo);
 
   // templates
   template <class T> friend void setActiveCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
   template <class T> friend void setResizeCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
   template <class T> friend void setCloseCallback (sOpaqueInfo* opaqueInfo, T* obj, bool (T::*method)(sOpaqueInfo* ));
-
   template <class T> friend void setKeyCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
-  template <class T> friend void setCharCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*, unsigned int));
-
-  template <class T> friend void setPointerButtonCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*, ePointerButton, eKeyModifier, bool));
-  template <class T> friend void setPointerMoveCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*, int, int, int, int));
-  template <class T> friend void setPointerWheelCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*, eKeyModifier, float, float));
-  template <class T> friend void setPointerEnterCallback (sOpaqueInfo* wndow, T* obj, void (T::*method)(sOpaqueInfo*, bool));
+  template <class T> friend void setCharCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
+  template <class T> friend void setButtonCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
+  template <class T> friend void setMoveCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
+  template <class T> friend void setWheelCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo*));
+  template <class T> friend void setEnterCallback (sOpaqueInfo* wndow, T* obj, void (T::*method)(sOpaqueInfo*));
 
   // statics
-  static cStub* GetInstance (sOpaqueInfo* opaqueInfo);
+  static cStub* getInstance (sOpaqueInfo* opaqueInfo);
 
   static void activeStub (sOpaqueInfo* opaqueInfo);
   static void resizeStub (sOpaqueInfo* opaqueInfo);
   static bool closeStub (sOpaqueInfo* opaqueInfo);
-
   static void keyStub (sOpaqueInfo* opaqueInfo);
-  static void charStub (sOpaqueInfo* opaqueInfo, unsigned int);
-
-  static void pointerButtonStub (sOpaqueInfo* opaqueInfo, ePointerButton button, eKeyModifier mod, bool isPressed);
-  static void pointerMoveStub (sOpaqueInfo* opaqueInfo, int x, int y, int pressure, int timestamp);
-  static void pointerWheelStub (sOpaqueInfo* opaqueInfo, eKeyModifier mod, float deltaX, float deltaY);
-  static void pointerEnterStub (sOpaqueInfo* opaqueInfo, bool);
+  static void charStub (sOpaqueInfo* opaqueInfo);
+  static void buttonStub (sOpaqueInfo* opaqueInfo);
+  static void moveStub (sOpaqueInfo* opaqueInfo);
+  static void wheelStub (sOpaqueInfo* opaqueInfo);
+  static void enterStub (sOpaqueInfo* opaqueInfo);
 
   // vars
-  sOpaqueInfo* m_opaqueInfo;
+  sOpaqueInfo* m_opaqueInfo = nullptr;
 
-  std::function <void (sOpaqueInfo* opaqueInfo)> m_active;
-  std::function <void (sOpaqueInfo* opaqueInfo)> m_resize;
-  std::function <bool (sOpaqueInfo* opaqueInfo)> m_close;
-
-  std::function <void (sOpaqueInfo* opaqueInfo)> m_key;
-  std::function <void (sOpaqueInfo* opaqueInfo, unsigned int)> m_char;
-
-  std::function <void (sOpaqueInfo* opaqueInfo, ePointerButton, eKeyModifier, bool)> m_pointer_button;
-  std::function <void (sOpaqueInfo* opaqueInfo, int, int, int, int)> m_pointer_move;
-  std::function <void (sOpaqueInfo* opaqueInfo, eKeyModifier, float, float)> m_pointer_wheel;
-  std::function <void (sOpaqueInfo* opaqueInfo, bool)> mPointerEnter;
+  std::function <void (sOpaqueInfo* opaqueInfo)> mActiveFunc;
+  std::function <void (sOpaqueInfo* opaqueInfo)> mResizeFunc;
+  std::function <bool (sOpaqueInfo* opaqueInfo)> mCloseFunc;
+  std::function <void (sOpaqueInfo* opaqueInfo)> mKeyFunc;
+  std::function <void (sOpaqueInfo* opaqueInfo)> mCharFunc;
+  std::function <void (sOpaqueInfo* opaqueInfo)> mButtonFunc;
+  std::function <void (sOpaqueInfo* opaqueInfo)> mMoveFunc;
+  std::function <void (sOpaqueInfo* opaqueInfo)> mWheelFunc;
+  std::function <void (sOpaqueInfo* opaqueInfo)> mEnterFunc;
   };
 //}}}
 
@@ -174,9 +152,9 @@ template <class T> inline void setActiveCallback (sOpaqueInfo* opaqueInfo, T* ob
   using namespace std::placeholders;
 
   cStub* stub = cStub::GetInstance (opaqueInfo);
-  stub->m_active = std::bind (method, obj, _1);
+  stub->mActiveFunc = std::bind (method, obj, _1);
 
-  setActiveCallback (opaqueInfo, cStub::infoStub);
+  setActiveCallback (opaqueInfo, cStub::infoStu);
   }
 //}}}
 //{{{
@@ -184,86 +162,78 @@ template <class T> inline void setResizeCallback (sOpaqueInfo* opaqueInfo, T* ob
   using namespace std::placeholders;
 
   cStub* stub = cStub::GetInstance (opaqueInfo);
-  stub->m_resize = std::bind (method, obj, _1);
+  stub->mResizeFunc = std::bind (method, obj, _1);
 
   setResizeCallback (opaqueInfo, cStub::infoStub);
   }
 //}}}
 //{{{
-template <class T> inline void setCloseCallback (sOpaqueInfo* opaqueInfo, T* obj,
-                                                 bool (T::*method)(sOpaqueInfo* opaqueInfo)) {
+template <class T> inline void setCloseCallback (sOpaqueInfo* opaqueInfo, T* obj, bool (T::*method)(sOpaqueInfo* opaqueInfo)) {
   using namespace std::placeholders;
 
   cStub* stub = cStub::GetInstance (opaqueInfo);
-  stub->m_close = std::bind (method, obj, _1);
+  stub->mCloseFunc = std::bind (method, obj, _1);
 
   setCloseCallback (opaqueInfo, cStub::closeStub);
   }
 //}}}
-
 //{{{
 template <class T> inline void setKeyCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo* opaqueInfo)) {
   using namespace std::placeholders;
 
   cStub* stub = cStub::GetInstance(opaqueInfo);
-  stub->m_key = std::bind(method, obj, _1);
+  stub->mKeyFunc = std::bind(method, obj, _1);
 
   setKeyCallback (opaqueInfo, cStub::keyStub);
   }
 //}}}
 //{{{
-template <class T> inline void setCharCallback (sOpaqueInfo* opaqueInfo, T* obj,
-                                                void (T::*method)(sOpaqueInfo* opaqueInfo, unsigned int)) {
+template <class T> inline void setCharCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo* opaqueInfo)) {
   using namespace std::placeholders;
 
   cStub* stub = cStub::GetInstance (opaqueInfo);
-  stub->m_char = std::bind (method, obj, _1, _2);
+  stub->mCharFunc = std::bind (method, obj, _1);
 
   setCharCallback (opaqueInfo, cStub::charStub);
   }
 //}}}
-
 //{{{
-template <class T> inline void setPointerButtonCallback (sOpaqueInfo* opaqueInfo, T* obj,
-                                                       void (T::*method)(sOpaqueInfo* opaqueInfo, ePointerButton, eKeyModifier, bool)) {
+template <class T> inline void setButtonCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo* opaqueInfo)) {
   using namespace std::placeholders;
 
   cStub* stub = cStub::GetInstance (opaqueInfo);
-  stub->m_pointer_button = std::bind (method, obj, _1, _2, _3, _4);
+  stub->mButtonFunc = std::bind (method, obj, _1);
 
-  setPointerButtonCallback (opaqueInfo, cStub::pointerButtonStub);
+  setButtonCallback (opaqueInfo, cStub::buttonStub);
   }
 //}}}
 //{{{
-template <class T> inline void setPointerMoveCallback (sOpaqueInfo* opaqueInfo, T* obj,
-                                                     void (T::*method)(sOpaqueInfo* opaqueInfo, int, int, int, int)) {
+template <class T> inline void setMoveCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo* opaqueInfo)) {
   using namespace std::placeholders;
 
   cStub* stub = cStub::GetInstance (opaqueInfo);
-  stub->m_pointer_move = std::bind (method, obj, _1, _2, _3, _4, _5);
+  stub->mMoveFunc = std::bind (method, obj, _1);
 
-  setPointerMoveCallback (opaqueInfo, cStub::pointerMoveStub);
+  setMoveCallback (opaqueInfo, cStub::moveStub);
   }
 //}}}
 //{{{
-template <class T> inline void setPointerWheelCallback (sOpaqueInfo* opaqueInfo, T* obj,
-                                                      void (T::*method)(sOpaqueInfo* opaqueInfo, eKeyModifier, float, float)) {
+template <class T> inline void setWheelCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo* opaqueInfo)) {
   using namespace std::placeholders;
 
   cStub* stub = cStub::GetInstance (opaqueInfo);
-  stub->m_pointer_wheel = std::bind (method, obj, _1, _2, _3, _4);
+  stub->mWheelFunc = std::bind (method, obj, _1);
 
-  setPointerWheelCallback (opaqueInfo, cStub::pointerWheelStub);
+  setWheelCallback (opaqueInfo, cStub::wheelStub);
   }
 //}}}
 //{{{
-template <class T> inline void setPointerEnterCallback (sOpaqueInfo* opaqueInfo, T* obj,
-                                                       void (T::*method)(sOpaqueInfo* opaqueInfo, bool)) {
+template <class T> inline void setEnterCallback (sOpaqueInfo* opaqueInfo, T* obj, void (T::*method)(sOpaqueInfo* opaqueInfo)) {
   using namespace std::placeholders;
 
   cStub* stub = cStub::GetInstance (opaqueInfo);
-  stub->mPointerEnter = std::bind (method, obj, _1, _2);
+  stub->mEnterFunc = std::bind (method, obj, _1);
 
-  setPointerEnterCallback (opaqueInfo, cStub::pointerEnterStub);
+  setEnterCallback (opaqueInfo, cStub::enterStub);
   }
 //}}}

@@ -2,10 +2,6 @@
 #include "miniFB.h"
 #include "sInfo.h"
 
-#define kCall(func, ...)  \
-  if (info && info->func) \
-    info->func ((sOpaqueInfo*)info, __VA_ARGS__);
-
 //{{{
 struct sMiniFBtimer {
   int64_t start_time;
