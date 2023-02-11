@@ -4,7 +4,6 @@
 
 #include "miniFB.h"
 #include "miniFBinternal.h"
-#include "sInfoWindows.h"
 #include <windowsx.h>
 
 #include "miniFBgl.h"
@@ -551,8 +550,6 @@ namespace {
   LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
     sInfo* info = (sInfo*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
-    sInfoWindows* infoWindows = info ? (sInfoWindows*)info->platformInfo : nullptr;
-
     switch (message) {
       //{{{
       case WM_NCCREATE:
@@ -596,8 +593,8 @@ namespace {
 
           if (destroy) {
             info->closed = true;
-            if (infoWindows)
-              DestroyWindow (infoWindows->window);
+            if (info)
+              DestroyWindow (info->window);
             }
           }
 
@@ -971,17 +968,15 @@ namespace {
     if (!info)
       return;
 
-    sInfoWindows* infoWindows = (sInfoWindows*)info->platformInfo;
-
     destroyGLcontext (info);
 
-    if (infoWindows->window && infoWindows->hdc) {
-      ReleaseDC (infoWindows->window, infoWindows->hdc);
-      DestroyWindow (infoWindows->window);
+    if (info->window && info->hdc) {
+      ReleaseDC (info->window, info->hdc);
+      DestroyWindow (info->window);
       }
 
-    infoWindows->window = 0;
-    infoWindows->hdc = 0;
+    info->window = 0;
+    info->hdc = 0;
 
     timerDestroy (info->timer);
     info->timer = 0x0;
@@ -1013,15 +1008,6 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
     return 0x0;
   memset (info, 0, sizeof(sInfo));
 
-  sInfoWindows* infoWindows = (sInfoWindows*)calloc(1, sizeof(sInfoWindows));
-  if (infoWindows == 0x0) {
-    //{{{  error, return
-    free (info);
-    return 0x0;
-    }
-    //}}}
-
-  info->platformInfo = infoWindows;
   info->bufferWidth  = width;
   info->bufferHeight = height;
   info->bufferStride = width * 4;
@@ -1090,38 +1076,37 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
     }
     //}}}
 
-  infoWindows->wc.style         = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
-  infoWindows->wc.lpfnWndProc   = WndProc;
-  infoWindows->wc.hCursor       = LoadCursor(0, IDC_ARROW);
-  infoWindows->wc.lpszClassName = title;
-  RegisterClass (&infoWindows->wc);
+  info->wc.style         = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
+  info->wc.lpfnWndProc   = WndProc;
+  info->wc.hCursor       = LoadCursor(0, IDC_ARROW);
+  info->wc.lpszClassName = title;
+  RegisterClass (&info->wc);
 
   calcDstFactor (info, width, height);
 
   info->window_width  = rect.right;
   info->window_height = rect.bottom;
 
-  infoWindows->window = CreateWindowEx (0,
+  info->window = CreateWindowEx (0,
                                            title, title,
                                            s_window_style,
                                            x, y,
                                            info->window_width, info->window_height,
                                            0, 0, 0, 0);
-  if (!infoWindows->window) {
+  if (!info->window) {
     //{{{  error, return
     free (info);
-    free (infoWindows);
     return 0x0;
     }
     //}}}
 
-  SetWindowLongPtr (infoWindows->window, GWLP_USERDATA, (LONG_PTR) info);
+  SetWindowLongPtr (info->window, GWLP_USERDATA, (LONG_PTR) info);
 
   if (flags & WF_ALWAYS_ON_TOP)
-    SetWindowPos (infoWindows->window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-  ShowWindow (infoWindows->window, SW_NORMAL);
+    SetWindowPos (info->window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+  ShowWindow (info->window, SW_NORMAL);
 
-  infoWindows->hdc = GetDC (infoWindows->window);
+  info->hdc = GetDC (info->window);
 
   createGLcontext (info);
   info->timer = timerCreate();
@@ -1131,7 +1116,7 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
 
   #ifdef USE_WINTAB
     // enable winTab, mainly for WT_PROXIMITY, get WT_PACKET
-    if (!winTabLoad (infoWindows->window))
+    if (!winTabLoad (info->window))
       cLog::log (LOGERROR, fmt::format ("winTab load failed"));
   #endif
 
@@ -1177,8 +1162,7 @@ eUpdateState updateEvents (sInfo* info) {
     }
 
   MSG msg;
-  sInfoWindows* infoWindows = (sInfoWindows*)info->platformInfo;
-  while (!info->closed && PeekMessage (&msg, infoWindows->window, 0, 0, PM_REMOVE)) {
+  while (!info->closed && PeekMessage (&msg, info->window, 0, 0, PM_REMOVE)) {
     TranslateMessage (&msg);
     DispatchMessage (&msg);
     }
@@ -1192,18 +1176,14 @@ void getMonitorScale (sInfo* info, float* scale_x, float* scale_y) {
 
   HWND hWnd = 0x0;
 
-  if (info) {
-    sInfoWindows* infoWindows = (sInfoWindows*)info->platformInfo;
-    hWnd = infoWindows->window;
-    }
+  if (info)
+    hWnd = info->window;
 
   getWindowsMonitorScale (hWnd, scale_x, scale_y);
   }
 //}}}
 //{{{
 bool setViewport (sInfo* info, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
-
-  sInfoWindows* infoWindows = 0x0;
 
   if (!info)
     return false;
@@ -1214,10 +1194,8 @@ bool setViewport (sInfo* info, unsigned offset_x, unsigned offset_y, unsigned wi
   if (offset_y + height > info->window_height)
     return false;
 
-  infoWindows = (sInfoWindows*)info->platformInfo;
-
   float scale_x, scale_y;
-  getWindowsMonitorScale (infoWindows->window, &scale_x, &scale_y);
+  getWindowsMonitorScale (info->window, &scale_x, &scale_y);
 
   info->dst_offset_x = (uint32_t)(offset_x * scale_x);
   info->dst_offset_y = (uint32_t)(offset_y * scale_y);
@@ -1247,8 +1225,6 @@ bool waitSync (sInfo* info) {
   if (gUseHardwareSync)
     return true;
 
-  sInfoWindows* infoWindows = (sInfoWindows*)info->platformInfo;
-
   double current;
   while (true) {
     current = timerNow (info->timer);
@@ -1262,7 +1238,7 @@ bool waitSync (sInfo* info) {
       timeEndPeriod (1);
 
       MSG msg;
-      if (PeekMessage (&msg, infoWindows->window, 0, 0, PM_REMOVE)) {
+      if (PeekMessage (&msg, info->window, 0, 0, PM_REMOVE)) {
         TranslateMessage (&msg);
         DispatchMessage (&msg);
 

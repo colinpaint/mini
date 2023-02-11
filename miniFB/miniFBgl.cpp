@@ -4,10 +4,8 @@
 #include "miniFBinternal.h"
 
 #if defined(_WIN32) || defined(WIN32)
-  #include "sInfoWindows.h"
   #include <gl/gl.h>
 #else
-  #include "sInfoX11.h"
   #include <GL/gl.h>
   #include <GL/glx.h>
 #endif
@@ -76,7 +74,7 @@ namespace {
 
   #else
     //{{{
-    bool setup_pixel_format (sInfoX11* infoX11) {
+    bool setup_pixel_format (sInfo* info) {
 
       GLint glxAttribs[] = { GLX_RGBA,
                              GLX_DOUBLEBUFFER,
@@ -91,14 +89,14 @@ namespace {
                              GLX_SAMPLES,        0,
                              None };
 
-      XVisualInfo* visualInfo = glXChooseVisual (infoX11->display, infoX11->screen, glxAttribs);
+      XVisualInfo* visualInfo = glXChooseVisual (info->display, info->screen, glxAttribs);
       if (!visualInfo) {
         cLog::log (LOGERROR, "Could not create correct visual window");
-        XCloseDisplay (infoX11->display);
+        XCloseDisplay (info->display);
         return false;
         }
 
-      infoX11->context = glXCreateContext (infoX11->display, visualInfo, NULL, GL_TRUE);
+      info->context = glXCreateContext (info->display, visualInfo, NULL, GL_TRUE);
 
       return true;
       }
@@ -231,11 +229,9 @@ void resizeGL (sInfo* info) {
 
   if (info->isInitialized) {
     #if defined(_WIN32) || defined(WIN32)
-    sInfoWindows* info_ex = (sInfoWindows*) info->platformInfo;
-      wglMakeCurrent (info_ex->hdc, info_ex->hGLRC);
+      wglMakeCurrent (info->hdc, info->hGLRC);
     #else
-      sInfoX11* info_ex = (sInfoX11*) info->platformInfo;
-      glXMakeCurrent (info_ex->display, info_ex->window, info_ex->context);
+      glXMakeCurrent (info->display, info->window, info->context);
     #endif
 
     glViewport (0,0, info->window_width,info->window_height);
@@ -252,11 +248,9 @@ void resizeGL (sInfo* info) {
 void redrawGL (sInfo* info, const void* pixels) {
 
   #if defined(_WIN32) || defined(WIN32)
-  sInfoWindows* info_ex = (sInfoWindows*)info->platformInfo;
-    wglMakeCurrent (info_ex->hdc, info_ex->hGLRC);
+    wglMakeCurrent (info->hdc, info->hGLRC);
   #else
-    sInfoX11* info_ex = (sInfoX11*)info->platformInfo;
-    glXMakeCurrent (info_ex->display, info_ex->window, info_ex->context);
+    glXMakeCurrent (info->display, info->window, info->context);
   #endif
 
   GLenum format = RGBA;
@@ -294,9 +288,9 @@ void redrawGL (sInfo* info, const void* pixels) {
 
   // swap buffer
   #if defined(_WIN32) || defined(WIN32)
-    SwapBuffers (info_ex->hdc);
+    SwapBuffers (info->hdc);
   #else
-    glXSwapBuffers (info_ex->display, info_ex->window);
+    glXSwapBuffers (info->display, info->window);
   #endif
   }
 //}}}
@@ -305,12 +299,11 @@ void redrawGL (sInfo* info, const void* pixels) {
 bool createGLcontext (sInfo* info) {
 
   #if defined(_WIN32) || defined(WIN32)
-  sInfoWindows* info_win = (sInfoWindows*)info->platformInfo;
-    if (setup_pixel_format (info_win->hdc) == false)
+    if (setup_pixel_format (info->hdc) == false)
       return false;
 
-    info_win->hGLRC = wglCreateContext (info_win->hdc);
-    wglMakeCurrent (info_win->hdc, info_win->hGLRC);
+    info->hGLRC = wglCreateContext (info->hdc);
+    wglMakeCurrent (info->hdc, info->hGLRC);
 
     cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
     cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
@@ -323,23 +316,21 @@ bool createGLcontext (sInfo* info) {
     setTargetFpsAux();
 
   #else
-    sInfoX11* infoX11 = (sInfoX11*) info->platformInfo;
-
     GLint majorGLX = 0;
     GLint minorGLX = 0;
-    glXQueryVersion (infoX11->display, &majorGLX, &minorGLX);
+    glXQueryVersion (info->display, &majorGLX, &minorGLX);
     if ((majorGLX <= 1) && (minorGLX < 2)) {
       cLog::log (LOGERROR, "GLX 1.2 or greater is required");
-      XCloseDisplay (infoX11->display);
+      XCloseDisplay (info->display);
       return false;
       }
     else
       cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
 
-    if (setup_pixel_format (infoX11) == false)
+    if (setup_pixel_format (info) == false)
       return false;
 
-    glXMakeCurrent (infoX11->display, infoX11->window, infoX11->context);
+    glXMakeCurrent (info->display, info->window, info->context);
 
     cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
     cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
@@ -362,16 +353,14 @@ bool createGLcontext (sInfo* info) {
 void destroyGLcontext (sInfo* info) {
 
   #if defined(_WIN32) || defined(WIN32)
-  sInfoWindows* info_win = (sInfoWindows*)info->platformInfo;
-    if (info_win->hGLRC) {
+    if (info->hGLRC) {
       wglMakeCurrent (NULL, NULL);
-      wglDeleteContext (info_win->hGLRC);
-      info_win->hGLRC = 0;
+      wglDeleteContext (info->hGLRC);
+      info->hGLRC = 0;
       }
 
   #else
-    sInfoX11* infoX11 = (sInfoX11*)info->platformInfo;
-    glXDestroyContext (infoX11->display, infoX11->context);
+    glXDestroyContext (info->display, info->context);
   #endif
   }
 //}}}

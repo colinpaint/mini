@@ -3,6 +3,16 @@
 #include <functional>
 #include "miniFBenums.h"
 
+#ifdef _WIN32
+  #include <windows.h>
+#else
+  #include <X11/Xlib.h>
+  #include <GL/glx.h>
+#endif
+
+struct sInfoX11 {
+  };
+
 struct sMiniFBtimer;
 struct sInfo;
 typedef void(*infoFuncType)(sInfo* info);
@@ -10,7 +20,6 @@ typedef bool(*closeFuncType)(sInfo* info);
 //{{{
 struct sInfo {
   void* userData;
-  void* platformInfo;
 
   infoFuncType  activeFunc;
   infoFuncType  resizeFunc;
@@ -66,6 +75,19 @@ struct sInfo {
 
   sMiniFBtimer* timer;
   uint32_t textureId;
+
+  #ifdef _WIN32
+    HWND     window;
+    WNDCLASS wc;
+    HDC      hdc;
+    HGLRC    hGLRC;
+  #else
+    Window   window;
+    Display* display;
+    int      screen;
+    GC       gc;
+    GLXContext context;
+  #endif
   };
 //}}}
 

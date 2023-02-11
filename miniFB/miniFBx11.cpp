@@ -21,7 +21,6 @@
 #include "miniFB.h"
 #include "miniFBinternal.h"
 #include "miniFBgl.h"
-#include "sInfoX11.h"
 
 #include "../common/cLog.h"
 //}}}
@@ -227,7 +226,7 @@ namespace {
   //}}}
 
   //{{{
-  void initKeycodes (sInfoX11* infoX11) {
+  void initKeycodes (sInfo* info) {
 
     // clear keys
     for (size_t i = 0; i < sizeof(gKeycodes) / sizeof(gKeycodes[0]); ++i)
@@ -236,10 +235,10 @@ namespace {
     // valid key code range is  [8,255], according to the Xlib manual
     for (size_t i = 8; i <= 255; ++i) {
       // try secondary keysym, for numeric keypad keys
-      int keySym  = XkbKeycodeToKeysym (infoX11->display, i, 0, 1);
+      int keySym  = XkbKeycodeToKeysym (info->display, i, 0, 1);
       gKeycodes[i] = translateKeyCodeB (keySym);
       if (gKeycodes[i] == KB_KEY_UNKNOWN) {
-        keySym = XkbKeycodeToKeysym (infoX11->display, i, 0, 0);
+        keySym = XkbKeycodeToKeysym (info->display, i, 0, 0);
         gKeycodes[i] = translateKeyCodeA (keySym);
         }
       }
@@ -521,10 +520,9 @@ namespace {
   //{{{
   void processEvents (sInfo* info) {
 
-    sInfoX11* infoX11 = (sInfoX11*)info->platformInfo;
-    while (!info->closed && XPending (infoX11->display)) {
+    while (!info->closed && XPending (info->display)) {
       XEvent event;
-      XNextEvent (infoX11->display, &event);
+      XNextEvent (info->display, &event);
       processEvent (info, &event);
       }
     }
@@ -532,16 +530,12 @@ namespace {
   //{{{
   void freeResources (sInfo* info)  {
 
-    if (gDevice) {
-      sInfoX11* infoX11 = (sInfoX11*)info->platformInfo;
-      if (infoX11)
-        XCloseDevice (infoX11->display, gDevice);
-      }
+    if (gDevice)
+      XCloseDevice (info->display, gDevice);
 
     if (info) {
       destroyGLcontext (info);
       timerDestroy (info->timer);
-      free (info->platformInfo);
       free (info);
       }
     }
@@ -560,37 +554,26 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
     }
     //}}}
 
-  sInfoX11* infoX11 = (sInfoX11*)calloc (1, sizeof(sInfoX11));
-  if (!infoX11) {
-    //{{{  error, return
-    cLog::log (LOGERROR, fmt::format ("failed to create X11 data"));
-    free (info);
-    return 0;
-    }
-    //}}}
-  info->platformInfo = infoX11;
-
-  infoX11->display = XOpenDisplay (0);
-  if (!infoX11->display) {
+  info->display = XOpenDisplay (0);
+  if (!info->display) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create display"));
     free (info);
-    free (infoX11);
     return 0;
     }
     //}}}
 
-  initKeycodes (infoX11);
-  XAutoRepeatOff (infoX11->display);
+  initKeycodes (info);
+  XAutoRepeatOff (info->display);
 
-  infoX11->screen = DefaultScreen (infoX11->display);
-  Visual* visual = DefaultVisual (infoX11->display, infoX11->screen);
+  info->screen = DefaultScreen (info->display);
+  Visual* visual = DefaultVisual (info->display, info->screen);
   //{{{  set format
   int formatCount;
   int convDepth = -1;
-  XPixmapFormatValues* formats = XListPixmapFormats (infoX11->display, &formatCount);
-  int depth = DefaultDepth (infoX11->display, infoX11->screen);
-  Window defaultRootWindow = DefaultRootWindow (infoX11->display);
+  XPixmapFormatValues* formats = XListPixmapFormats (info->display, &formatCount);
+  int depth = DefaultDepth (info->display, info->screen);
+  Window defaultRootWindow = DefaultRootWindow (info->display);
   for (int i = 0; i < formatCount; ++i) {
     if (depth == formats[i].depth) {
       convDepth = formats[i].bits_per_pixel;
@@ -603,18 +586,18 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   if (convDepth != 32) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create 32 bir depth"));
-    XCloseDisplay (infoX11->display);
+    XCloseDisplay (info->display);
     return 0;
     }
     //}}}
   //}}}
   //{{{  set width, height
-  int screenWidth = DisplayWidth (infoX11->display, infoX11->screen);
-  int screenHeight = DisplayHeight (infoX11->display, infoX11->screen);
+  int screenWidth = DisplayWidth (info->display, info->screen);
+  int screenHeight = DisplayHeight (info->display, info->screen);
 
   XSetWindowAttributes windowAttributes;
-  windowAttributes.border_pixel = BlackPixel (infoX11->display, infoX11->screen);
-  windowAttributes.background_pixel = BlackPixel (infoX11->display, infoX11->screen);
+  windowAttributes.border_pixel = BlackPixel (info->display, info->screen);
+  windowAttributes.background_pixel = BlackPixel (info->display, info->screen);
   windowAttributes.backing_store = NotUseful;
 
   info->window_width  = width;
@@ -646,25 +629,25 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
     //}}}
   //}}}
 
-  infoX11->window = XCreateWindow (infoX11->display, defaultRootWindow,
+  info->window = XCreateWindow (info->display, defaultRootWindow,
                                          posX, posY, windowWidth, windowHeight,
                                          0, depth, InputOutput, visual,
                                          CWBackPixel | CWBorderPixel | CWBackingStore,
                                          &windowAttributes);
-  if (!infoX11->window) {
+  if (!info->window) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create X11 window"));
     return 0;
     }
     //}}}
 
-  XSelectInput (infoX11->display, infoX11->window,
+  XSelectInput (info->display, info->window,
                 StructureNotifyMask | ExposureMask |
                 FocusChangeMask |
                 KeyPressMask | KeyReleaseMask |
                 ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
                 EnterWindowMask | LeaveWindowMask);
-  XStoreName (infoX11->display, infoX11->window, title);
+  XStoreName (info->display, info->window, title);
 
   if (flags & WF_BORDERLESS) {
     //{{{  borderless
@@ -676,30 +659,30 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
       unsigned long status;
       } sh = {2, 0, 0, 0, 0};
 
-    Atom sh_p = XInternAtom (infoX11->display, "_MOTIF_WM_HINTS", True);
-    XChangeProperty (infoX11->display, infoX11->window, sh_p, sh_p, 32,
+    Atom sh_p = XInternAtom (info->display, "_MOTIF_WM_HINTS", True);
+    XChangeProperty (info->display, info->window, sh_p, sh_p, 32,
                      PropModeReplace, (unsigned char*)&sh, 5);
     }
     //}}}
   if (flags & WF_ALWAYS_ON_TOP) {
     //{{{  always on top
-    Atom sa_p = XInternAtom (infoX11->display, "_NET_WM_STATE_ABOVE", False);
-    XChangeProperty (infoX11->display, infoX11->window,
-                     XInternAtom (infoX11->display, "_NET_WM_STATE", False), XA_ATOM, 32,
+    Atom sa_p = XInternAtom (info->display, "_NET_WM_STATE_ABOVE", False);
+    XChangeProperty (info->display, info->window,
+                     XInternAtom (info->display, "_NET_WM_STATE", False), XA_ATOM, 32,
                      PropModeReplace, (unsigned char*)&sa_p, 1);
     }
     //}}}
   if (flags & WF_FULLSCREEN) {
     //{{{  full screen
-    Atom sf_p = XInternAtom (infoX11->display, "_NET_WM_STATE_FULLSCREEN", True);
-    XChangeProperty (infoX11->display, infoX11->window,
-                     XInternAtom (infoX11->display, "_NET_WM_STATE", True), XA_ATOM, 32,
+    Atom sf_p = XInternAtom (info->display, "_NET_WM_STATE_FULLSCREEN", True);
+    XChangeProperty (info->display, info->window,
+                     XInternAtom (info->display, "_NET_WM_STATE", True), XA_ATOM, 32,
                      PropModeReplace, (unsigned char*)&sf_p, 1);
     }
     //}}}
 
-  gDeleteWindowAtom = XInternAtom (infoX11->display, "WM_DELETE_WINDOW", False);
-  XSetWMProtocols (infoX11->display, infoX11->window, &gDeleteWindowAtom, 1);
+  gDeleteWindowAtom = XInternAtom (info->display, "WM_DELETE_WINDOW", False);
+  XSetWMProtocols (info->display, info->window, &gDeleteWindowAtom, 1);
 
   if (!createGLcontext (info)) {
     //{{{  error, return
@@ -727,17 +710,17 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
     sizeHints.max_height = height;
     }
     //}}}
-  XSetWMNormalHints (infoX11->display, infoX11->window, &sizeHints);
+  XSetWMNormalHints (info->display, info->window, &sizeHints);
   //}}}
-  XClearWindow (infoX11->display, infoX11->window);
-  XMapRaised (infoX11->display, infoX11->window);
-  XFlush (infoX11->display);
+  XClearWindow (info->display, info->window);
+  XMapRaised (info->display, info->window);
+  XFlush (info->display);
 
-  infoX11->gc = DefaultGC (infoX11->display, infoX11->screen);
+  info->gc = DefaultGC (info->display, info->screen);
   cLog::log (LOGINFO, "using X11 API");
 
   int32_t count;
-  XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (infoX11->display, &count);
+  XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (info->display, &count);
   if (!devices) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("X11 - no input device list"));
@@ -750,7 +733,7 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   for (int32_t i = 0; i < count; i++) {
     cLog::log (LOGINFO, fmt::format ("- device:{} name:{} id:{}", i, devices[i].name, devices[i].id));
     if (strstr (devices[i].name, "stylus")) { // "eraser"
-      gDevice = XOpenDevice (infoX11->display, devices[i].id);
+      gDevice = XOpenDevice (info->display, devices[i].id);
       XAnyClassPtr classPtr = devices[i].inputclassinfo;
       for (int32_t j = 0; j < devices[i].num_classes; j++) {
         switch (classPtr->c_class) {
@@ -793,7 +776,7 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
         classPtr = (XAnyClassPtr)((uint8_t*)classPtr + classPtr->length);
         }
       }
-    XSelectExtensionEvent (infoX11->display, infoX11->window, gEventClasses, gNumEventClasses);
+    XSelectExtensionEvent (info->display, info->window, gEventClasses, gNumEventClasses);
     }
   XFreeDeviceList (devices);
   //}}}
@@ -843,8 +826,7 @@ eUpdateState updateEvents (sInfo* info) {
     return STATE_EXIT;
     }
 
-  sInfoX11* infoX11 = (sInfoX11*)info->platformInfo;
-  XFlush (infoX11->display);
+  XFlush (info->display);
 
   processEvents (info);
 
@@ -866,8 +848,7 @@ bool waitSync (sInfo* info) {
   if (gUseHardwareSync)
     return true;
 
-  sInfoX11* infoX11 = (sInfoX11*)info->platformInfo;
-  XFlush (infoX11->display);
+  XFlush (info->display);
 
   XEvent event;
   double current;
@@ -884,8 +865,8 @@ bool waitSync (sInfo* info) {
     usleep (millis * 1000);
     //sched_yield();
 
-    if (millis == 1 && XEventsQueued (infoX11->display, QueuedAlready) > 0) {
-      XNextEvent (infoX11->display, &event);
+    if (millis == 1 && XEventsQueued (info->display, QueuedAlready) > 0) {
+      XNextEvent (info->display, &event);
       processEvent (info, &event);
 
       if (info->closed) {
@@ -919,18 +900,9 @@ bool setViewport (sInfo* info, unsigned offset_x, unsigned offset_y, unsigned wi
 //{{{
 void getMonitorScale (sInfo* info, float* scale_x, float* scale_y) {
 
+  (void)info;
   float x = 96.0;
   float y = 96.0;
-
-  if (info) {
-    //sInfo     *info     = (sInfo *) window;
-    //sInfoX11 *infoX11 = (sInfoX11 *) info->platformInfo;
-    // I cannot find a way to get dpi under VirtualBox
-    // XrmGetResource "Xft.dpi", "Xft.Dpi"
-    // XRRGetOutputInfo
-    // DisplayWidthMM, DisplayHeightMM
-    // All returning invalid values or 0
-    }
 
   if (scale_x) {
     *scale_x = x / 96.0f;
