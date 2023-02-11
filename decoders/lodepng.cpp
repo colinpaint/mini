@@ -2175,7 +2175,7 @@ static unsigned lodepng_zlib_decompressv(ucvector* out,
                                          const unsigned char* in, size_t insize,
                                          const LodePNGDecompressSettings* settings) {
   unsigned error = 0;
-  unsigned CM, CINFO, FDICT;
+  unsigned CM, cMiniFB, FDICT;
 
   if(insize < 2) return 53; /*error, size of zlib data too small*/
   /*read information from zlib header*/
@@ -2185,12 +2185,12 @@ static unsigned lodepng_zlib_decompressv(ucvector* out,
   }
 
   CM = in[0] & 15;
-  CINFO = (in[0] >> 4) & 15;
+  cMiniFB = (in[0] >> 4) & 15;
   /*FCHECK = in[1] & 31;*/ /*FCHECK is already tested above*/
   FDICT = (in[1] >> 5) & 1;
   /*FLEVEL = (in[1] >> 6) & 3;*/ /*FLEVEL is not used here*/
 
-  if(CM != 8 || CINFO > 7) {
+  if(CM != 8 || cMiniFB > 7) {
     /*error: only compression method 8: inflate with sliding window of 32k is supported by the PNG spec*/
     return 25;
   }
@@ -2271,8 +2271,8 @@ unsigned lodepng_zlib_compress(unsigned char** out, size_t* outsize, const unsig
 
   if(!error) {
     unsigned ADLER32 = adler32(in, (unsigned)insize);
-    /*zlib data: 1 byte CMF (CM+CINFO), 1 byte FLG, deflate data, 4 byte ADLER32 checksum of the Decompressed data*/
-    unsigned CMF = 120; /*0b01111000: CM 8, CINFO 7. With CINFO 7, any window size up to 32768 can be used.*/
+    /*zlib data: 1 byte CMF (CM+cMiniFB), 1 byte FLG, deflate data, 4 byte ADLER32 checksum of the Decompressed data*/
+    unsigned CMF = 120; /*0b01111000: CM 8, cMiniFB 7. With cMiniFB 7, any window size up to 32768 can be used.*/
     unsigned FLEVEL = 0;
     unsigned FDICT = 0;
     unsigned CMFFLG = 256 * CMF + FDICT * 32 + FLEVEL * 64;

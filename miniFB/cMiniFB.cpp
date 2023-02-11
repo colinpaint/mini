@@ -1,6 +1,6 @@
 // miniFB.cpp
 //{{{  includes
-#include "miniFB.h"
+#include "cMiniFB.h"
 #include <vector>
 
 #if defined(_WIN32) || defined(WIN32)
@@ -97,7 +97,7 @@ namespace {
     //}}}
   #else
     //{{{
-    bool setup_pixel_format (cInfo* info) {
+    bool setup_pixel_format (cMiniFB* miniFB) {
 
       GLint glxAttribs[] = { GLX_RGBA,
                              GLX_DOUBLEBUFFER,
@@ -112,14 +112,14 @@ namespace {
                              GLX_SAMPLES,        0,
                              None };
 
-      XVisualInfo* visualInfo = glXChooseVisual (info->display, info->screen, glxAttribs);
+      XVisualInfo* visualInfo = glXChooseVisual (miniFB->display, miniFB->screen, glxAttribs);
       if (!visualInfo) {
         cLog::log (LOGERROR, "Could not create correct visual window");
-        XCloseDisplay (info->display);
+        XCloseDisplay (miniFB->display);
         return false;
         }
 
-      info->context = glXCreateContext (info->display, visualInfo, NULL, GL_TRUE);
+      miniFB->context = glXCreateContext (miniFB->display, visualInfo, NULL, GL_TRUE);
 
       return true;
       }
@@ -128,10 +128,9 @@ namespace {
     //PFNGLXSWAPINTERVALEXTPROC SwapIntervalEXT = 0x0;
   #endif
   }
-short int gKeycodes[512] = { 0 };
 
 //{{{
-cStub* cStub::getInstance (cInfo* info) {
+cStub* cStub::getInstance (cMiniFB* miniFB) {
 
   //{{{
   struct stub_vector {
@@ -145,44 +144,38 @@ cStub* cStub::getInstance (cInfo* info) {
       }
     //}}}
 
-    cStub* Get (cInfo *info) {
+    cStub* Get (cMiniFB *miniFB) {
       for (cStub *instance : instances) {
-        if( instance->m_info == info) {
+        if( instance->mMiniFB == miniFB) {
           return instance;
           }
         }
       instances.push_back (new cStub);
-      instances.back()->m_info = info;
+      instances.back()->mMiniFB = miniFB;
       return instances.back();
       }
     };
   //}}}
   static stub_vector gInstances;
 
-  return gInstances.Get (info);
+  return gInstances.Get (miniFB);
   }
 //}}}
 
 //{{{
-cInfo* open (const char* title, unsigned width, unsigned height) {
-
-  return openEx (title, width, height, 0);
-  }
-//}}}
-//{{{
-eUpdateState cInfo::update (void *buffer) {
+eUpdateState cMiniFB::update (void *buffer) {
   return updateEx (buffer, bufferWidth, bufferHeight);
   }
 //}}}
 //{{{
-void cInfo::close() {
+void cMiniFB::close() {
   closed = true;
   }
 //}}}
 
 // gets
 //{{{
-const char* cInfo::getKeyName (eKey key) {
+const char* cMiniFB::getKeyName (eKey key) {
 
   switch (key) {
     case KB_KEY_SPACE: return "Space";
@@ -330,9 +323,9 @@ const char* cInfo::getKeyName (eKey key) {
 //}}}
 
 // sets
-void cInfo::setUserData (void* user_data) { userData = user_data; }
+void cMiniFB::setUserData (void* user_data) { userData = user_data; }
 //{{{
-bool cInfo::setViewportBestFit (unsigned old_width, unsigned old_height) {
+bool cMiniFB::setViewportBestFit (unsigned old_width, unsigned old_height) {
 
   unsigned new_width  = window_width;
   unsigned new_height = window_height;
@@ -357,213 +350,213 @@ bool cInfo::setViewportBestFit (unsigned old_width, unsigned old_height) {
 //}}}
 
 //{{{
-void keyDefault (cInfo* info) {
+void keyDefault (cMiniFB* miniFB) {
 
-  if (info->keyCode == KB_KEY_ESCAPE) {
-    if (!info->closeFunc ||
-         info->closeFunc (info))
-      info->closed = true;
+  if (miniFB->keyCode == KB_KEY_ESCAPE) {
+    if (!miniFB->closeFunc ||
+         miniFB->closeFunc (miniFB))
+      miniFB->closed = true;
     }
   }
 //}}}
 
 // set callbacks
 //{{{
-void setActiveCallback (cInfo* info, infoFuncType callback) {
+void setActiveCallback (cMiniFB* miniFB, miniFBFuncType callback) {
 
-  if (info)
-    info->activeFunc = callback;
+  if (miniFB)
+    miniFB->activeFunc = callback;
   }
 //}}}
 //{{{
-void setResizeCallback (cInfo* info, infoFuncType callback) {
+void setResizeCallback (cMiniFB* miniFB, miniFBFuncType callback) {
 
-  if (info)
-    info->resizeFunc = callback;
+  if (miniFB)
+    miniFB->resizeFunc = callback;
   }
 //}}}
 //{{{
-void setCloseCallback  (cInfo* info, closeFuncType callback) {
+void setCloseCallback  (cMiniFB* miniFB, closeFuncType callback) {
 
-  if (info)
-    info->closeFunc = callback;
+  if (miniFB)
+    miniFB->closeFunc = callback;
   }
 //}}}
 //{{{
-void setKeyCallback    (cInfo* info, infoFuncType callback) {
+void setKeyCallback    (cMiniFB* miniFB, miniFBFuncType callback) {
 
-  if (info)
-    info->keyFunc = callback;
+  if (miniFB)
+    miniFB->keyFunc = callback;
   }
 //}}}
 //{{{
-void setCharCallback   (cInfo* info, infoFuncType callback) {
+void setCharCallback   (cMiniFB* miniFB, miniFBFuncType callback) {
 
-  if (info)
-    info->charFunc = callback;
+  if (miniFB)
+    miniFB->charFunc = callback;
   }
 //}}}
 //{{{
-void setButtonCallback (cInfo* info, infoFuncType callback) {
+void setButtonCallback (cMiniFB* miniFB, miniFBFuncType callback) {
 
-  if (info)
-    info->buttonFunc = callback;
+  if (miniFB)
+    miniFB->buttonFunc = callback;
   }
 //}}}
 //{{{
-void setMoveCallback   (cInfo* info, infoFuncType callback) {
+void setMoveCallback   (cMiniFB* miniFB, miniFBFuncType callback) {
 
-  if (info)
-    info->moveFunc = callback;
+  if (miniFB)
+    miniFB->moveFunc = callback;
   }
 //}}}
 //{{{
-void setWheelCallback  (cInfo* info, infoFuncType callback) {
+void setWheelCallback  (cMiniFB* miniFB, miniFBFuncType callback) {
 
-  if (info)
-    info->wheelFunc = callback;
+  if (miniFB)
+    miniFB->wheelFunc = callback;
   }
 //}}}
 //{{{
-void setEnterCallback  (cInfo* info, infoFuncType callback) {
+void setEnterCallback  (cMiniFB* miniFB, miniFBFuncType callback) {
 
-  if (info)
-    info->enterFunc = callback;
+  if (miniFB)
+    miniFB->enterFunc = callback;
   }
 //}}}
 
 // set callback lamdas
 //{{{
-void setActiveCallback (std::function <void (cInfo*)> func, cInfo* info) {
+void setActiveCallback (std::function <void (cMiniFB*)> func, cMiniFB* miniFB) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (info)->mActiveFunc = std::bind (func, _1);
-  setActiveCallback (info, cStub::activeStub);
+  cStub::getInstance (miniFB)->mActiveFunc = std::bind (func, _1);
+  setActiveCallback (miniFB, cStub::activeStub);
   }
 //}}}
 //{{{
-void setResizeCallback (std::function <void (cInfo*)> func, cInfo* info) {
+void setResizeCallback (std::function <void (cMiniFB*)> func, cMiniFB* miniFB) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (info)->mResizeFunc = std::bind(func, _1);
-  setResizeCallback(info, cStub::resizeStub);
+  cStub::getInstance (miniFB)->mResizeFunc = std::bind(func, _1);
+  setResizeCallback(miniFB, cStub::resizeStub);
   }
 //}}}
 //{{{
-void setCloseCallback  (std::function <bool (cInfo*)> func, cInfo* info) {
+void setCloseCallback  (std::function <bool (cMiniFB*)> func, cMiniFB* miniFB) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (info)->mCloseFunc = std::bind(func, _1);
-  setCloseCallback(info, cStub::closeStub);
+  cStub::getInstance (miniFB)->mCloseFunc = std::bind(func, _1);
+  setCloseCallback(miniFB, cStub::closeStub);
   }
 //}}}
 //{{{
-void setKeyCallback    (std::function <void (cInfo*)> func, cInfo *info) {
+void setKeyCallback    (std::function <void (cMiniFB*)> func, cMiniFB *miniFB) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (info)->mKeyFunc = std::bind (func, _1);
-  setKeyCallback (info, cStub::keyStub);
+  cStub::getInstance (miniFB)->mKeyFunc = std::bind (func, _1);
+  setKeyCallback (miniFB, cStub::keyStub);
   }
 //}}}
 //{{{
-void setCharCallback   (std::function <void (cInfo*)> func, cInfo* info) {
+void setCharCallback   (std::function <void (cMiniFB*)> func, cMiniFB* miniFB) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (info)->mCharFunc = std::bind (func, _1);
-  setCharCallback (info, cStub::charStub);
+  cStub::getInstance (miniFB)->mCharFunc = std::bind (func, _1);
+  setCharCallback (miniFB, cStub::charStub);
   }
 //}}}
 //{{{
-void setButtonCallback (std::function <void (cInfo*)> func, cInfo* info) {
+void setButtonCallback (std::function <void (cMiniFB*)> func, cMiniFB* miniFB) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (info)->mButtonFunc = std::bind (func, _1);
-  setButtonCallback (info, cStub::buttonStub);
+  cStub::getInstance (miniFB)->mButtonFunc = std::bind (func, _1);
+  setButtonCallback (miniFB, cStub::buttonStub);
   }
 //}}}
 //{{{
-void setMoveCallback   (std::function <void (cInfo*)> func, cInfo* info) {
+void setMoveCallback   (std::function <void (cMiniFB*)> func, cMiniFB* miniFB) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (info)->mMoveFunc = std::bind (func, _1);
-  setMoveCallback (info, cStub::moveStub);
+  cStub::getInstance (miniFB)->mMoveFunc = std::bind (func, _1);
+  setMoveCallback (miniFB, cStub::moveStub);
   }
 //}}}
 //{{{
-void setWheelCallback  (std::function <void (cInfo*)> func, cInfo *info) {
+void setWheelCallback  (std::function <void (cMiniFB*)> func, cMiniFB *miniFB) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (info)->mWheelFunc = std::bind (func, _1);
-  setWheelCallback (info, cStub::wheelStub);
+  cStub::getInstance (miniFB)->mWheelFunc = std::bind (func, _1);
+  setWheelCallback (miniFB, cStub::wheelStub);
   }
 //}}}
 //{{{
-void setEnterCallback  (std::function <void (cInfo*)> func, cInfo *info) {
+void setEnterCallback  (std::function <void (cMiniFB*)> func, cMiniFB *miniFB) {
 
   using namespace std::placeholders;
 
-  cStub::getInstance (info)->mEnterFunc = std::bind (func, _1);
-  setEnterCallback (info, cStub::enterStub);
+  cStub::getInstance (miniFB)->mEnterFunc = std::bind (func, _1);
+  setEnterCallback (miniFB, cStub::enterStub);
   }
 //}}}
 
 // callback stubs
 //{{{
-void cStub::activeStub (cInfo* info) {
-  cStub::getInstance (info)->mActiveFunc (info);
+void cStub::activeStub (cMiniFB* miniFB) {
+  cStub::getInstance (miniFB)->mActiveFunc (miniFB);
   }
 //}}}
 //{{{
-void cStub::resizeStub (cInfo* info) {
-  cStub::getInstance (info)->mResizeFunc (info);
+void cStub::resizeStub (cMiniFB* miniFB) {
+  cStub::getInstance (miniFB)->mResizeFunc (miniFB);
   }
 //}}}
 //{{{
-bool cStub::closeStub  (cInfo* info) {
-  return cStub::getInstance (info)->mCloseFunc (info);
+bool cStub::closeStub  (cMiniFB* miniFB) {
+  return cStub::getInstance (miniFB)->mCloseFunc (miniFB);
   }
 //}}}
 //{{{
-void cStub::keyStub    (cInfo* info) {
-  cStub::getInstance (info)->mKeyFunc(info);
+void cStub::keyStub    (cMiniFB* miniFB) {
+  cStub::getInstance (miniFB)->mKeyFunc(miniFB);
   }
 //}}}
 //{{{
-void cStub::charStub   (cInfo* info) {
-  cStub::getInstance (info)->mCharFunc(info);
+void cStub::charStub   (cMiniFB* miniFB) {
+  cStub::getInstance (miniFB)->mCharFunc(miniFB);
   }
 //}}}
 //{{{
-void cStub::buttonStub (cInfo* info) {
-  cStub::getInstance (info)->mButtonFunc(info);
+void cStub::buttonStub (cMiniFB* miniFB) {
+  cStub::getInstance (miniFB)->mButtonFunc(miniFB);
   }
 //}}}
 //{{{
-void cStub::moveStub   (cInfo* info) {
-  cStub::getInstance (info)->mMoveFunc(info);
+void cStub::moveStub   (cMiniFB* miniFB) {
+  cStub::getInstance (miniFB)->mMoveFunc(miniFB);
   }
 //}}}
 //{{{
-void cStub::wheelStub  (cInfo* info) {
-  cStub::getInstance (info)->mWheelFunc(info);
+void cStub::wheelStub  (cMiniFB* miniFB) {
+  cStub::getInstance (miniFB)->mWheelFunc(miniFB);
   }
 //}}}
 //{{{
-void cStub::enterStub  (cInfo* info) {
-  cStub::getInstance (info)->mEnterFunc(info);
+void cStub::enterStub  (cMiniFB* miniFB) {
+  cStub::getInstance (miniFB)->mEnterFunc(miniFB);
   }
 //}}}
 
 //{{{
-void cInfo::calcDstFactor (uint32_t width, uint32_t height) {
+void cMiniFB::calcDstFactor (uint32_t width, uint32_t height) {
 
   if (dst_width == 0)
     dst_width = width;
@@ -579,7 +572,7 @@ void cInfo::calcDstFactor (uint32_t width, uint32_t height) {
   }
 //}}}
 //{{{
-void cInfo::resizeDst (uint32_t width, uint32_t height) {
+void cMiniFB::resizeDst (uint32_t width, uint32_t height) {
 
   dst_offset_x = (uint32_t) (width  * factor_x);
   dst_offset_y = (uint32_t) (height * factor_y);
@@ -589,13 +582,13 @@ void cInfo::resizeDst (uint32_t width, uint32_t height) {
 //}}}
 
 //{{{
-void initGL (cInfo* info) {
+void initGL (cMiniFB* miniFB) {
 
-  glViewport (0, 0, info->window_width, info->window_height);
+  glViewport (0, 0, miniFB->window_width, miniFB->window_height);
 
   glMatrixMode (GL_PROJECTION);
   glLoadIdentity();
-  glOrtho (0, info->window_width, info->window_height, 0, 2048, -2048);
+  glOrtho (0, miniFB->window_width, miniFB->window_height, 0, 2048, -2048);
 
   glMatrixMode (GL_MODELVIEW);
   glLoadIdentity();
@@ -605,9 +598,9 @@ void initGL (cInfo* info) {
 
   glEnable (GL_TEXTURE_2D);
 
-  glGenTextures (1, &info->textureId);
+  glGenTextures (1, &miniFB->textureId);
   //glActiveTexture (TEXTURE0);
-  glBindTexture (GL_TEXTURE_2D, info->textureId);
+  glBindTexture (GL_TEXTURE_2D, miniFB->textureId);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -622,44 +615,44 @@ void initGL (cInfo* info) {
   }
 //}}}
 //{{{
-void resizeGL (cInfo* info) {
+void resizeGL (cMiniFB* miniFB) {
 
-  if (info->isInitialized) {
+  if (miniFB->isInitialized) {
     #if defined(_WIN32) || defined(WIN32)
-      wglMakeCurrent (info->hdc, info->hGLRC);
+      wglMakeCurrent (miniFB->hdc, miniFB->hGLRC);
     #else
-      glXMakeCurrent (info->display, info->window, info->context);
+      glXMakeCurrent (miniFB->display, miniFB->window, miniFB->context);
     #endif
 
-    glViewport (0,0, info->window_width,info->window_height);
+    glViewport (0,0, miniFB->window_width,miniFB->window_height);
 
     glMatrixMode (GL_PROJECTION);
     glLoadIdentity();
-    glOrtho (0, info->window_width, info->window_height, 0, 2048, -2048);
+    glOrtho (0, miniFB->window_width, miniFB->window_height, 0, 2048, -2048);
 
     glClear (GL_COLOR_BUFFER_BIT);
     }
   }
 //}}}
 //{{{
-void redrawGL (cInfo* info, const void* pixels) {
+void redrawGL (cMiniFB* miniFB, const void* pixels) {
 
   #if defined(_WIN32) || defined(WIN32)
-    wglMakeCurrent (info->hdc, info->hGLRC);
+    wglMakeCurrent (miniFB->hdc, miniFB->hGLRC);
   #else
-    glXMakeCurrent (info->display, info->window, info->context);
+    glXMakeCurrent (miniFB->display, miniFB->window, miniFB->context);
   #endif
 
   GLenum format = RGBA;
 
   // clear
   //glClear (GL_COLOR_BUFFER_BIT);
-  glBindTexture (GL_TEXTURE_2D, info->textureId);
+  glBindTexture (GL_TEXTURE_2D, miniFB->textureId);
   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA,
-                info->bufferWidth, info->bufferHeight,
+                miniFB->bufferWidth, miniFB->bufferHeight,
                 0, format, GL_UNSIGNED_BYTE, pixels);
   //glTexSubImage2D (GL_TEXTURE_2D, 0,
-  //                 0, 0, info->buffer_width, info->buffer_height,
+  //                 0, 0, miniFB->buffer_width, miniFB->buffer_height,
   //                 format, GL_UNSIGNED_BYTE, pixels);
 
   // draw single texture
@@ -667,10 +660,10 @@ void redrawGL (cInfo* info, const void* pixels) {
   glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 
   // vertices
-  float x = (float)info->dst_offset_x;
-  float y = (float)info->dst_offset_y;
-  float w = (float)info->dst_offset_x + info->dst_width;
-  float h = (float)info->dst_offset_y + info->dst_height;
+  float x = (float)miniFB->dst_offset_x;
+  float y = (float)miniFB->dst_offset_y;
+  float w = (float)miniFB->dst_offset_x + miniFB->dst_width;
+  float h = (float)miniFB->dst_offset_y + miniFB->dst_height;
   float vertices[] = { x, y, 0, 0,
                        w, y, 1, 0,
                        x, h, 0, 1,
@@ -685,26 +678,26 @@ void redrawGL (cInfo* info, const void* pixels) {
 
   // swap buffer
   #if defined(_WIN32) || defined(WIN32)
-    SwapBuffers (info->hdc);
+    SwapBuffers (miniFB->hdc);
   #else
-    glXSwapBuffers (info->display, info->window);
+    glXSwapBuffers (miniFB->display, miniFB->window);
   #endif
   }
 //}}}
 //{{{
-bool createGLcontext (cInfo* info) {
+bool createGLcontext (cMiniFB* miniFB) {
 
   #if defined(_WIN32) || defined(WIN32)
-    if (setup_pixel_format (info->hdc) == false)
+    if (setup_pixel_format (miniFB->hdc) == false)
       return false;
 
-    info->hGLRC = wglCreateContext (info->hdc);
-    wglMakeCurrent (info->hdc, info->hGLRC);
+    miniFB->hGLRC = wglCreateContext (miniFB->hdc);
+    wglMakeCurrent (miniFB->hdc, miniFB->hGLRC);
 
     cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
     cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
     cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
-    initGL (info);
+    initGL (miniFB);
 
     // get extensions
     SwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress ("wglSwapIntervalEXT");
@@ -713,42 +706,42 @@ bool createGLcontext (cInfo* info) {
   #else
     GLint majorGLX = 0;
     GLint minorGLX = 0;
-    glXQueryVersion (info->display, &majorGLX, &minorGLX);
+    glXQueryVersion (miniFB->display, &majorGLX, &minorGLX);
     if ((majorGLX <= 1) && (minorGLX < 2)) {
       cLog::log (LOGERROR, "GLX 1.2 or greater is required");
-      XCloseDisplay (info->display);
+      XCloseDisplay (miniFB->display);
       return false;
       }
     else
       cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
 
-    if (setup_pixel_format (info) == false)
+    if (setup_pixel_format (miniFB) == false)
       return false;
 
-    glXMakeCurrent (info->display, info->window, info->context);
+    glXMakeCurrent (miniFB->display, miniFB->window, miniFB->context);
 
     cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
     cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
     cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
     cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
-    initGL (info);
+    initGL (miniFB);
   #endif
 
   return true;
   }
 //}}}
 //{{{
-void destroyGLcontext (cInfo* info) {
+void destroyGLcontext (cMiniFB* miniFB) {
 
   #if defined(_WIN32) || defined(WIN32)
-    if (info->hGLRC) {
+    if (miniFB->hGLRC) {
       wglMakeCurrent (NULL, NULL);
-      wglDeleteContext (info->hGLRC);
-      info->hGLRC = 0;
+      wglDeleteContext (miniFB->hGLRC);
+      miniFB->hGLRC = 0;
       }
 
   #else
-    glXDestroyContext (info->display, info->context);
+    glXDestroyContext (miniFB->display, miniFB->context);
   #endif
   }
 //}}}

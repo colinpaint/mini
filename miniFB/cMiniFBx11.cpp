@@ -18,7 +18,7 @@
 #include <xkbcommon/xkbcommon.h>
 #include <X11/extensions/XInput.h>
 
-#include "miniFB.h"
+#include "cMiniFB.h"
 
 #include "../common/cLog.h"
 //}}}
@@ -28,11 +28,9 @@ extern void stretchImage (uint32_t* srcImage, uint32_t srcX, uint32_t srcY,
                           uint32_t* dstImage, uint32_t dstX, uint32_t dstY,
                           uint32_t dstWidth, uint32_t dstHeight, uint32_t dstPitch);
 
-extern double gTimeForFrame;
-extern bool gUseHardwareSync;
-extern short int gKeycodes[512];
-
 namespace {
+  short int gKeycodes[512] = { 0 };
+
   Atom gDeleteWindowAtom;
   XDevice* gDevice = nullptr;
   uint32_t gMotionType = 0;
@@ -224,7 +222,7 @@ namespace {
   //}}}
 
   //{{{
-  void initKeycodes (cInfo* info) {
+  void initKeycodes (cMiniFB* miniFB) {
 
     // clear keys
     for (size_t i = 0; i < sizeof(gKeycodes) / sizeof(gKeycodes[0]); ++i)
@@ -233,10 +231,10 @@ namespace {
     // valid key code range is  [8,255], according to the Xlib manual
     for (size_t i = 8; i <= 255; ++i) {
       // try secondary keysym, for numeric keypad keys
-      int keySym  = XkbKeycodeToKeysym (info->display, i, 0, 1);
+      int keySym  = XkbKeycodeToKeysym (miniFB->display, i, 0, 1);
       gKeycodes[i] = translateKeyCodeB (keySym);
       if (gKeycodes[i] == KB_KEY_UNKNOWN) {
-        keySym = XkbKeycodeToKeysym (info->display, i, 0, 0);
+        keySym = XkbKeycodeToKeysym (miniFB->display, i, 0, 0);
         gKeycodes[i] = translateKeyCodeA (keySym);
         }
       }
@@ -324,34 +322,34 @@ namespace {
   //}}}
 
   //{{{
-  void processEvent (cInfo* info, XEvent* event) {
+  void processEvent (cMiniFB* miniFB, XEvent* event) {
 
     switch (event->type) {
       case KeyPress:
       //{{{
       case KeyRelease:
-        info->keyCode = (eKey)translateKey (event->xkey.keycode);
-        info->isDown = (event->type == KeyPress);
-        info->modifierKeys = translateModEx (info->keyCode, event->xkey.state, info->isDown);
-        info->keyStatus[info->keyCode] = info->isDown;
-        if (info->keyFunc)
-          info->keyFunc (info);
+        miniFB->keyCode = (eKey)translateKey (event->xkey.keycode);
+        miniFB->isDown = (event->type == KeyPress);
+        miniFB->modifierKeys = translateModEx (miniFB->keyCode, event->xkey.state, miniFB->isDown);
+        miniFB->keyStatus[miniFB->keyCode] = miniFB->isDown;
+        if (miniFB->keyFunc)
+          miniFB->keyFunc (miniFB);
 
-        if (info->isDown) {
+        if (miniFB->isDown) {
           KeySym keysym;
           XLookupString (&event->xkey, NULL, 0, &keysym, NULL);
           if ((keysym >= 0x0020 && keysym <= 0x007e) ||
               (keysym >= 0x00a0 && keysym <= 0x00ff)) {
-            info->codepoint = keysym;
-            if (info->charFunc)
-              info->charFunc (info);
+            miniFB->codepoint = keysym;
+            if (miniFB->charFunc)
+              miniFB->charFunc (miniFB);
             }
           else if ((keysym & 0xff000000) == 0x01000000)
             keysym = keysym & 0x00ffffff;
 
-          info->codepoint = keysym;
-          if (info->charFunc)
-            info->charFunc (info);
+          miniFB->codepoint = keysym;
+          if (miniFB->charFunc)
+            miniFB->charFunc (miniFB);
           // This does not seem to be working properly
           // unsigned int codepoint = xkb_state_key_get_utf32(state, keysym);
           // if (codepoint != 0)
@@ -365,42 +363,42 @@ namespace {
       //{{{
       case ButtonRelease:
         {
-        info->isDown = (event->type == ButtonPress);
-        info->modifierKeys = translateMod (event->xkey.state);
+        miniFB->isDown = (event->type == ButtonPress);
+        miniFB->modifierKeys = translateMod (event->xkey.state);
 
         // swap 2 & 3 ?
         ePointerButton button = (ePointerButton)event->xbutton.button;
         switch (button) {
           case Button1:
           case Button3:
-            info->pointerButtonStatus[button & 0x07] = info->isDown;
-            if (info->buttonFunc)
-              info->buttonFunc (info);
+            miniFB->pointerButtonStatus[button & 0x07] = miniFB->isDown;
+            if (miniFB->buttonFunc)
+              miniFB->buttonFunc (miniFB);
             break;
 
           // wheel
           case Button4:
-            info->pointerWheelY = 1.0f;
-            if (info->wheelFunc)
-              info->wheelFunc (info);
+            miniFB->pointerWheelY = 1.0f;
+            if (miniFB->wheelFunc)
+              miniFB->wheelFunc (miniFB);
             break;
 
           case Button5:
-            info->pointerWheelY = -1.0f;
-            if (info->wheelFunc)
-              info->wheelFunc (info);
+            miniFB->pointerWheelY = -1.0f;
+            if (miniFB->wheelFunc)
+              miniFB->wheelFunc (miniFB);
             break;
 
           case 6:
-            info->pointerWheelX = 1.0f;
-            if (info->wheelFunc)
-              info->wheelFunc (info);
+            miniFB->pointerWheelX = 1.0f;
+            if (miniFB->wheelFunc)
+              miniFB->wheelFunc (miniFB);
             break;
 
           case 7:
-            info->pointerWheelX = -1.0f;
-            if (info->wheelFunc)
-              info->wheelFunc (info);
+            miniFB->pointerWheelX = -1.0f;
+            if (miniFB->wheelFunc)
+              miniFB->wheelFunc (miniFB);
             break;
 
           default:
@@ -416,80 +414,80 @@ namespace {
         XDeviceMotionEvent* motionEvent = (XDeviceMotionEvent*)(event);
         cLog::log (LOGINFO, fmt::format ("motionNotify {},{} {}",
                                          event->xmotion.x, event->xmotion.y, motionEvent->serial));
-        info->pointerTimestamp = 0;
-        info->pointerPosX = event->xmotion.x;
-        info->pointerPosY = event->xmotion.y;
-        info->pointerPressure = info->pointerButtonStatus[Button1] * 1024;
-        if (info->moveFunc)
-          info->moveFunc (info);
+        miniFB->pointerTimestamp = 0;
+        miniFB->pointerPosX = event->xmotion.x;
+        miniFB->pointerPosY = event->xmotion.y;
+        miniFB->pointerPressure = miniFB->pointerButtonStatus[Button1] * 1024;
+        if (miniFB->moveFunc)
+          miniFB->moveFunc (miniFB);
         }
         break;
       //}}}
 
       //{{{
       case ConfigureNotify:
-        info->window_width  = event->xconfigure.width;
-        info->window_height = event->xconfigure.height;
-        info->windowScaledWidth  = info->window_width;
-        info->windowScaledHeight = info->window_height;
+        miniFB->window_width  = event->xconfigure.width;
+        miniFB->window_height = event->xconfigure.height;
+        miniFB->windowScaledWidth  = miniFB->window_width;
+        miniFB->windowScaledHeight = miniFB->window_height;
 
-        info->resizeDst (event->xconfigure.width, event->xconfigure.height);
-        resizeGL (info);
+        miniFB->resizeDst (event->xconfigure.width, event->xconfigure.height);
+        resizeGL (miniFB);
 
-        if (info->resizeFunc)
-          info->resizeFunc (info);
+        if (miniFB->resizeFunc)
+          miniFB->resizeFunc (miniFB);
 
         break;
       //}}}
 
       //{{{
       case EnterNotify:
-        info->pointerInside = true;
-        if (info->activeFunc)
-          info->activeFunc (info);
+        miniFB->pointerInside = true;
+        if (miniFB->activeFunc)
+          miniFB->activeFunc (miniFB);
 
         break;
       //}}}
       //{{{
       case LeaveNotify:
-        info->pointerInside = false;
-        if (info->activeFunc)
-          info->activeFunc (info);
+        miniFB->pointerInside = false;
+        if (miniFB->activeFunc)
+          miniFB->activeFunc (miniFB);
 
         break;
       //}}}
 
       //{{{
       case FocusIn:
-        info->isActive = true;
-        if (info->activeFunc)
-          info->activeFunc (info);
+        miniFB->isActive = true;
+        if (miniFB->activeFunc)
+          miniFB->activeFunc (miniFB);
 
         break;
       //}}}
       //{{{
       case FocusOut:
-        info->isActive = false;
-        if (info->activeFunc)
-          info->activeFunc (info);
+        miniFB->isActive = false;
+        if (miniFB->activeFunc)
+          miniFB->activeFunc (miniFB);
 
         break;
       //}}}
 
       //{{{
       case DestroyNotify:
-        info->closed = true;
+        miniFB->closed = true;
         return;
       //}}}
       //{{{
       case ClientMessage:
         if ((Atom)event->xclient.data.l[0] == gDeleteWindowAtom) {
-          if (info) {
+          if (miniFB) {
             bool destroy = false;
-            if (!info->closeFunc || info->closeFunc (info))
+            if (!miniFB->closeFunc || miniFB->closeFunc (miniFB))
               destroy = true;
             if (destroy) {
-              info->closed = true;
+              miniFB->closed = true;
               return;
               }
             }
@@ -516,24 +514,24 @@ namespace {
     }
   //}}}
   //{{{
-  void processEvents (cInfo* info) {
+  void processEvents (cMiniFB* miniFB) {
 
-    while (!info->closed && XPending (info->display)) {
+    while (!miniFB->closed && XPending (miniFB->display)) {
       XEvent event;
-      XNextEvent (info->display, &event);
-      processEvent (info, &event);
+      XNextEvent (miniFB->display, &event);
+      processEvent (miniFB, &event);
       }
     }
   //}}}
   //{{{
-  void freeResources (cInfo* info)  {
+  void freeResources (cMiniFB* miniFB)  {
 
     if (gDevice)
-      XCloseDevice (info->display, gDevice);
+      XCloseDevice (miniFB->display, gDevice);
 
-    if (info) {
-      destroyGLcontext (info);
-      free (info);
+    if (miniFB) {
+      destroyGLcontext (miniFB);
+      free (miniFB);
       }
     }
   //}}}
@@ -541,36 +539,36 @@ namespace {
 
 // interface
 //{{{
-cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, unsigned flags) {
 
-  cInfo* info = new cInfo();
-  if (!info) {
+  cMiniFB* miniFB = new cMiniFB();
+  if (!miniFB) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create window data"));
     return 0;
     }
     //}}}
 
-  info->display = XOpenDisplay (0);
-  if (!info->display) {
+  miniFB->display = XOpenDisplay (0);
+  if (!miniFB->display) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create display"));
-    delete (info);
+    delete (miniFB);
     return 0;
     }
     //}}}
 
-  initKeycodes (info);
-  XAutoRepeatOff (info->display);
+  initKeycodes (miniFB);
+  XAutoRepeatOff (miniFB->display);
 
-  info->screen = DefaultScreen (info->display);
-  Visual* visual = DefaultVisual (info->display, info->screen);
+  miniFB->screen = DefaultScreen (miniFB->display);
+  Visual* visual = DefaultVisual (miniFB->display, miniFB->screen);
   //{{{  set format
   int formatCount;
   int convDepth = -1;
-  XPixmapFormatValues* formats = XListPixmapFormats (info->display, &formatCount);
-  int depth = DefaultDepth (info->display, info->screen);
-  Window defaultRootWindow = DefaultRootWindow (info->display);
+  XPixmapFormatValues* formats = XListPixmapFormats (miniFB->display, &formatCount);
+  int depth = DefaultDepth (miniFB->display, miniFB->screen);
+  Window defaultRootWindow = DefaultRootWindow (miniFB->display);
   for (int i = 0; i < formatCount; ++i) {
     if (depth == formats[i].depth) {
       convDepth = formats[i].bits_per_pixel;
@@ -583,26 +581,26 @@ cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   if (convDepth != 32) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create 32 bir depth"));
-    XCloseDisplay (info->display);
+    XCloseDisplay (miniFB->display);
     return 0;
     }
     //}}}
   //}}}
   //{{{  set width, height
-  int screenWidth = DisplayWidth (info->display, info->screen);
-  int screenHeight = DisplayHeight (info->display, info->screen);
+  int screenWidth = DisplayWidth (miniFB->display, miniFB->screen);
+  int screenHeight = DisplayHeight (miniFB->display, miniFB->screen);
 
   XSetWindowAttributes windowAttributes;
-  windowAttributes.border_pixel = BlackPixel (info->display, info->screen);
-  windowAttributes.background_pixel = BlackPixel (info->display,info-> screen);
+  windowAttributes.border_pixel = BlackPixel (miniFB->display, miniFB->screen);
+  windowAttributes.background_pixel = BlackPixel (miniFB->display,miniFB-> screen);
   windowAttributes.backing_store = NotUseful;
 
-  info->window_width  = width;
-  info->window_height = height;
-  info->bufferWidth  = width;
-  info->bufferHeight = height;
-  info->bufferStride = width * 4;
-  info->calcDstFactor (width, height);
+  miniFB->window_width  = width;
+  miniFB->window_height = height;
+  miniFB->bufferWidth  = width;
+  miniFB->bufferHeight = height;
+  miniFB->bufferStride = width * 4;
+  miniFB->calcDstFactor (width, height);
 
   int posX, posY;
   int windowWidth, windowHeight;
@@ -626,25 +624,25 @@ cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
     //}}}
   //}}}
 
-  info->window = XCreateWindow (info->display, defaultRootWindow,
+  miniFB->window = XCreateWindow (miniFB->display, defaultRootWindow,
                                          posX, posY, windowWidth, windowHeight,
                                          0, depth, InputOutput, visual,
                                          CWBackPixel | CWBorderPixel | CWBackingStore,
                                          &windowAttributes);
-  if (!info->window) {
+  if (!miniFB->window) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create X11 window"));
     return 0;
     }
     //}}}
 
-  XSelectInput (info->display, info->window,
+  XSelectInput (miniFB->display, miniFB->window,
                 StructureNotifyMask | ExposureMask |
                 FocusChangeMask |
                 KeyPressMask | KeyReleaseMask |
                 ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
                 EnterWindowMask | LeaveWindowMask);
-  XStoreName (info->display, info->window, title);
+  XStoreName (miniFB->display, miniFB->window, title);
 
   if (flags & WF_BORDERLESS) {
     //{{{  borderless
@@ -656,34 +654,34 @@ cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
       unsigned long status;
       } sh = {2, 0, 0, 0, 0};
 
-    Atom sh_p = XInternAtom (info->display, "_MOTIF_WM_HINTS", True);
-    XChangeProperty (info->display, info->window, sh_p, sh_p, 32,
+    Atom sh_p = XInternAtom (miniFB->display, "_MOTIF_WM_HINTS", True);
+    XChangeProperty (miniFB->display, miniFB->window, sh_p, sh_p, 32,
                      PropModeReplace, (unsigned char*)&sh, 5);
     }
     //}}}
   if (flags & WF_ALWAYS_ON_TOP) {
     //{{{  always on top
-    Atom sa_p = XInternAtom (info->display, "_NET_WM_STATE_ABOVE", False);
-    XChangeProperty (info->display, info->window,
-                     XInternAtom (info->display, "_NET_WM_STATE", False), XA_ATOM, 32,
+    Atom sa_p = XInternAtom (miniFB->display, "_NET_WM_STATE_ABOVE", False);
+    XChangeProperty (miniFB->display, miniFB->window,
+                     XInternAtom (miniFB->display, "_NET_WM_STATE", False), XA_ATOM, 32,
                      PropModeReplace, (unsigned char*)&sa_p, 1);
     }
     //}}}
   if (flags & WF_FULLSCREEN) {
     //{{{  full screen
-    Atom sf_p = XInternAtom (info->display, "_NET_WM_STATE_FULLSCREEN", True);
-    XChangeProperty (info->display, info->window,
-                     XInternAtom (info->display, "_NET_WM_STATE", True), XA_ATOM, 32,
+    Atom sf_p = XInternAtom (miniFB->display, "_NET_WM_STATE_FULLSCREEN", True);
+    XChangeProperty (miniFB->display, miniFB->window,
+                     XInternAtom (miniFB->display, "_NET_WM_STATE", True), XA_ATOM, 32,
                      PropModeReplace, (unsigned char*)&sf_p, 1);
     }
     //}}}
 
-  gDeleteWindowAtom = XInternAtom (info->display, "WM_DELETE_WINDOW", False);
-  XSetWMProtocols (info->display, info->window, &gDeleteWindowAtom, 1);
+  gDeleteWindowAtom = XInternAtom (miniFB->display, "WM_DELETE_WINDOW", False);
+  XSetWMProtocols (miniFB->display, miniFB->window, &gDeleteWindowAtom, 1);
 
-  if (!createGLcontext (info)) {
+  if (!createGLcontext (miniFB)) {
     //{{{  error, return
-    cLog::log (LOGERROR, fmt::format ("fialed to create GL context"));
+    cLog::log (LOGERROR, fmt::format ("failed to create GL context"));
     return 0;
     }
     //}}}
@@ -707,17 +705,17 @@ cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
     sizeHints.max_height = height;
     }
     //}}}
-  XSetWMNormalHints (info->display, info->window, &sizeHints);
+  XSetWMNormalHints (miniFB->display, miniFB->window, &sizeHints);
   //}}}
-  XClearWindow (info->display, info->window);
-  XMapRaised (info->display, info->window);
-  XFlush (info->display);
+  XClearWindow (miniFB->display, miniFB->window);
+  XMapRaised (miniFB->display, miniFB->window);
+  XFlush (miniFB->display);
 
-  info->gc = DefaultGC (info->display, info->screen);
+  miniFB->gc = DefaultGC (miniFB->display, miniFB->screen);
   cLog::log (LOGINFO, "using X11 API");
 
   int32_t count;
-  XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (info->display, &count);
+  XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (miniFB->display, &count);
   if (!devices) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("X11 - no input device list"));
@@ -730,7 +728,7 @@ cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   for (int32_t i = 0; i < count; i++) {
     cLog::log (LOGINFO, fmt::format ("- device:{} name:{} id:{}", i, devices[i].name, devices[i].id));
     if (strstr (devices[i].name, "stylus")) { // "eraser"
-      gDevice = XOpenDevice (info->display, devices[i].id);
+      gDevice = XOpenDevice (miniFB->display, devices[i].id);
       XAnyClassPtr classPtr = devices[i].inputclassinfo;
       for (int32_t j = 0; j < devices[i].num_classes; j++) {
         switch (classPtr->c_class) {
@@ -773,18 +771,18 @@ cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
         classPtr = (XAnyClassPtr)((uint8_t*)classPtr + classPtr->length);
         }
       }
-    XSelectExtensionEvent (info->display, info->window, gEventClasses, gNumEventClasses);
+    XSelectExtensionEvent (miniFB->display, miniFB->window, gEventClasses, gNumEventClasses);
     }
   XFreeDeviceList (devices);
   //}}}
 
-  info->isInitialized = true;
-  return info;
+  miniFB->isInitialized = true;
+  return miniFB;
   }
 //}}}
 
 //{{{
-eUpdateState cInfo::updateEx (void* buffer, unsigned width, unsigned height) {
+eUpdateState cMiniFB::updateEx (void* buffer, unsigned width, unsigned height) {
 
   if (closed) {
     freeResources (this);
@@ -808,7 +806,7 @@ eUpdateState cInfo::updateEx (void* buffer, unsigned width, unsigned height) {
   }
 //}}}
 //{{{
-eUpdateState cInfo::updateEvents() {
+eUpdateState cMiniFB::updateEvents() {
 
   if (closed) {
     freeResources (this);
@@ -824,7 +822,7 @@ eUpdateState cInfo::updateEvents() {
 //}}}
 
 //{{{
-void cInfo::getMonitorScale (float* scale_x, float* scale_y) {
+void cMiniFB::getMonitorScale (float* scale_x, float* scale_y) {
 
   float x = 96.0;
   float y = 96.0;
@@ -843,7 +841,7 @@ void cInfo::getMonitorScale (float* scale_x, float* scale_y) {
   }
 //}}}
 //{{{
-bool cInfo::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
+bool cMiniFB::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
 
   if (offset_x + width > window_width)
     return false;

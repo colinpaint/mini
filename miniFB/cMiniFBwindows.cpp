@@ -2,7 +2,7 @@
 //{{{  includes
 #include <cstdint>
 
-#include "miniFB.h"
+#include "cMiniFB.h"
 #include <windowsx.h>
 
 #include "../common/cLog.h"
@@ -15,9 +15,9 @@ using namespace std;
   #include "pktDef.h"
 #endif
 
-extern short int gKeycodes[512];
-
 namespace {
+  short int gKeycodes[512] = { 0 };
+
   #ifdef USE_WINTAB
     //{{{  use wintab
     //{{{
@@ -542,7 +542,7 @@ namespace {
   //{{{
   LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
-    cInfo* info = (cInfo*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+    cMiniFB* miniFB = (cMiniFB*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
     switch (message) {
       //{{{
       case WM_NCCREATE:
@@ -553,22 +553,22 @@ namespace {
       //}}}
       //{{{
       case WM_SIZE:
-        if (info) {
+        if (miniFB) {
           if (wParam == SIZE_MINIMIZED)
             return 0;
 
           float scale_x, scale_y;
           getWindowsMonitorScale (hWnd, &scale_x, &scale_y);
-          info->window_width = GET_X_LPARAM(lParam);
-          info->window_height =  GET_Y_LPARAM(lParam);
-          info->resizeDst (info->window_width, info->window_height);
+          miniFB->window_width = GET_X_LPARAM(lParam);
+          miniFB->window_height =  GET_Y_LPARAM(lParam);
+          miniFB->resizeDst (miniFB->window_width, miniFB->window_height);
 
-          resizeGL (info);
-          if (info->window_width && info->window_height) {
-            info->windowScaledWidth  = (uint32_t)(info->window_width  / scale_x);
-            info->windowScaledHeight = (uint32_t)(info->window_height / scale_y);
-            if (info->resizeFunc)
-              info->resizeFunc (info);
+          resizeGL (miniFB);
+          if (miniFB->window_width && miniFB->window_height) {
+            miniFB->windowScaledWidth  = (uint32_t)(miniFB->window_width  / scale_x);
+            miniFB->windowScaledHeight = (uint32_t)(miniFB->window_height / scale_y);
+            if (miniFB->resizeFunc)
+              miniFB->resizeFunc (miniFB);
             }
           }
 
@@ -577,17 +577,17 @@ namespace {
 
       //{{{
       case WM_CLOSE:
-        if (info) {
+        if (miniFB) {
           bool destroy = false;
 
           // Obtain a confirmation of close
-          if (!info->closeFunc || info->closeFunc (info))
+          if (!miniFB->closeFunc || miniFB->closeFunc (miniFB))
             destroy = true;
 
           if (destroy) {
-            info->closed = true;
-            if (info)
-              DestroyWindow (info->window);
+            miniFB->closed = true;
+            if (miniFB)
+              DestroyWindow (miniFB->window);
             }
           }
 
@@ -595,28 +595,28 @@ namespace {
       //}}}
       //{{{
       case WM_DESTROY:
-        if (info)
-          info->closed = true;
+        if (miniFB)
+          miniFB->closed = true;
 
         break;
       //}}}
 
       //{{{
       case WM_SETFOCUS:
-        if (info) {
-          info->isActive = true;
-          if (info->activeFunc)
-            info->activeFunc (info);
+        if (miniFB) {
+          miniFB->isActive = true;
+          if (miniFB->activeFunc)
+            miniFB->activeFunc (miniFB);
           }
 
         break;
       //}}}
       //{{{
       case WM_KILLFOCUS:
-        if (info) {
-          info->isActive = false;
-          if (info->activeFunc)
-            info->activeFunc (info);
+        if (miniFB) {
+          miniFB->isActive = false;
+          if (miniFB->activeFunc)
+            miniFB->activeFunc (miniFB);
           }
 
         break;
@@ -627,18 +627,18 @@ namespace {
       case WM_KEYDOWN:
       //{{{
       case WM_KEYUP:
-        if (info) {
+        if (miniFB) {
           eKey keyCode = translateKey ((unsigned int)wParam, (unsigned long)lParam);
-          info->isPressed = !((lParam >> 31) & 1);
-          info->modifierKeys = translateMod();
+          miniFB->isPressed = !((lParam >> 31) & 1);
+          miniFB->modifierKeys = translateMod();
 
           if (keyCode == KB_KEY_UNKNOWN)
             return 0;
 
-          info->keyCode = keyCode;
-          info->keyStatus[keyCode] = (uint8_t)info->isPressed;
-          if (info->keyFunc)
-            info->keyFunc (info);
+          miniFB->keyCode = keyCode;
+          miniFB->keyStatus[keyCode] = (uint8_t)miniFB->isPressed;
+          if (miniFB->keyFunc)
+            miniFB->keyFunc (miniFB);
           }
 
         break;
@@ -650,24 +650,24 @@ namespace {
         {
         static WCHAR highSurrogate = 0;
 
-        if (info) {
+        if (miniFB) {
           if (wParam >= 0xd800 && wParam <= 0xdbff)
             highSurrogate = (WCHAR) wParam;
           else {
-            info->codepoint = 0;
+            miniFB->codepoint = 0;
             if (wParam >= 0xdc00 && wParam <= 0xdfff) {
               if (highSurrogate != 0) {
-                info->codepoint += (highSurrogate - 0xd800) << 10;
-                info->codepoint += (WCHAR) wParam - 0xdc00;
-                info->codepoint += 0x10000;
+                miniFB->codepoint += (highSurrogate - 0xd800) << 10;
+                miniFB->codepoint += (WCHAR) wParam - 0xdc00;
+                miniFB->codepoint += 0x10000;
                 }
               }
             else
-              info->codepoint = (WCHAR) wParam;
+              miniFB->codepoint = (WCHAR) wParam;
 
             highSurrogate = 0;
-            if (info->charFunc)
-              info->charFunc (info);
+            if (miniFB->charFunc)
+              miniFB->charFunc (miniFB);
             }
           }
         }
@@ -691,7 +691,7 @@ namespace {
               gWinTab->mButtons = packet.pkButtons;
               gWinTab->mTime = packet.pkTime;
 
-              cLog::log (LOGINFO, fmt::format ("WT_PACKET press:{} time:{}", gWinTab->mPressure, gWinTab->mTime));
+              cLog::log (LOGminiFB, fmt::format ("WT_PACKET press:{} time:{}", gWinTab->mPressure, gWinTab->mTime));
               }
             else
               cLog::log (LOGERROR, fmt::format ("WT_PACKET no packet"));
@@ -714,23 +714,23 @@ namespace {
 
       //{{{
       case WM_POINTERENTER:
-        info->pointerInside = true;
-        if (info->enterFunc)
-          info->enterFunc (info);
+        miniFB->pointerInside = true;
+        if (miniFB->enterFunc)
+          miniFB->enterFunc (miniFB);
 
         break;
       //}}}
       //{{{
       case WM_POINTERLEAVE:
-        info->pointerInside = false;
-        if (info->enterFunc)
-          info->enterFunc (info);
+        miniFB->pointerInside = false;
+        if (miniFB->enterFunc)
+          miniFB->enterFunc (miniFB);
 
         break;
       //}}}
       //{{{
       case WM_POINTERDOWN:
-        if (info) {
+        if (miniFB) {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
             if (pointerInfo.pointerType == PT_MOUSE) {
@@ -742,21 +742,21 @@ namespace {
             else // unused PT_TOUCH, PT_TOUCHPAD
               cLog::log (LOGERROR, fmt::format ("pointerDown - unknown type:{}", pointerInfo.pointerType));
 
-            info->pointerButtonStatus[MOUSE_BTN_1] = 1;
-            info->modifierKeys = translateMod();
-            info->isDown = 1;
-            if (info->buttonFunc)
-              info->buttonFunc (info);
+            miniFB->pointerButtonStatus[MOUSE_BTN_1] = 1;
+            miniFB->modifierKeys = translateMod();
+            miniFB->isDown = 1;
+            if (miniFB->buttonFunc)
+              miniFB->buttonFunc (miniFB);
             }
           else
-            cLog::log (LOGERROR, fmt::format ("pointerDown - no info"));
+            cLog::log (LOGERROR, fmt::format ("pointerDown - no miniFB"));
           }
 
         break;
       //}}}
       //{{{
       case WM_POINTERUP:
-        if (info) {
+        if (miniFB) {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
             if (pointerInfo.pointerType == PT_MOUSE) {
@@ -768,11 +768,11 @@ namespace {
             else // unused PT_TOUCH, PT_TOUCHPAD
               cLog::log (LOGERROR, fmt::format ("pointerUp - unknown type:{}", pointerInfo.pointerType));
 
-            info->modifierKeys = translateMod();
-            info->pointerButtonStatus[MOUSE_BTN_1] = 0;
-            info->isDown = 0;
-            if (info->buttonFunc)
-              info->buttonFunc (info);
+            miniFB->modifierKeys = translateMod();
+            miniFB->pointerButtonStatus[MOUSE_BTN_1] = 0;
+            miniFB->isDown = 0;
+            if (miniFB->buttonFunc)
+              miniFB->buttonFunc (miniFB);
             }
           else
             cLog::log (LOGERROR, fmt::format ("pointerUp - no info"));
@@ -854,38 +854,38 @@ namespace {
           //INT32        tiltX;
           //INT32        tiltY;
         //}}}
-        if (info) {
+        if (miniFB) {
           POINTER_INFO pointerInfo;
           if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
             if (pointerInfo.pointerType == PT_MOUSE) {
               //cLog::log (LOGINFO, fmt::format ("pointerUpdate mouse type:{} flags:{:x} time:{}",
               //                                 pointerInfo.pointerType, pointerInfo.pointerFlags, pointerInfo.dwTime));
-              info->pointerInside = true;
+              miniFB->pointerInside = true;
 
               POINT clientPos = pointerInfo.ptPixelLocation;
               ScreenToClient (hWnd, &clientPos);
-              info->pointerPosX = clientPos.x;
-              info->pointerPosY = clientPos.y;
-              info->pointerPressure = info->pointerButtonStatus[MOUSE_BTN_1] * 1024;
-              info->pointerTimestamp = 0;
-              if (info->moveFunc)
-                info->moveFunc (info);
+              miniFB->pointerPosX = clientPos.x;
+              miniFB->pointerPosY = clientPos.y;
+              miniFB->pointerPressure = miniFB->pointerButtonStatus[MOUSE_BTN_1] * 1024;
+              miniFB->pointerTimestamp = 0;
+              if (miniFB->moveFunc)
+                miniFB->moveFunc (miniFB);
               }
             else if (pointerInfo.pointerType == PT_PEN) {
               POINTER_PEN_INFO pointerPenInfos[10];
               uint32_t entriesCount = 10;
               if (GetPointerPenInfoHistory (GET_POINTERID_WPARAM (wParam), &entriesCount, pointerPenInfos)) {
-                info->pointerInside = true;
+                miniFB->pointerInside = true;
                 for (uint32_t i = entriesCount; i > 0; i--) {
-                  info->pointerTimestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
+                  miniFB->pointerTimestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
                   ScreenToClient (hWnd, &pointerPenInfos[i-1].pointerInfo.ptPixelLocation);
-                  info->pointerPosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
-                  info->pointerPosY = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
-                  info->pointerPressure = pointerPenInfos[i-1].pressure;
-                  info->pointerTiltX = 0;
-                  info->pointerTiltY = 0;
-                  if (info->moveFunc)
-                    info->moveFunc (info);
+                  miniFB->pointerPosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
+                  miniFB->pointerPosY = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
+                  miniFB->pointerPressure = pointerPenInfos[i-1].pressure;
+                  miniFB->pointerTiltX = 0;
+                  miniFB->pointerTiltY = 0;
+                  if (miniFB->moveFunc)
+                    miniFB->moveFunc (miniFB);
                   }
                 }
               }
@@ -901,12 +901,12 @@ namespace {
       //}}}
       //{{{
       case WM_POINTERWHEEL:
-        if (info) {
+        if (miniFB) {
           cLog::log (LOGINFO, fmt::format ("pointerWheel"));
-          info->pointerWheelX = 0;
-          info->pointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-          if (info->wheelFunc)
-            info->wheelFunc (info);
+          miniFB->pointerWheelX = 0;
+          miniFB->pointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
+          if (miniFB->wheelFunc)
+            miniFB->wheelFunc (miniFB);
           }
         else
           cLog::log (LOGERROR, fmt::format ("pointerWheel - no info"));
@@ -956,23 +956,23 @@ namespace {
     }
   //}}}
   //{{{
-  void freeResources (cInfo* info) {
+  void freeResources (cMiniFB* miniFB) {
 
-    if (!info)
+    if (!miniFB)
       return;
 
-    destroyGLcontext (info);
+    destroyGLcontext (miniFB);
 
-    if (info->window && info->hdc) {
-      ReleaseDC (info->window, info->hdc);
-      DestroyWindow (info->window);
+    if (miniFB->window && miniFB->hdc) {
+      ReleaseDC (miniFB->window, miniFB->hdc);
+      DestroyWindow (miniFB->window);
       }
 
-    info->window = 0;
-    info->hdc = 0;
+    miniFB->window = 0;
+    miniFB->hdc = 0;
 
-    info->draw_buffer = 0x0;
-    info->closed = true;
+    miniFB->draw_buffer = 0x0;
+    miniFB->closed = true;
 
     #ifdef USE_WINTAB
       winTabUnload();
@@ -983,7 +983,7 @@ namespace {
 
 // interface
 //{{{
-cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags) {
+cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, unsigned flags) {
 
   RECT rect = { 0 };
   int x = 0;
@@ -993,12 +993,12 @@ cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   dpiAware();
   initKeycodes();
 
-  cInfo* info = new cInfo();
-  memset (info, 0, sizeof(cInfo));
+  cMiniFB* miniFB = new cMiniFB();
+  memset (miniFB, 0, sizeof(cMiniFB));
 
-  info->bufferWidth  = width;
-  info->bufferHeight = height;
-  info->bufferStride = width * 4;
+  miniFB->bufferWidth  = width;
+  miniFB->bufferHeight = height;
+  miniFB->bufferStride = width * 4;
 
   long s_window_style = WS_POPUP | WS_SYSMENU | WS_CAPTION;
   s_window_style = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME;
@@ -1051,7 +1051,7 @@ cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   else if (!(flags & WF_FULLSCREEN)) {
     //{{{  desktop fullscreen
     float scale_x, scale_y;
-    info->getMonitorScale (&scale_x, &scale_y);
+    miniFB->getMonitorScale (&scale_x, &scale_y);
 
     rect.right  = (LONG) (width  * scale_x);
     rect.bottom = (LONG) (height * scale_y);
@@ -1064,57 +1064,58 @@ cInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
     }
     //}}}
 
-  info->wc.style         = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
-  info->wc.lpfnWndProc   = WndProc;
-  info->wc.hCursor       = LoadCursor(0, IDC_ARROW);
-  info->wc.lpszClassName = title;
-  RegisterClass (&info->wc);
+  miniFB->wc.style         = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
+  miniFB->wc.lpfnWndProc   = WndProc;
+  miniFB->wc.hCursor       = LoadCursor(0, IDC_ARROW);
+  miniFB->wc.lpszClassName = title;
+  RegisterClass (&miniFB->wc);
 
-  info->calcDstFactor (width, height);
+  miniFB->calcDstFactor (width, height);
 
-  info->window_width  = rect.right;
-  info->window_height = rect.bottom;
+  miniFB->window_width  = rect.right;
+  miniFB->window_height = rect.bottom;
 
-  info->window = CreateWindowEx (0,
+  miniFB->window = CreateWindowEx (0,
                                            title, title,
                                            s_window_style,
                                            x, y,
-                                           info->window_width, info->window_height,
+                                           miniFB->window_width, miniFB->window_height,
                                            0, 0, 0, 0);
-  if (!info->window) {
+  if (!miniFB->window) {
     //{{{  error, return
-    free (info);
+    free (miniFB);
     return 0x0;
     }
     //}}}
 
-  SetWindowLongPtr (info->window, GWLP_USERDATA, (LONG_PTR) info);
+  SetWindowLongPtr (miniFB->window, GWLP_USERDATA, (LONG_PTR) miniFB);
 
   if (flags & WF_ALWAYS_ON_TOP)
-    SetWindowPos (info->window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-  ShowWindow (info->window, SW_NORMAL);
+    SetWindowPos (miniFB->window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+  ShowWindow (miniFB->window, SW_NORMAL);
 
-  info->hdc = GetDC (info->window);
+  miniFB->hdc = GetDC (miniFB->window);
 
-  createGLcontext (info);
+  createGLcontext (miniFB);
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
   #ifdef USE_WINTAB
     // enable winTab, mainly for WT_PROXIMITY, get WT_PACKET
-    if (!winTabLoad (info->window))
+    if (!winTabLoad (miniFB->window))
       cLog::log (LOGERROR, fmt::format ("winTab load failed"));
   #endif
 
   // enable WM_POINTER wndProc messaging, to tell mouse from pen
   EnableMouseInPointer (true);
 
-  info->isInitialized = true;
-  return info;
+  miniFB->isInitialized = true;
+  return miniFB;
   }
 //}}}
+
 //{{{
-eUpdateState cInfo::updateEx (void* buffer, unsigned width, unsigned height) {
+eUpdateState cMiniFB::updateEx (void* buffer, unsigned width, unsigned height) {
 
   if (closed) {
     freeResources (this);
@@ -1134,7 +1135,7 @@ eUpdateState cInfo::updateEx (void* buffer, unsigned width, unsigned height) {
   }
 //}}}
 //{{{
-eUpdateState cInfo::updateEvents() {
+eUpdateState cMiniFB::updateEvents() {
 
   if (closed) {
     freeResources (this);
@@ -1152,12 +1153,12 @@ eUpdateState cInfo::updateEvents() {
 //}}}
 
 //{{{
-void cInfo::getMonitorScale (float* scale_x, float* scale_y) {
+void cMiniFB::getMonitorScale (float* scale_x, float* scale_y) {
   getWindowsMonitorScale (window, scale_x, scale_y);
   }
 //}}}
 //{{{
-bool cInfo::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
+bool cMiniFB::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
 
   if (offset_x + width > window_width)
     return false;

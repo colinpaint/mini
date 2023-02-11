@@ -2479,7 +2479,7 @@ static stbtt_int32  stbtt__GetGlyphClass(stbtt_uint8 *classDefTable, int glyph)
 // Define to STBTT_assert(x) if you want to break on unimplemented formats.
 #define STBTT_GPOS_TODO_assert(x)
 
-static stbtt_int32  stbtt__GetGlyphGPOcInfoAdvance(const stbtt_fontinfo *info, int glyph1, int glyph2)
+static stbtt_int32  stbtt__GetGlyphGPOcMiniFBAdvance(const stbtt_fontinfo *info, int glyph1, int glyph2)
 {
     stbtt_uint16 lookupListOffset;
     stbtt_uint8 *lookupList;
@@ -2612,7 +2612,7 @@ STBTT_DEF int  stbtt_GetGlyphKernAdvance(const stbtt_fontinfo *info, int g1, int
    int xAdvance = 0;
 
    if (info->gpos)
-      xAdvance += stbtt__GetGlyphGPOcInfoAdvance(info, g1, g2);
+      xAdvance += stbtt__GetGlyphGPOcMiniFBAdvance(info, g1, g2);
    else if (info->kern)
       xAdvance += stbtt__GetGlyphKernInfoAdvance(info, g1, g2);
 

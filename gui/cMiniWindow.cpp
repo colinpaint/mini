@@ -8,7 +8,7 @@
 #include "../common/utils.h"
 #include "../common/cLog.h"
 
-#include "../miniFB/miniFB.h"
+#include "../miniFB/cMiniFB.h"
 
 using namespace std;
 using namespace chrono;
@@ -33,7 +33,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     cLog::log (LOGERROR, fmt::format ("No timezone correction for Linux yet"));
   #endif
 
-  mWindow = openEx (title.c_str(), width, height, WF_RESIZABLE);
+  mWindow = cMiniFB::create (title.c_str(), width, height, WF_RESIZABLE);
   if (!mWindow)
     return false;
 
@@ -45,13 +45,13 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // state callbacks
   //{{{
-  setActiveCallback ([&](cInfo* info) {
+  setActiveCallback ([&](cMiniFB* info) {
       cLog::log (LOGINFO, fmt::format ("active {}", info->isActive));
       },
     mWindow);
   //}}}
   //{{{
-  setResizeCallback ([&](struct cInfo* info) {
+  setResizeCallback ([&](struct cMiniFB* info) {
       int width = info->windowScaledWidth;
       int height = info->windowScaledHeight;
 
@@ -71,7 +71,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setCloseCallback ([&](cInfo* info) {
+  setCloseCallback ([&](cMiniFB* info) {
       (void)info;
       cLog::log (LOGINFO, fmt::format ("close"));
       return true; // false for don't close
@@ -81,20 +81,20 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // keyboard callbacks
   //{{{
-  setKeyCallback ([&](cInfo* info) {
+  setKeyCallback ([&](cMiniFB* info) {
       if (info->keyCode == KB_KEY_ESCAPE)
         info->close();
 
       if (info->isPressed)
         if (!keyDown (info->keyCode))
           cLog::log (LOGINFO, fmt::format ("keyboard key:{} pressed:{} mod:{}",
-                                           cInfo::getKeyName (info->keyCode), info->isPressed, (int)info->modifierKeys));
+                                           cMiniFB::getKeyName (info->keyCode), info->isPressed, (int)info->modifierKeys));
       },
 
     mWindow);
   //}}}
   //{{{
-  setCharCallback ([&](cInfo* info) {
+  setCharCallback ([&](cMiniFB* info) {
       cLog::log (LOGINFO, fmt::format ("char code:{}", info->codepoint));
       },
     mWindow);
@@ -102,7 +102,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // mouse callbacks
   //{{{
-  setButtonCallback ([&](cInfo* info) {
+  setButtonCallback ([&](cMiniFB* info) {
       if (info->isDown) {
         mMousePress = true;
         mMouseMoved = false;
@@ -126,7 +126,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setMoveCallback ([&](cInfo* info) { //, int x, int y, int pressure, int timestamp) {
+  setMoveCallback ([&](cMiniFB* info) { //, int x, int y, int pressure, int timestamp) {
       //cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}", x, y, pressure, timestamp));
       mMousePos.x = (float)info->pointerPosX;
       mMousePos.y = (float)info->pointerPosY;
@@ -144,7 +144,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setWheelCallback ([&](cInfo* info) {
+  setWheelCallback ([&](cMiniFB* info) {
       mScale *= (info->pointerWheelY > 0.f) ? 1.05f : 1.f / 1.05f;
       cLog::log (LOGINFO, fmt::format ("mouseWheel problem - deltaY:{} int(deltaY):{}", info->pointerWheelY, int(info->pointerWheelY)));
       if (mouseWheel ((int)info->pointerWheelY, mMousePos))
@@ -155,7 +155,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     mWindow);
   //}}}
   //{{{
-  setEnterCallback ([&](cInfo* info) {
+  setEnterCallback ([&](cMiniFB* info) {
       cLog::log (LOGINFO, fmt::format ("pointerEnter {}", info->pointerInside));
       },
     mWindow);

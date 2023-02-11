@@ -1,9 +1,9 @@
 project (miniFB)
 
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-  set (platform miniFB.h miniFB.cpp miniFBwindows.cpp pktDef.h winTab.h)
+  set (platform cMiniFB.h cMiniFB.cpp cMiniFBwindows.cpp pktDef.h winTab.h)
 else()
-  set (platform miniFB.h miniFB.cpp miniFBx11.cpp)
+  set (platform cMiniFB.h cMiniFB.cpp cMiniFBx11.cpp)
 endif()
 
 add_library (${PROJECT_NAME} ${files} ${platform})
