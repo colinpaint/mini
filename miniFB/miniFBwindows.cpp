@@ -1023,9 +1023,7 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   dpiAware();
   initKeycodes();
 
-  sInfo* info = (sInfo*)malloc(sizeof(sInfo));
-  if (info == 0x0)
-    return 0x0;
+  sInfo* info = new sInfo();
   memset (info, 0, sizeof(sInfo));
 
   info->bufferWidth  = width;
@@ -1083,7 +1081,7 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   else if (!(flags & WF_FULLSCREEN)) {
     //{{{  desktop fullscreen
     float scale_x, scale_y;
-    getMonitorScale (0, &scale_x, &scale_y);
+    info->getMonitorScale (&scale_x, &scale_y);
 
     rect.right  = (LONG) (width  * scale_x);
     rect.bottom = (LONG) (height * scale_y);
@@ -1148,41 +1146,35 @@ sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flag
   }
 //}}}
 //{{{
-eUpdateState updateEx (sInfo* info, void* buffer, unsigned width, unsigned height) {
+eUpdateState sInfo::updateEx (void* buffer, unsigned width, unsigned height) {
 
-  if (!info)
-    return STATE_INVALID_WINDOW;
-
-  if (info->closed) {
-    freeResources (info);
+  if (closed) {
+    freeResources (this);
     return STATE_EXIT;
     }
 
   if (!buffer)
     return STATE_INVALID_BUFFER;
 
-  info->draw_buffer = buffer;
-  info->bufferWidth = width;
-  info->bufferStride = width * 4;
-  info->bufferHeight = height;
-  redrawGL (info, buffer);
+  draw_buffer = buffer;
+  bufferWidth = width;
+  bufferStride = width * 4;
+  bufferHeight = height;
+  redrawGL (this, buffer);
 
   return STATE_OK;
   }
 //}}}
 //{{{
-eUpdateState updateEvents (sInfo* info) {
+eUpdateState sInfo::updateEvents() {
 
-  if (!info)
-    return STATE_INVALID_WINDOW;
-
-  if (info->closed) {
-    freeResources (info);
+  if (closed) {
+    freeResources (this);
     return STATE_EXIT;
     }
 
   MSG msg;
-  while (!info->closed && PeekMessage (&msg, info->window, 0, 0, PM_REMOVE)) {
+  while (!closed && PeekMessage (&msg, window, 0, 0, PM_REMOVE)) {
     TranslateMessage (&msg);
     DispatchMessage (&msg);
     }
@@ -1192,52 +1184,40 @@ eUpdateState updateEvents (sInfo* info) {
 //}}}
 
 //{{{
-void getMonitorScale (sInfo* info, float* scale_x, float* scale_y) {
-
-  HWND hWnd = 0x0;
-
-  if (info)
-    hWnd = info->window;
-
-  getWindowsMonitorScale (hWnd, scale_x, scale_y);
+void sInfo::getMonitorScale (float* scale_x, float* scale_y) {
+  getWindowsMonitorScale (window, scale_x, scale_y);
   }
 //}}}
 //{{{
-bool setViewport (sInfo* info, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
+bool sInfo::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
 
-  if (!info)
+  if (offset_x + width > window_width)
     return false;
 
-  if (offset_x + width > info->window_width)
-    return false;
-
-  if (offset_y + height > info->window_height)
+  if (offset_y + height > window_height)
     return false;
 
   float scale_x, scale_y;
-  getWindowsMonitorScale (info->window, &scale_x, &scale_y);
+  getWindowsMonitorScale (window, &scale_x, &scale_y);
 
-  info->dst_offset_x = (uint32_t)(offset_x * scale_x);
-  info->dst_offset_y = (uint32_t)(offset_y * scale_y);
+  dst_offset_x = (uint32_t)(offset_x * scale_x);
+  dst_offset_y = (uint32_t)(offset_y * scale_y);
 
-  info->dst_width = (uint32_t)(width  * scale_x);
-  info->dst_height = (uint32_t)(height * scale_y);
+  dst_width = (uint32_t)(width  * scale_x);
+  dst_height = (uint32_t)(height * scale_y);
 
-  calcDstFactor (info, info->window_width, info->window_height);
+  calcDstFactor (this, window_width, window_height);
 
   return true;
   }
 //}}}
 
 //{{{
-bool waitSync (sInfo* info) {
+bool sInfo::waitSync() {
 
-  if (!info)
-    return false;
-
-  if (info->closed) {
+  if (closed) {
     //{{{  return false
-    freeResources (info);
+    freeResources (this);
     return false;
     }
     //}}}
@@ -1247,9 +1227,9 @@ bool waitSync (sInfo* info) {
 
   double current;
   while (true) {
-    current = timerNow (info->timer);
+    current = timerNow (timer);
     if (current >= gTimeForFrame) {
-      timerReset (info->timer);
+      timerReset (timer);
       return true;
       }
     else if (gTimeForFrame - current > 2.0 / 1000.0) {
@@ -1258,16 +1238,14 @@ bool waitSync (sInfo* info) {
       timeEndPeriod (1);
 
       MSG msg;
-      if (PeekMessage (&msg, info->window, 0, 0, PM_REMOVE)) {
+      if (PeekMessage (&msg, window, 0, 0, PM_REMOVE)) {
         TranslateMessage (&msg);
         DispatchMessage (&msg);
 
-        if (info->closed) {
-          //{{{  return false
-          freeResources (info);
+        if (closed) {
+          freeResources (this);
           return false;
           }
-          //}}}
         }
       }
     }

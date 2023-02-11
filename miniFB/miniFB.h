@@ -4,21 +4,55 @@
 #include "miniFBenums.h"
 
 #ifdef _WIN32
+  #define NOMINMAX
   #include <windows.h>
 #else
   #include <X11/Xlib.h>
   #include <GL/glx.h>
 #endif
 
-struct sInfoX11 {
-  };
-
 struct sMiniFBtimer;
-struct sInfo;
+class sInfo;
 typedef void(*infoFuncType)(sInfo* info);
 typedef bool(*closeFuncType)(sInfo* info);
 //{{{
-struct sInfo {
+class sInfo {
+public:
+  eUpdateState update (void* buffer);
+  eUpdateState updateEx (void* buffer, unsigned width, unsigned height);
+  eUpdateState updateEvents();
+  void close();
+
+  bool waitSync();
+  // gets
+  void* getUserData () { return userData; }
+
+  bool isWindowActive() { return isActive; }
+  unsigned getWindowWidth()  { return window_width; }
+  unsigned getWindowHeight() { return window_height; }
+
+  int getPointerX () { return pointerPosX; }
+  int getPointerY () { return pointerPosY; }
+  int getPointerPressure() { return pointerPressure; }
+  int64_t getPointerTimestamp() { return pointerTimestamp; }
+
+  float getPointerWheelX() { return pointerWheelX; }
+  float getPointerWheelY() { return pointerWheelY; }
+
+  const uint8_t* getPointerButtonBuffer() { return pointerButtonStatus; }
+  const uint8_t* getKeyBuffer()  { return keyStatus; }
+
+  void getMonitorScale (float* scale_x, float* scale_y);
+
+  // sets
+  void setUserData (void* user_data);
+  bool setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
+  bool setViewportBestFit (unsigned old_width, unsigned old_height);
+
+  // static
+  static const char* getKeyName (eKey key);
+
+  // vars
   void* userData;
 
   infoFuncType  activeFunc;
@@ -94,41 +128,10 @@ struct sInfo {
 sInfo* open (const char* title, unsigned width, unsigned height);
 sInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags);
 
-eUpdateState update (sInfo* info, void* buffer);
-eUpdateState updateEx (sInfo* info, void* buffer, unsigned width, unsigned height);
-eUpdateState updateEvents (sInfo* info);
-
-void close (sInfo* info);
-
-// gets
-bool isWindowActive (sInfo* info);
-unsigned getWindowWidth (sInfo* info);
-unsigned getWindowHeight (sInfo* info);
-void getMonitorScale (sInfo* info, float* scale_x, float* scale_y);
-
-int64_t getPointerTimestamp (sInfo* info); // last pointer timestamp
-int getPointerX (sInfo* info);             // last pointer pos X
-int getPointerY (sInfo* info);             // last pointer pos Y
-int getPointerPressure (sInfo* info);      // last pointer pressure
-float getPointerWheelX (sInfo* info);      // last pointer wheel X as a sum. When you call this function it resets.
-float getPointerWheelY (sInfo* info);      // last pointer wheel Y as a sum. When you call this function it resets.
-
-const uint8_t* getPointerButtonBuffer (sInfo* info); // One byte for every button. Press (1), Release 0. (up to 8 buttons)
-const uint8_t* getKeyBuffer (sInfo* info);           // One byte for every key. Press (1), Release 0.
-const char* getKeyName (eKey key);
-
-void* getUserData (sInfo* info);
-
-// sets
-void setUserData (sInfo* info, void* user_data);
-bool setViewport (sInfo* info, unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
-bool setViewportBestFit (sInfo* info, unsigned old_width, unsigned old_height);
 
 // fps
 void setTargetFps (uint32_t fps);
 unsigned getTargetFps();
-
-bool waitSync (sInfo* info);
 
 // timer
 struct sMiniFBtimer;

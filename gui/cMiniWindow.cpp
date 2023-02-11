@@ -66,7 +66,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         y = (height - getHeight()) >> 1;
         setHeight (height);
         }
-      setViewport (info, x, y, width, height);
+      info->setViewport (x, y, width, height);
       },
     mWindow);
   //}}}
@@ -83,12 +83,12 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   //{{{
   setKeyCallback ([&](sInfo* info) {
       if (info->keyCode == KB_KEY_ESCAPE)
-        close (info);
+        info->close();
 
       if (info->isPressed)
         if (!keyDown (info->keyCode))
           cLog::log (LOGINFO, fmt::format ("keyboard key:{} pressed:{} mod:{}",
-                                           getKeyName (info->keyCode), info->isPressed, (int)info->modifierKeys));
+                                           sInfo::getKeyName (info->keyCode), info->isPressed, (int)info->modifierKeys));
       },
 
     mWindow);
@@ -106,7 +106,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
       if (info->isDown) {
         mMousePress = true;
         mMouseMoved = false;
-        mMousePressPos = cPoint ((float)getPointerX (info), (float)getPointerY (info));
+        mMousePressPos = cPoint ((float)info->getPointerX(), (float)info->getPointerY());
         mMousePressRight = info->pointerButtonStatus[MOUSE_BTN_3];
         mMouseLastPos = mMousePressPos;
         mMousePressUsed = mouseDown (mMousePressRight, mMousePressPos);
@@ -115,7 +115,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         cursorChanged();
         }
       else {
-        mMouseLastPos = cPoint (getPointerX (info), getPointerY (info));
+        mMouseLastPos = cPoint (info->getPointerX(), info->getPointerY());
         if (mouseUp (mMousePressRight, mMouseMoved, mMouseLastPos))
           changed();
         mMousePress = false;
@@ -186,7 +186,7 @@ void cWindow::uiLoop (bool useChanged, bool drawPerf,
   changed();
 
   int64_t frameUs = 0;
-  while (!mExit && (updateEvents (mWindow) == STATE_OK)) {
+  while (!mExit && (mWindow->updateEvents() == STATE_OK)) {
     if (!useChanged || mChanged) {
       system_clock::time_point time = system_clock::now();
 
@@ -203,10 +203,10 @@ void cWindow::uiLoop (bool useChanged, bool drawPerf,
         }
 
       // update window with our texture
-      update (mWindow, getPixels());
+      mWindow->update (getPixels());
       frameUs = duration_cast<microseconds>(system_clock::now() - time).count();
       if (!useChanged)
-        waitSync (mWindow);
+        mWindow->waitSync();
       }
     else {
       this_thread::sleep_for (1ms);

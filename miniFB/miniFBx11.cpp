@@ -873,12 +873,9 @@ bool setViewport (sInfo* info, unsigned offset_x, unsigned offset_y, unsigned wi
 //}}}
 
 //{{{
-bool waitSync (sInfo* info) {
+bool cInfo::waitSync() {
 
-  if (!info)
-    return false;
-
-  if (info->closed) {
+  if (infoclosed) {
     freeResources (info);
     return false;
     }
@@ -886,15 +883,15 @@ bool waitSync (sInfo* info) {
   if (gUseHardwareSync)
     return true;
 
-  XFlush (info->display);
+  XFlush (display);
 
   XEvent event;
   double current;
   uint32_t millis = 1;
   while(1) {
-    current = timerNow (info->timer);
+    current = timerNow (timer);
     if (current >= gTimeForFrame * 0.96) {
-      timerReset (info->timer);
+      timerReset (timer);
       return true;
       }
     else if (current >= gTimeForFrame * 0.8)
@@ -903,11 +900,11 @@ bool waitSync (sInfo* info) {
     usleep (millis * 1000);
     //sched_yield();
 
-    if (millis == 1 && XEventsQueued (info->display, QueuedAlready) > 0) {
-      XNextEvent (info->display, &event);
+    if (millis == 1 && XEventsQueued (display, QueuedAlready) > 0) {
+      XNextEvent (display, &event);
       processEvent (info, &event);
 
-      if (info->closed) {
+      if (closed) {
         freeResources (info);
         return false;
         }

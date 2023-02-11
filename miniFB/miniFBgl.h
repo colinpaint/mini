@@ -1,6 +1,6 @@
 #pragma once
 
-struct sInfo;
+class sInfo;
 
 bool createGLcontext (sInfo* info);
 void destroyGLcontext (sInfo* info);

@@ -8,7 +8,7 @@
 #include <deque>
 
 // some keycodes
-#include "../miniFB/miniFBenums.h"
+#include "../miniFB/miniFB.h"
 //}}}
 
 class cWindow : public cDrawTexture {
@@ -597,7 +597,7 @@ private:
   inline static int mDayLightSeconds = 0;
   //}}}
 
-  struct sInfo* mWindow = nullptr;
+  sInfo* mWindow = nullptr;
 
   cPoint mMousePos = {0.f};
   bool mMousePress = false;

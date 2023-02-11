@@ -7,30 +7,6 @@
 short int gKeycodes[512] = { 0 };
 
 //{{{
-sInfo* open (const char* title, unsigned width, unsigned height) {
-
-  return openEx (title, width, height, 0);
-  }
-//}}}
-//{{{
-eUpdateState update (sInfo* info, void *buffer) {
-
-  if (!info)
-    return STATE_INVALID_WINDOW;
-
-  return updateEx (info, buffer, info->bufferWidth, info->bufferHeight);
-  }
-//}}}
-//{{{
-void close (sInfo* info) {
-
-  if (info)
-    info->closed = true;
-  }
-//}}}
-
-// gets
-//{{{
 cStub* cStub::getInstance (sInfo *info) {
 
   //{{{
@@ -46,8 +22,8 @@ cStub* cStub::getInstance (sInfo *info) {
     //}}}
 
     cStub* Get (sInfo *info) {
-      for(cStub *instance : instances) {
-        if(instance->m_info == info) {
+      for (cStub *instance : instances) {
+        if( instance->m_info == info) {
           return instance;
           }
         }
@@ -62,57 +38,27 @@ cStub* cStub::getInstance (sInfo *info) {
   return gInstances.Get (info);
   }
 //}}}
-void* getUserData (sInfo* info) { return info ? info->userData : 0; }
 
 //{{{
-bool isWindowActive (sInfo* info)  {
-  return info ? info->isActive : 0; }
+sInfo* open (const char* title, unsigned width, unsigned height) {
+
+  return openEx (title, width, height, 0);
+  }
 //}}}
 //{{{
-unsigned getWindowWidth (sInfo* info)  {
-  return info ? info->window_width : 0; }
+eUpdateState sInfo::update (void *buffer) {
+  return updateEx (buffer, bufferWidth, bufferHeight);
+  }
 //}}}
 //{{{
-unsigned getWindowHeight (sInfo* info) {
-  return info ? info->window_height : 0; }
+void sInfo::close() {
+  closed = true;
+  }
 //}}}
 
+// gets
 //{{{
-int getPointerX (sInfo* info) {
-  return info ? info->pointerPosX : 0; }
-//}}}
-//{{{
-int getPointerY (sInfo* info) {
-  return info ? info->pointerPosY : 0; }
-//}}}
-//{{{
-int getPointerPressure (sInfo* info) {
-  return info ? info->pointerPressure : 0; }
-//}}}
-//{{{
-int64_t getPointerTimestamp (sInfo* info) {
-  return info ? info->pointerTimestamp : 0; }
-//}}}
-
-//{{{
-float getPointerWheelX (sInfo* info) {
-  return info ? info->pointerWheelX : 0; }
-//}}}
-//{{{
-float getPointerWheelY (sInfo* info) {
-  return info ? info->pointerWheelY : 0; }
-//}}}
-
-//{{{
-const uint8_t* getPointerButtonBuffer (sInfo* info) {
-  return info ? info->pointerButtonStatus : 0; }
-//}}}
-//{{{
-const uint8_t* getKeyBuffer (sInfo* info)  {
-  return info ? info->keyStatus : 0; }
-//}}}
-//{{{
-const char* getKeyName (eKey key) {
+const char* sInfo::getKeyName (eKey key) {
 
   switch (key) {
     case KB_KEY_SPACE: return "Space";
@@ -260,39 +206,29 @@ const char* getKeyName (eKey key) {
 //}}}
 
 // sets
+void sInfo::setUserData (void* user_data) { userData = user_data; }
 //{{{
-void setUserData (sInfo* info, void* user_data) {
+bool sInfo::setViewportBestFit (unsigned old_width, unsigned old_height) {
 
-  if (info)
-    info->userData = user_data;
-  }
-//}}}
-//{{{
-bool setViewportBestFit (sInfo* info, unsigned old_width, unsigned old_height) {
+  unsigned new_width  = window_width;
+  unsigned new_height = window_height;
 
-  if (info) {
-    unsigned new_width  = info->window_width;
-    unsigned new_height = info->window_height;
+  float scale_x = new_width  / (float) old_width;
+  float scale_y = new_height / (float) old_height;
+  if (scale_x >= scale_y)
+    scale_x = scale_y;
+  else
+    scale_y = scale_x;
 
-    float scale_x = new_width  / (float) old_width;
-    float scale_y = new_height / (float) old_height;
-    if (scale_x >= scale_y)
-      scale_x = scale_y;
-    else
-      scale_y = scale_x;
+  unsigned finalWidth  = (unsigned)((old_width  * scale_x) + 0.5f);
+  unsigned finalHeight = (unsigned)((old_height * scale_y) + 0.5f);
 
-    unsigned finalWidth  = (unsigned)((old_width  * scale_x) + 0.5f);
-    unsigned finalHeight = (unsigned)((old_height * scale_y) + 0.5f);
+  unsigned offset_x = (new_width  - finalWidth)  >> 1;
+  unsigned offset_y = (new_height - finalHeight) >> 1;
 
-    unsigned offset_x = (new_width  - finalWidth)  >> 1;
-    unsigned offset_y = (new_height - finalHeight) >> 1;
-
-    getMonitorScale (info, &scale_x, &scale_y);
-    return setViewport (info, (unsigned)(offset_x / scale_x), (unsigned)(offset_y / scale_y),
-                                   (unsigned)(finalWidth / scale_x), (unsigned)(finalHeight / scale_y));
-    }
-
-  return false;
+  getMonitorScale (&scale_x, &scale_y);
+  return setViewport ((unsigned)(offset_x / scale_x), (unsigned)(offset_y / scale_y),
+                      (unsigned)(finalWidth / scale_x), (unsigned)(finalHeight / scale_y));
   }
 //}}}
 
