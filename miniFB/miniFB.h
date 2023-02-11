@@ -4,10 +4,7 @@
 #include "miniFBenums.h"
 #include "sInfo.h"
 
-#define MFB_RGB(r,g,b) (((uint32_t)r) << 16) | (((uint32_t)g) << 8) | ((uint32_t)b)
-
-
-// func callbacks
+//#define MFB_RGB(r,g,b) (((uint32_t)r) << 16) | (((uint32_t)g) << 8) | ((uint32_t)b)
 
 sOpaqueInfo* open (const char* title, unsigned width, unsigned height);
 sOpaqueInfo* openEx (const char* title, unsigned width, unsigned height, unsigned flags);
