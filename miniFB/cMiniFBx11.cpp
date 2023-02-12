@@ -216,7 +216,6 @@ namespace {
     return KB_KEY_UNKNOWN;
     }
   //}}}
-
   //{{{
   int translateKey (int scancode) {
 

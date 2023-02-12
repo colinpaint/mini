@@ -94,34 +94,6 @@ namespace {
       }
     //}}}
   #else
-    //{{{
-    bool setup_pixel_format (cMiniFB* miniFB) {
-
-      GLint glxAttribs[] = { GLX_RGBA,
-                             GLX_DOUBLEBUFFER,
-                             GLX_DEPTH_SIZE,     24,
-                             GLX_STENCIL_SIZE,   8,
-                             GLX_RED_SIZE,       8,
-                             GLX_GREEN_SIZE,     8,
-                             GLX_BLUE_SIZE,      8,
-                             GLX_DEPTH_SIZE,     24,
-                             GLX_STENCIL_SIZE,   8,
-                             GLX_SAMPLE_BUFFERS, 0,
-                             GLX_SAMPLES,        0,
-                             None };
-
-      XVisualInfo* visualInfo = glXChooseVisual (miniFB->display, miniFB->screen, glxAttribs);
-      if (!visualInfo) {
-        cLog::log (LOGERROR, "Could not create correct visual window");
-        XCloseDisplay (miniFB->display);
-        return false;
-        }
-
-      miniFB->context = glXCreateContext (miniFB->display, visualInfo, NULL, GL_TRUE);
-
-      return true;
-      }
-    //}}}
     //typedef void (*PFNGLXSWAPINTERVALEXTPROC)(Display*,GLXDrawable,int);
     //PFNGLXSWAPINTERVALEXTPROC SwapIntervalEXT = 0x0;
   #endif
@@ -314,7 +286,7 @@ bool cMiniFB::setViewportBestFit (unsigned old_width, unsigned old_height) {
   }
 //}}}
 
-// set C style callbacks
+// - C style callbacks
 void cMiniFB::setActiveCallback (void(*callback)(cMiniFB* miniFB)) { activeFunc = callback; }
 void cMiniFB::setResizeCallback (void(*callback)(cMiniFB* miniFB)) { resizeFunc = callback; }
 void cMiniFB::setCloseCallback  (bool(*callback)(cMiniFB* miniFB)) { closeFunc = callback; }
@@ -325,85 +297,58 @@ void cMiniFB::setMoveCallback   (void(*callback)(cMiniFB* miniFB)) { moveFunc = 
 void cMiniFB::setWheelCallback  (void(*callback)(cMiniFB* miniFB)) { wheelFunc = callback; }
 void cMiniFB::setEnterCallback  (void(*callback)(cMiniFB* miniFB)) { enterFunc = callback; }
 
-// set function style callbacks
+// - function style callbacks
 //{{{
 void cMiniFB::setActiveFunc (function <void (cMiniFB*)> func) {
-
-  using namespace placeholders;
-
-  cCallbackStub::getInstance (this)->mActiveFunc = bind (func, _1);
+  cCallbackStub::getInstance (this)->mActiveFunc = bind (func, placeholders::_1);
   setActiveCallback (cCallbackStub::activeStub);
   }
 //}}}
 //{{{
 void cMiniFB::setResizeFunc (function <void (cMiniFB*)> func) {
-
-  using namespace placeholders;
-
-  cCallbackStub::getInstance (this)->mResizeFunc = bind(func, _1);
+  cCallbackStub::getInstance (this)->mResizeFunc = bind(func, placeholders::_1);
   setResizeCallback (cCallbackStub::resizeStub);
   }
 //}}}
 //{{{
 void cMiniFB::setCloseFunc  (function <bool (cMiniFB*)> func) {
-
-  using namespace placeholders;
-
-  cCallbackStub::getInstance (this)->mCloseFunc = bind(func, _1);
+  cCallbackStub::getInstance (this)->mCloseFunc = bind(func, placeholders::_1);
   setCloseCallback (cCallbackStub::closeStub);
   }
 //}}}
 //{{{
 void cMiniFB::setKeyFunc    (function <void (cMiniFB*)> func) {
-
-  using namespace placeholders;
-
-  cCallbackStub::getInstance (this)->mKeyFunc = bind (func, _1);
+  cCallbackStub::getInstance (this)->mKeyFunc = bind (func, placeholders::_1);
   setKeyCallback (cCallbackStub::keyStub);
   }
 //}}}
 //{{{
 void cMiniFB::setCharFunc   (function <void (cMiniFB*)> func) {
-
-  using namespace placeholders;
-
-  cCallbackStub::getInstance (this)->mCharFunc = bind (func, _1);
+  cCallbackStub::getInstance (this)->mCharFunc = bind (func, placeholders::_1);
   setCharCallback (cCallbackStub::charStub);
   }
 //}}}
 //{{{
 void cMiniFB::setButtonFunc (function <void (cMiniFB*)> func) {
-
-  using namespace placeholders;
-
-  cCallbackStub::getInstance (this)->mButtonFunc = bind (func, _1);
+  cCallbackStub::getInstance (this)->mButtonFunc = bind (func, placeholders::_1);
   setButtonCallback (cCallbackStub::buttonStub);
   }
 //}}}
 //{{{
 void cMiniFB::setMoveFunc   (function <void (cMiniFB*)> func) {
-
-  using namespace placeholders;
-
-  cCallbackStub::getInstance (this)->mMoveFunc = bind (func, _1);
+  cCallbackStub::getInstance (this)->mMoveFunc = bind (func, placeholders::_1);
   setMoveCallback (cCallbackStub::moveStub);
   }
 //}}}
 //{{{
 void cMiniFB::setWheelFunc  (function <void (cMiniFB*)> func) {
-
-  using namespace placeholders;
-
-  cCallbackStub::getInstance (this)->mWheelFunc = bind (func, _1);
+  cCallbackStub::getInstance (this)->mWheelFunc = bind (func, placeholders::_1);
   setWheelCallback (cCallbackStub::wheelStub);
   }
 //}}}
 //{{{
 void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
-
-  using namespace placeholders;
-
-  cCallbackStub::getInstance (this)->mEnterFunc = bind (func, _1);
+  cCallbackStub::getInstance (this)->mEnterFunc = bind (func, placeholders::_1);
   setEnterCallback (cCallbackStub::enterStub);
   }
 //}}}
@@ -510,7 +455,7 @@ void cMiniFB::redrawGL (const void* pixels) {
 bool cMiniFB::createGLcontext() {
 
   #ifdef _WIN32
-    if (setup_pixel_format (hdc) == false)
+    if (!setup_pixel_format (hdc))
       return false;
 
     hGLRC = wglCreateContext (hdc);
@@ -537,9 +482,29 @@ bool cMiniFB::createGLcontext() {
     else
       cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
 
-    if (!setup_pixel_format (this))
+    //{{{
+    GLint glxAttribs[] = {
+      GLX_RGBA,
+      GLX_DOUBLEBUFFER,
+      GLX_DEPTH_SIZE,     24,
+      GLX_STENCIL_SIZE,   8,
+      GLX_RED_SIZE,       8,
+      GLX_GREEN_SIZE,     8,
+      GLX_BLUE_SIZE,      8,
+      GLX_DEPTH_SIZE,     24,
+      GLX_STENCIL_SIZE,   8,
+      GLX_SAMPLE_BUFFERS, 0,
+      GLX_SAMPLES,        0,
+      None };
+    //}}}
+    XVisualInfo* visualInfo = glXChooseVisual (display, screen, glxAttribs);
+    if (!visualInfo) {
+      cLog::log (LOGERROR, "Could not create correct visual window");
+      XCloseDisplay (display);
       return false;
+      }
 
+    context = glXCreateContext (display, visualInfo, NULL, GL_TRUE);
     glXMakeCurrent (display, window, context);
 
     cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
