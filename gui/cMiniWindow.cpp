@@ -43,15 +43,10 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   // create cTexture pixels on the heap
   createPixels (width, height);
 
-  // state callbacks
+  // state funcs
+  mWindow->setActiveFunc ([&](cMiniFB* info) { cLog::log (LOGINFO, fmt::format ("active {}", info->isActive)); });
   //{{{
-  setActiveCallback ([&](cMiniFB* info) {
-      cLog::log (LOGINFO, fmt::format ("active {}", info->isActive));
-      },
-    mWindow);
-  //}}}
-  //{{{
-  setResizeCallback ([&](struct cMiniFB* info) {
+  mWindow->setResizeFunc ([&](struct cMiniFB* info) {
       int width = info->windowScaledWidth;
       int height = info->windowScaledHeight;
 
@@ -67,21 +62,19 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         setHeight (height);
         }
       info->setViewport (x, y, width, height);
-      },
-    mWindow);
+      });
   //}}}
   //{{{
-  setCloseCallback ([&](cMiniFB* info) {
+  mWindow->setCloseFunc ([&](cMiniFB* info) {
       (void)info;
       cLog::log (LOGINFO, fmt::format ("close"));
       return true; // false for don't close
-      },
-    mWindow);
+      });
   //}}}
 
-  // keyboard callbacks
+  // keyboard funcs
   //{{{
-  setKeyCallback ([&](cMiniFB* info) {
+  mWindow->setKeyFunc ([&](cMiniFB* info) {
       if (info->keyCode == KB_KEY_ESCAPE)
         info->close();
 
@@ -89,20 +82,13 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         if (!keyDown (info->keyCode))
           cLog::log (LOGINFO, fmt::format ("keyboard key:{} pressed:{} mod:{}",
                                            cMiniFB::getKeyName (info->keyCode), info->isPressed, (int)info->modifierKeys));
-      },
-
-    mWindow);
+      });
   //}}}
-  //{{{
-  setCharCallback ([&](cMiniFB* info) {
-      cLog::log (LOGINFO, fmt::format ("char code:{}", info->codepoint));
-      },
-    mWindow);
-  //}}}
+  mWindow->setCharFunc ([&](cMiniFB* info) { cLog::log (LOGINFO, fmt::format ("char code:{}", info->codepoint)); });
 
-  // mouse callbacks
+  // mouse funcs
   //{{{
-  setButtonCallback ([&](cMiniFB* info) {
+  mWindow->setButtonFunc ([&](cMiniFB* info) {
       if (info->isDown) {
         mMousePress = true;
         mMouseMoved = false;
@@ -122,11 +108,10 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
         mMousePressUsed = false;
         cursorChanged();
         }
-      },
-    mWindow);
+      });
   //}}}
   //{{{
-  setMoveCallback ([&](cMiniFB* info) { //, int x, int y, int pressure, int timestamp) {
+  mWindow->setMoveFunc ([&](cMiniFB* info) { 
       //cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}", x, y, pressure, timestamp));
       mMousePos.x = (float)info->pointerPosX;
       mMousePos.y = (float)info->pointerPosY;
@@ -139,27 +124,19 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
       else if (mouseProx (true, mMousePos))
         changed();
       cursorChanged();
-      },
-
-    mWindow);
+      });
   //}}}
   //{{{
-  setWheelCallback ([&](cMiniFB* info) {
+  mWindow->setWheelFunc ([&](cMiniFB* info) {
       mScale *= (info->pointerWheelY > 0.f) ? 1.05f : 1.f / 1.05f;
       cLog::log (LOGINFO, fmt::format ("mouseWheel problem - deltaY:{} int(deltaY):{}", info->pointerWheelY, int(info->pointerWheelY)));
       if (mouseWheel ((int)info->pointerWheelY, mMousePos))
         changed();
 
       cursorChanged();
-      },
-    mWindow);
+      });
   //}}}
-  //{{{
-  setEnterCallback ([&](cMiniFB* info) {
-      cLog::log (LOGINFO, fmt::format ("pointerEnter {}", info->pointerInside));
-      },
-    mWindow);
-  //}}}
+  mWindow->setEnterFunc ([&](cMiniFB* info) { cLog::log (LOGINFO, fmt::format ("pointerEnter {}", info->pointerInside)); });
 
   if (tickMs != 0ms) {
     //{{{  launch tick clock thread

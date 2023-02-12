@@ -563,7 +563,7 @@ namespace {
           miniFB->window_height =  GET_Y_LPARAM(lParam);
           miniFB->resizeDst (miniFB->window_width, miniFB->window_height);
 
-          resizeGL (miniFB);
+          miniFB->resizeGL();
           if (miniFB->window_width && miniFB->window_height) {
             miniFB->windowScaledWidth  = (uint32_t)(miniFB->window_width  / scale_x);
             miniFB->windowScaledHeight = (uint32_t)(miniFB->window_height / scale_y);
@@ -961,7 +961,7 @@ namespace {
     if (!miniFB)
       return;
 
-    destroyGLcontext (miniFB);
+    miniFB->destroyGLcontext();
 
     if (miniFB->window && miniFB->hdc) {
       ReleaseDC (miniFB->window, miniFB->hdc);
@@ -1096,7 +1096,7 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
 
   miniFB->hdc = GetDC (miniFB->window);
 
-  createGLcontext (miniFB);
+  miniFB->createGLcontext();
 
   cLog::log (LOGINFO, "using windows OpenGL");
 
@@ -1129,7 +1129,7 @@ eUpdateState cMiniFB::updateEx (void* buffer, unsigned width, unsigned height) {
   bufferWidth = width;
   bufferStride = width * 4;
   bufferHeight = height;
-  redrawGL (this, buffer);
+  redrawGL (buffer);
 
   return STATE_OK;
   }

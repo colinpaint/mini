@@ -1,9 +1,9 @@
-// miniFB.cpp
+// cMiniFB.cpp
 //{{{  includes
 #include "cMiniFB.h"
 #include <vector>
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef _WIN32
   #include <gl/gl.h>
 #else
   #include <GL/gl.h>
@@ -65,7 +65,7 @@ namespace {
       static const char* extensions = 0x0;
 
       if (extensions == 0x0) {
-        #if defined(_WIN32) || defined(WIN32)
+        #ifdef _WIN32
           // TODO: This is deprecated on OpenGL 3+.
           // Use glGetIntegerv (GL_NUM_EXTENSIONS, &n) and glGetStringi (GL_EXTENSIONS, index)
           extensions = (const char*)glGetString (GL_EXTENSIONS);
@@ -134,7 +134,7 @@ cStub* cStub::getInstance (cMiniFB* miniFB) {
 
   //{{{
   struct stub_vector {
-    std::vector<cStub*> instances;
+    vector<cStub*> instances;
 
     stub_vector() = default;
     //{{{
@@ -349,162 +349,290 @@ bool cMiniFB::setViewportBestFit (unsigned old_width, unsigned old_height) {
   }
 //}}}
 
+// set callbacks
 //{{{
-void keyDefault (cMiniFB* miniFB) {
+void cMiniFB::setActiveFunc (function <void (cMiniFB*)> func) {
 
-  if (miniFB->keyCode == KB_KEY_ESCAPE) {
-    if (!miniFB->closeFunc ||
-         miniFB->closeFunc (miniFB))
-      miniFB->closed = true;
+  using namespace placeholders;
+
+  cStub::getInstance (this)->mActiveFunc = bind (func, _1);
+  setActiveCallback (cStub::activeStub);
+  }
+//}}}
+//{{{
+void cMiniFB::setResizeFunc (function <void (cMiniFB*)> func) {
+
+  using namespace placeholders;
+
+  cStub::getInstance (this)->mResizeFunc = bind(func, _1);
+  setResizeCallback (cStub::resizeStub);
+  }
+//}}}
+//{{{
+void cMiniFB::setCloseFunc  (function <bool (cMiniFB*)> func) {
+
+  using namespace placeholders;
+
+  cStub::getInstance (this)->mCloseFunc = bind(func, _1);
+  setCloseCallback (cStub::closeStub);
+  }
+//}}}
+//{{{
+void cMiniFB::setKeyFunc    (function <void (cMiniFB*)> func) {
+
+  using namespace placeholders;
+
+  cStub::getInstance (this)->mKeyFunc = bind (func, _1);
+  setKeyCallback (cStub::keyStub);
+  }
+//}}}
+//{{{
+void cMiniFB::setCharFunc   (function <void (cMiniFB*)> func) {
+
+  using namespace placeholders;
+
+  cStub::getInstance (this)->mCharFunc = bind (func, _1);
+  setCharCallback (cStub::charStub);
+  }
+//}}}
+//{{{
+void cMiniFB::setButtonFunc (function <void (cMiniFB*)> func) {
+
+  using namespace placeholders;
+
+  cStub::getInstance (this)->mButtonFunc = bind (func, _1);
+  setButtonCallback (cStub::buttonStub);
+  }
+//}}}
+//{{{
+void cMiniFB::setMoveFunc   (function <void (cMiniFB*)> func) {
+
+  using namespace placeholders;
+
+  cStub::getInstance (this)->mMoveFunc = bind (func, _1);
+  setMoveCallback (cStub::moveStub);
+  }
+//}}}
+//{{{
+void cMiniFB::setWheelFunc  (function <void (cMiniFB*)> func) {
+
+  using namespace placeholders;
+
+  cStub::getInstance (this)->mWheelFunc = bind (func, _1);
+  setWheelCallback (cStub::wheelStub);
+  }
+//}}}
+//{{{
+void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
+
+  using namespace placeholders;
+
+  cStub::getInstance (this)->mEnterFunc = bind (func, _1);
+  setEnterCallback (cStub::enterStub);
+  }
+//}}}
+
+void cMiniFB::setActiveCallback (miniFBFuncType callback) { activeFunc = callback; }
+void cMiniFB::setResizeCallback (miniFBFuncType callback) { resizeFunc = callback; }
+void cMiniFB::setCloseCallback  (closeFuncType callback)  { closeFunc = callback; }
+void cMiniFB::setKeyCallback    (miniFBFuncType callback) { keyFunc = callback; }
+void cMiniFB::setCharCallback   (miniFBFuncType callback) { charFunc = callback; }
+void cMiniFB::setButtonCallback (miniFBFuncType callback) { buttonFunc = callback; }
+void cMiniFB::setMoveCallback   (miniFBFuncType callback) { moveFunc = callback; }
+void cMiniFB::setWheelCallback  (miniFBFuncType callback) { wheelFunc = callback; }
+void cMiniFB::setEnterCallback  (miniFBFuncType callback) { enterFunc = callback; }
+
+// utils
+//{{{
+void cMiniFB::calcDstFactor (uint32_t width, uint32_t height) {
+
+  if (dst_width == 0)
+    dst_width = width;
+
+  factor_x     = (float) dst_offset_x / (float) width;
+  factor_width = (float) dst_width    / (float) width;
+
+  if (dst_height == 0)
+    dst_height = height;
+
+  factor_y      = (float) dst_offset_y / (float) height;
+  factor_height = (float) dst_height   / (float) height;
+  }
+//}}}
+//{{{
+void cMiniFB::resizeDst (uint32_t width, uint32_t height) {
+
+  dst_offset_x = (uint32_t) (width  * factor_x);
+  dst_offset_y = (uint32_t) (height * factor_y);
+  dst_width    = (uint32_t) (width  * factor_width);
+  dst_height   = (uint32_t) (height * factor_height);
+  }
+//}}}
+
+// openGL
+//{{{
+void cMiniFB::resizeGL() {
+
+  if (isInitialized) {
+    #ifdef _WIN32
+      wglMakeCurrent (hdc, hGLRC);
+    #else
+      glXMakeCurrent (display, window, context);
+    #endif
+
+    glViewport (0,0, window_width,window_height);
+
+    glMatrixMode (GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho (0, window_width, window_height, 0, 2048, -2048);
+
+    glClear (GL_COLOR_BUFFER_BIT);
     }
   }
 //}}}
-
-// set callbacks
 //{{{
-void setActiveCallback (cMiniFB* miniFB, miniFBFuncType callback) {
+void cMiniFB::redrawGL (const void* pixels) {
 
-  if (miniFB)
-    miniFB->activeFunc = callback;
+  #ifdef _WIN32
+    wglMakeCurrent (hdc, hGLRC);
+  #else
+    glXMakeCurrent (display, window, context);
+  #endif
+
+  GLenum format = RGBA;
+
+  // clear
+  //glClear (GL_COLOR_BUFFER_BIT);
+  glBindTexture (GL_TEXTURE_2D, textureId);
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA,
+                bufferWidth, bufferHeight,
+                0, format, GL_UNSIGNED_BYTE, pixels);
+  //glTexSubImage2D (GL_TEXTURE_2D, 0,
+  //                 0, 0, buffer_width, buffer_height,
+  //                 format, GL_UNSIGNED_BYTE, pixels);
+
+  // draw single texture
+  glEnableClientState (GL_VERTEX_ARRAY);
+  glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+
+  // vertices
+  float x = (float)dst_offset_x;
+  float y = (float)dst_offset_y;
+  float w = (float)dst_offset_x + dst_width;
+  float h = (float)dst_offset_y + dst_height;
+  float vertices[] = { x, y, 0, 0,
+                       w, y, 1, 0,
+                       x, h, 0, 1,
+                       w, h, 1, 1 };
+  glVertexPointer (2, GL_FLOAT, 4 * sizeof(float), vertices);
+  glTexCoordPointer (2, GL_FLOAT, 4 * sizeof(float), vertices + 2);
+  glDrawArrays (GL_TRIANGLE_STRIP, 0, 4);
+
+  glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+  glDisableClientState (GL_VERTEX_ARRAY);
+  glBindTexture (GL_TEXTURE_2D, 0);
+
+  // swap buffer
+  #ifdef _WIN32
+    SwapBuffers (hdc);
+  #else
+    glXSwapBuffers (display, window);
+  #endif
   }
 //}}}
 //{{{
-void setResizeCallback (cMiniFB* miniFB, miniFBFuncType callback) {
+bool cMiniFB::createGLcontext() {
 
-  if (miniFB)
-    miniFB->resizeFunc = callback;
+  #ifdef _WIN32
+    if (setup_pixel_format (hdc) == false)
+      return false;
+
+    hGLRC = wglCreateContext (hdc);
+    wglMakeCurrent (hdc, hGLRC);
+
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
+    initGL();
+
+    // get extensions
+    SwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress ("wglSwapIntervalEXT");
+    GetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress ("wglGetSwapIntervalEXT");
+
+  #else
+    GLint majorGLX = 0;
+    GLint minorGLX = 0;
+    glXQueryVersion (display, &majorGLX, &minorGLX);
+    if ((majorGLX <= 1) && (minorGLX < 2)) {
+      cLog::log (LOGERROR, "GLX 1.2 or greater is required");
+      XCloseDisplay (display);
+      return false;
+      }
+    else
+      cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
+
+    if (setup_pixel_format (miniFB) == false)
+      return false;
+
+    glXMakeCurrent (display, window, context);
+
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
+    initGL (miniFB);
+  #endif
+
+  return true;
   }
 //}}}
 //{{{
-void setCloseCallback  (cMiniFB* miniFB, closeFuncType callback) {
+void cMiniFB::destroyGLcontext() {
 
-  if (miniFB)
-    miniFB->closeFunc = callback;
-  }
-//}}}
-//{{{
-void setKeyCallback    (cMiniFB* miniFB, miniFBFuncType callback) {
-
-  if (miniFB)
-    miniFB->keyFunc = callback;
-  }
-//}}}
-//{{{
-void setCharCallback   (cMiniFB* miniFB, miniFBFuncType callback) {
-
-  if (miniFB)
-    miniFB->charFunc = callback;
-  }
-//}}}
-//{{{
-void setButtonCallback (cMiniFB* miniFB, miniFBFuncType callback) {
-
-  if (miniFB)
-    miniFB->buttonFunc = callback;
-  }
-//}}}
-//{{{
-void setMoveCallback   (cMiniFB* miniFB, miniFBFuncType callback) {
-
-  if (miniFB)
-    miniFB->moveFunc = callback;
-  }
-//}}}
-//{{{
-void setWheelCallback  (cMiniFB* miniFB, miniFBFuncType callback) {
-
-  if (miniFB)
-    miniFB->wheelFunc = callback;
-  }
-//}}}
-//{{{
-void setEnterCallback  (cMiniFB* miniFB, miniFBFuncType callback) {
-
-  if (miniFB)
-    miniFB->enterFunc = callback;
+  #ifdef _WIN32
+    if (hGLRC) {
+      wglMakeCurrent (NULL, NULL);
+      wglDeleteContext (hGLRC);
+      hGLRC = 0;
+      }
+  #else
+    glXDestroyContext (display, context);
+  #endif
   }
 //}}}
 
-// set callback lamdas
+// private
 //{{{
-void setActiveCallback (std::function <void (cMiniFB*)> func, cMiniFB* miniFB) {
+void cMiniFB::initGL() {
 
-  using namespace std::placeholders;
+  glViewport (0, 0, window_width, window_height);
 
-  cStub::getInstance (miniFB)->mActiveFunc = std::bind (func, _1);
-  setActiveCallback (miniFB, cStub::activeStub);
-  }
-//}}}
-//{{{
-void setResizeCallback (std::function <void (cMiniFB*)> func, cMiniFB* miniFB) {
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho (0, window_width, window_height, 0, 2048, -2048);
 
-  using namespace std::placeholders;
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity();
 
-  cStub::getInstance (miniFB)->mResizeFunc = std::bind(func, _1);
-  setResizeCallback(miniFB, cStub::resizeStub);
-  }
-//}}}
-//{{{
-void setCloseCallback  (std::function <bool (cMiniFB*)> func, cMiniFB* miniFB) {
+  glDisable (GL_DEPTH_TEST);
+  glDisable (GL_STENCIL_TEST);
 
-  using namespace std::placeholders;
+  glEnable (GL_TEXTURE_2D);
 
-  cStub::getInstance (miniFB)->mCloseFunc = std::bind(func, _1);
-  setCloseCallback(miniFB, cStub::closeStub);
-  }
-//}}}
-//{{{
-void setKeyCallback    (std::function <void (cMiniFB*)> func, cMiniFB *miniFB) {
+  glGenTextures (1, &textureId);
+  //glActiveTexture (TEXTURE0);
+  glBindTexture (GL_TEXTURE_2D, textureId);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-  using namespace std::placeholders;
+  glEnableClientState (GL_VERTEX_ARRAY);
+  glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 
-  cStub::getInstance (miniFB)->mKeyFunc = std::bind (func, _1);
-  setKeyCallback (miniFB, cStub::keyStub);
-  }
-//}}}
-//{{{
-void setCharCallback   (std::function <void (cMiniFB*)> func, cMiniFB* miniFB) {
-
-  using namespace std::placeholders;
-
-  cStub::getInstance (miniFB)->mCharFunc = std::bind (func, _1);
-  setCharCallback (miniFB, cStub::charStub);
-  }
-//}}}
-//{{{
-void setButtonCallback (std::function <void (cMiniFB*)> func, cMiniFB* miniFB) {
-
-  using namespace std::placeholders;
-
-  cStub::getInstance (miniFB)->mButtonFunc = std::bind (func, _1);
-  setButtonCallback (miniFB, cStub::buttonStub);
-  }
-//}}}
-//{{{
-void setMoveCallback   (std::function <void (cMiniFB*)> func, cMiniFB* miniFB) {
-
-  using namespace std::placeholders;
-
-  cStub::getInstance (miniFB)->mMoveFunc = std::bind (func, _1);
-  setMoveCallback (miniFB, cStub::moveStub);
-  }
-//}}}
-//{{{
-void setWheelCallback  (std::function <void (cMiniFB*)> func, cMiniFB *miniFB) {
-
-  using namespace std::placeholders;
-
-  cStub::getInstance (miniFB)->mWheelFunc = std::bind (func, _1);
-  setWheelCallback (miniFB, cStub::wheelStub);
-  }
-//}}}
-//{{{
-void setEnterCallback  (std::function <void (cMiniFB*)> func, cMiniFB *miniFB) {
-
-  using namespace std::placeholders;
-
-  cStub::getInstance (miniFB)->mEnterFunc = std::bind (func, _1);
-  setEnterCallback (miniFB, cStub::enterStub);
+  glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+  glDisableClientState (GL_VERTEX_ARRAY);
+  glBindTexture (GL_TEXTURE_2D, 0);
   }
 //}}}
 
@@ -552,196 +680,5 @@ void cStub::wheelStub  (cMiniFB* miniFB) {
 //{{{
 void cStub::enterStub  (cMiniFB* miniFB) {
   cStub::getInstance (miniFB)->mEnterFunc(miniFB);
-  }
-//}}}
-
-//{{{
-void cMiniFB::calcDstFactor (uint32_t width, uint32_t height) {
-
-  if (dst_width == 0)
-    dst_width = width;
-
-  factor_x     = (float) dst_offset_x / (float) width;
-  factor_width = (float) dst_width    / (float) width;
-
-  if (dst_height == 0)
-    dst_height = height;
-
-  factor_y      = (float) dst_offset_y / (float) height;
-  factor_height = (float) dst_height   / (float) height;
-  }
-//}}}
-//{{{
-void cMiniFB::resizeDst (uint32_t width, uint32_t height) {
-
-  dst_offset_x = (uint32_t) (width  * factor_x);
-  dst_offset_y = (uint32_t) (height * factor_y);
-  dst_width    = (uint32_t) (width  * factor_width);
-  dst_height   = (uint32_t) (height * factor_height);
-  }
-//}}}
-
-//{{{
-void initGL (cMiniFB* miniFB) {
-
-  glViewport (0, 0, miniFB->window_width, miniFB->window_height);
-
-  glMatrixMode (GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho (0, miniFB->window_width, miniFB->window_height, 0, 2048, -2048);
-
-  glMatrixMode (GL_MODELVIEW);
-  glLoadIdentity();
-
-  glDisable (GL_DEPTH_TEST);
-  glDisable (GL_STENCIL_TEST);
-
-  glEnable (GL_TEXTURE_2D);
-
-  glGenTextures (1, &miniFB->textureId);
-  //glActiveTexture (TEXTURE0);
-  glBindTexture (GL_TEXTURE_2D, miniFB->textureId);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  glEnableClientState (GL_VERTEX_ARRAY);
-  glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-
-  glDisableClientState (GL_TEXTURE_COORD_ARRAY);
-  glDisableClientState (GL_VERTEX_ARRAY);
-  glBindTexture (GL_TEXTURE_2D, 0);
-  }
-//}}}
-//{{{
-void resizeGL (cMiniFB* miniFB) {
-
-  if (miniFB->isInitialized) {
-    #if defined(_WIN32) || defined(WIN32)
-      wglMakeCurrent (miniFB->hdc, miniFB->hGLRC);
-    #else
-      glXMakeCurrent (miniFB->display, miniFB->window, miniFB->context);
-    #endif
-
-    glViewport (0,0, miniFB->window_width,miniFB->window_height);
-
-    glMatrixMode (GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho (0, miniFB->window_width, miniFB->window_height, 0, 2048, -2048);
-
-    glClear (GL_COLOR_BUFFER_BIT);
-    }
-  }
-//}}}
-//{{{
-void redrawGL (cMiniFB* miniFB, const void* pixels) {
-
-  #if defined(_WIN32) || defined(WIN32)
-    wglMakeCurrent (miniFB->hdc, miniFB->hGLRC);
-  #else
-    glXMakeCurrent (miniFB->display, miniFB->window, miniFB->context);
-  #endif
-
-  GLenum format = RGBA;
-
-  // clear
-  //glClear (GL_COLOR_BUFFER_BIT);
-  glBindTexture (GL_TEXTURE_2D, miniFB->textureId);
-  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA,
-                miniFB->bufferWidth, miniFB->bufferHeight,
-                0, format, GL_UNSIGNED_BYTE, pixels);
-  //glTexSubImage2D (GL_TEXTURE_2D, 0,
-  //                 0, 0, miniFB->buffer_width, miniFB->buffer_height,
-  //                 format, GL_UNSIGNED_BYTE, pixels);
-
-  // draw single texture
-  glEnableClientState (GL_VERTEX_ARRAY);
-  glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-
-  // vertices
-  float x = (float)miniFB->dst_offset_x;
-  float y = (float)miniFB->dst_offset_y;
-  float w = (float)miniFB->dst_offset_x + miniFB->dst_width;
-  float h = (float)miniFB->dst_offset_y + miniFB->dst_height;
-  float vertices[] = { x, y, 0, 0,
-                       w, y, 1, 0,
-                       x, h, 0, 1,
-                       w, h, 1, 1 };
-  glVertexPointer (2, GL_FLOAT, 4 * sizeof(float), vertices);
-  glTexCoordPointer (2, GL_FLOAT, 4 * sizeof(float), vertices + 2);
-  glDrawArrays (GL_TRIANGLE_STRIP, 0, 4);
-
-  glDisableClientState (GL_TEXTURE_COORD_ARRAY);
-  glDisableClientState (GL_VERTEX_ARRAY);
-  glBindTexture (GL_TEXTURE_2D, 0);
-
-  // swap buffer
-  #if defined(_WIN32) || defined(WIN32)
-    SwapBuffers (miniFB->hdc);
-  #else
-    glXSwapBuffers (miniFB->display, miniFB->window);
-  #endif
-  }
-//}}}
-//{{{
-bool createGLcontext (cMiniFB* miniFB) {
-
-  #if defined(_WIN32) || defined(WIN32)
-    if (setup_pixel_format (miniFB->hdc) == false)
-      return false;
-
-    miniFB->hGLRC = wglCreateContext (miniFB->hdc);
-    wglMakeCurrent (miniFB->hdc, miniFB->hGLRC);
-
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
-    initGL (miniFB);
-
-    // get extensions
-    SwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress ("wglSwapIntervalEXT");
-    GetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress ("wglGetSwapIntervalEXT");
-
-  #else
-    GLint majorGLX = 0;
-    GLint minorGLX = 0;
-    glXQueryVersion (miniFB->display, &majorGLX, &minorGLX);
-    if ((majorGLX <= 1) && (minorGLX < 2)) {
-      cLog::log (LOGERROR, "GLX 1.2 or greater is required");
-      XCloseDisplay (miniFB->display);
-      return false;
-      }
-    else
-      cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
-
-    if (setup_pixel_format (miniFB) == false)
-      return false;
-
-    glXMakeCurrent (miniFB->display, miniFB->window, miniFB->context);
-
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
-    initGL (miniFB);
-  #endif
-
-  return true;
-  }
-//}}}
-//{{{
-void destroyGLcontext (cMiniFB* miniFB) {
-
-  #if defined(_WIN32) || defined(WIN32)
-    if (miniFB->hGLRC) {
-      wglMakeCurrent (NULL, NULL);
-      wglDeleteContext (miniFB->hGLRC);
-      miniFB->hGLRC = 0;
-      }
-
-  #else
-    glXDestroyContext (miniFB->display, miniFB->context);
-  #endif
   }
 //}}}

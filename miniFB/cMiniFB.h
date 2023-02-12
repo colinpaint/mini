@@ -176,6 +176,7 @@ enum eKey {
 class cMiniFB;
 typedef void(*miniFBFuncType)(cMiniFB* miniFB);
 typedef bool(*closeFuncType)(cMiniFB* miniFB);
+
 //{{{
 class cMiniFB {
 public:
@@ -189,23 +190,22 @@ public:
   void close();
 
   // gets
-  void* getUserData () { return userData; }
+  bool isWindowActive() const { return isActive; }
+  unsigned getWindowWidth() const { return window_width; }
+  unsigned getWindowHeight() const { return window_height; }
 
-  bool isWindowActive() { return isActive; }
-  unsigned getWindowWidth()  { return window_width; }
-  unsigned getWindowHeight() { return window_height; }
-
-  int getPointerX () { return pointerPosX; }
-  int getPointerY () { return pointerPosY; }
-  int getPointerPressure() { return pointerPressure; }
-  int64_t getPointerTimestamp() { return pointerTimestamp; }
+  int getPointerX() const { return pointerPosX; }
+  int getPointerY() const { return pointerPosY; }
+  int getPointerPressure() const { return pointerPressure; }
+  int64_t getPointerTimestamp() const { return pointerTimestamp; }
 
   float getPointerWheelX() { return pointerWheelX; }
   float getPointerWheelY() { return pointerWheelY; }
 
-  const uint8_t* getPointerButtonBuffer() { return pointerButtonStatus; }
-  const uint8_t* getKeyBuffer()  { return keyStatus; }
+  const uint8_t* getKeyBuffer() { return keyStatus; }
+  const uint8_t* getPointerButtonBuffer() const { return pointerButtonStatus; }
 
+  void* getUserData () { return userData; }
   void getMonitorScale (float* scale_x, float* scale_y);
 
   // sets
@@ -213,21 +213,46 @@ public:
   bool setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
   bool setViewportBestFit (unsigned old_width, unsigned old_height);
 
+  // callbacks
+  void setActiveFunc (std::function <void (cMiniFB*)> func);
+  void setResizeFunc (std::function <void (cMiniFB*)> func);
+  void setCloseFunc  (std::function <bool (cMiniFB*)> func);
+  void setKeyFunc    (std::function <void (cMiniFB*)> func);
+  void setCharFunc   (std::function <void (cMiniFB*)> func);
+  void setButtonFunc (std::function <void (cMiniFB*)> func);
+  void setMoveFunc   (std::function <void (cMiniFB*)> func);
+  void setWheelFunc  (std::function <void (cMiniFB*)> func);
+  void setEnterFunc  (std::function <void (cMiniFB*)> func);
+
+  void setActiveCallback (miniFBFuncType callback);
+  void setResizeCallback (miniFBFuncType callback);
+  void setCloseCallback  (closeFuncType callback);
+  void setKeyCallback    (miniFBFuncType callback);
+  void setCharCallback   (miniFBFuncType callback);
+  void setButtonCallback (miniFBFuncType callback);
+  void setMoveCallback   (miniFBFuncType callback);
+  void setWheelCallback  (miniFBFuncType callback);
+  void setEnterCallback  (miniFBFuncType callback);
+
   void calcDstFactor (uint32_t width, uint32_t height);
   void resizeDst (uint32_t width, uint32_t height);
 
-  // vars
-  void* userData;
+  bool createGLcontext();
+  void destroyGLcontext();
 
-  miniFBFuncType  activeFunc;
-  miniFBFuncType  resizeFunc;
-  closeFuncType closeFunc;
-  miniFBFuncType  keyFunc;
-  miniFBFuncType  charFunc;
-  miniFBFuncType  buttonFunc;
-  miniFBFuncType  moveFunc;
-  miniFBFuncType  wheelFunc;
-  miniFBFuncType  enterFunc;
+  void redrawGL (const void* pixels);
+  void resizeGL();
+
+  // vars
+  miniFBFuncType activeFunc;
+  miniFBFuncType resizeFunc;
+  closeFuncType  closeFunc;
+  miniFBFuncType keyFunc;
+  miniFBFuncType charFunc;
+  miniFBFuncType buttonFunc;
+  miniFBFuncType moveFunc;
+  miniFBFuncType wheelFunc;
+  miniFBFuncType enterFunc;
 
   uint32_t window_width;
   uint32_t window_height;
@@ -285,45 +310,17 @@ public:
     GC       gc;
     GLXContext context;
   #endif
+
+private:
+  void initGL();
+
+  void* userData;
   };
 //}}}
-
-//{{{  callbacks
-void setActiveCallback (cMiniFB* miniFB, miniFBFuncType callback);
-void setResizeCallback (cMiniFB* miniFB, miniFBFuncType callback);
-void setCloseCallback  (cMiniFB* miniFB, closeFuncType callback);
-void setKeyCallback    (cMiniFB* miniFB, miniFBFuncType callback);
-void setCharCallback   (cMiniFB* miniFB, miniFBFuncType callback);
-void setButtonCallback (cMiniFB* miniFB, miniFBFuncType callback);
-void setMoveCallback   (cMiniFB* miniFB, miniFBFuncType callback);
-void setWheelCallback  (cMiniFB* miniFB, miniFBFuncType callback);
-void setEnterCallback  (cMiniFB* miniFB, miniFBFuncType callback);
-
-// lambda callbacks
-void setActiveCallback (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-void setResizeCallback (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-void setCloseCallback  (std::function <bool (cMiniFB*)> func, cMiniFB* miniFB);
-void setKeyCallback    (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-void setCharCallback   (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-void setButtonCallback (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-void setMoveCallback   (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-void setWheelCallback  (std::function <void (cMiniFB*)> func, cMiniFB* info);
-void setEnterCallback  (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-
 //{{{
 class cStub {
+public:
   cStub() {}
-
-  // friends
-  friend void setActiveCallback (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-  friend void setResizeCallback (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-  friend void setCloseCallback  (std::function <bool (cMiniFB*)> func, cMiniFB* miniFB);
-  friend void setKeyCallback    (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-  friend void setCharCallback   (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-  friend void setButtonCallback (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-  friend void setMoveCallback   (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-  friend void setWheelCallback  (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
-  friend void setEnterCallback  (std::function <void (cMiniFB*)> func, cMiniFB* miniFB);
 
   // statics
   static cStub* getInstance (cMiniFB* miniFB);
@@ -352,11 +349,3 @@ class cStub {
   std::function <void (cMiniFB* miniFB)> mEnterFunc;
   };
 //}}}
-//}}}
-
-bool createGLcontext (cMiniFB* miniFB);
-void destroyGLcontext (cMiniFB* miniFB);
-
-void initGL (cMiniFB* miniFB);
-void redrawGL (cMiniFB* miniFB, const void *pixels);
-void resizeGL (cMiniFB* miniFB);
