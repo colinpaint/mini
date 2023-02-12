@@ -189,10 +189,11 @@ enum eKey {
 //{{{
 class cMiniFB {
 public:
-  // statics
+  // static
   static cMiniFB* create (const char* title, unsigned width, unsigned height, unsigned flags);
   static const char* getKeyName (eKey key);
 
+  //
   eUpdateState update (void* buffer);
   eUpdateState updateEx (void* buffer, unsigned width, unsigned height);
   eUpdateState updateEvents();
@@ -320,14 +321,12 @@ public:
   #endif
 
 private:
-  void initKeycodes();
   void initGL();
+  void initKeycodes();
   void freeResources();
 
-  #ifdef _WIN32
-  #else
+  #ifndef _WIN32
     void processEvent (XEvent* event);
-    void processEvents();
   #endif
 
   void* userData = nullptr;
