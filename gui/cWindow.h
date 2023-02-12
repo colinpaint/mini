@@ -1,4 +1,4 @@
-// cWindow.h - shared between cD2dWindow.cpp and cMiniWindow.cpp
+// cWindow.h 
 #pragma once
 //{{{  includes
 #include "cDrawTexture.h"

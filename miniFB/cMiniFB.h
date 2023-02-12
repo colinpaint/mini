@@ -1,5 +1,6 @@
 // cMiniFB.h
 #pragma once
+//{{{  includes
 #include <cstdint>
 #include <functional>
 
@@ -10,10 +11,11 @@
   #include <X11/Xlib.h>
   #include <GL/glx.h>
 #endif
+//}}}
 
 // enums
 //{{{
-enum eFlags { 
+enum eFlags {
               WF_RESIZABLE          = 0x01,
               WF_FULLSCREEN         = 0x02,
               WF_FULLSCREEN_DESKTOP = 0x04,
@@ -30,15 +32,15 @@ enum eUpdateState {
 //}}}
 
 //{{{
-enum ePointerButton { 
-  MOUSE_BTN_0, 
-  MOUSE_BTN_1, 
-  MOUSE_BTN_2, 
+enum ePointerButton {
+  MOUSE_BTN_0,
+  MOUSE_BTN_1,
+  MOUSE_BTN_2,
   MOUSE_BTN_3,
-  MOUSE_BTN_4, 
-  MOUSE_BTN_5, 
-  MOUSE_BTN_6, 
-  MOUSE_BTN_7 
+  MOUSE_BTN_4,
+  MOUSE_BTN_5,
+  MOUSE_BTN_6,
+  MOUSE_BTN_7
   };
 //}}}
 #define MOUSE_LEFT   MOUSE_BTN_1
@@ -46,13 +48,13 @@ enum ePointerButton {
 #define MOUSE_MIDDLE MOUSE_BTN_3
 
 //{{{
-enum eKeyModifier { 
+enum eKeyModifier {
   KB_MOD_SHIFT     = 0x0001,
   KB_MOD_CONTROL   = 0x0002,
   KB_MOD_ALT       = 0x0004,
   KB_MOD_SUPER     = 0x0008,
   KB_MOD_CAPS_LOCK = 0x0010,
-  KB_MOD_NUM_LOCK  = 0x0020 
+  KB_MOD_NUM_LOCK  = 0x0020
   };
 //}}}
 //{{{
@@ -231,7 +233,7 @@ public:
   void setWheelCallback  (void(*callback)(cMiniFB* miniFB));
   void setEnterCallback  (void(*callback)(cMiniFB* miniFB));
 
-  // func callbacks
+  // function style callbacks
   void setActiveFunc (std::function <void (cMiniFB*)> func);
   void setResizeFunc (std::function <void (cMiniFB*)> func);
   void setCloseFunc  (std::function <bool (cMiniFB*)> func);
@@ -242,8 +244,8 @@ public:
   void setWheelFunc  (std::function <void (cMiniFB*)> func);
   void setEnterFunc  (std::function <void (cMiniFB*)> func);
 
-  void calcDstFactor (uint32_t width, uint32_t height);
   void resizeDst (uint32_t width, uint32_t height);
+  void calcDstFactor (uint32_t width, uint32_t height);
 
   bool createGLcontext();
   void destroyGLcontext();
@@ -261,76 +263,84 @@ public:
   void(*wheelFunc)(cMiniFB* miniFB);
   void(*enterFunc)(cMiniFB* miniFB);
 
-  uint32_t window_width;
-  uint32_t window_height;
-  uint32_t windowScaledWidth;
-  uint32_t windowScaledHeight;
+  uint32_t window_width = 0;
+  uint32_t window_height = 0;
+  uint32_t windowScaledWidth = 0;
+  uint32_t windowScaledHeight = 0;
 
-  uint32_t dst_offset_x;
-  uint32_t dst_offset_y;
-  uint32_t dst_width;
-  uint32_t dst_height;
+  uint32_t dst_offset_x = 0;
+  uint32_t dst_offset_y = 0;
+  uint32_t dst_width = 0;
+  uint32_t dst_height = 0;
 
-  float    factor_x;
-  float    factor_y;
-  float    factor_width;
-  float    factor_height;
+  float    factor_x = 0;
+  float    factor_y = 0;
+  float    factor_width = 0;
+  float    factor_height = 0;
 
-  void*    draw_buffer;
-  uint32_t bufferWidth;
-  uint32_t bufferHeight;
-  uint32_t bufferStride;
+  void*    draw_buffer = nullptr;
+  uint32_t bufferWidth = 0;
+  uint32_t bufferHeight = 0;
+  uint32_t bufferStride = 0;
 
-  uint32_t isPressed;
-  bool     isActive;
-  bool     isInitialized;
-  bool     isDown;
-  bool     pointerInside;
-  bool     closed;
+  uint32_t isPressed = 0;
+  bool     isActive = false;
+  bool     isInitialized = false;
+  bool     isDown = false;
+  bool     pointerInside = false;
+  bool     closed = false;
 
-  uint32_t codepoint;
-  eKey     keyCode;
-  uint8_t  keyStatus[512];
-  uint32_t modifierKeys;
+  uint32_t codepoint = 0;
+  eKey     keyCode = eKey(0);
+  uint8_t  keyStatus[512] = {0};
+  uint32_t modifierKeys = 0;
 
-  int32_t  pointerTimestamp;
-  uint8_t  pointerButtonStatus[8];
-  int32_t  pointerPosX;
-  int32_t  pointerPosY;
-  int32_t  pointerPressure;
-  int32_t  pointerTiltX;
-  int32_t  pointerTiltY;
-  float    pointerWheelX;
-  float    pointerWheelY;
+  int32_t  pointerTimestamp = 0;
+  uint8_t  pointerButtonStatus[8] = {0};
+  int32_t  pointerPosX = 0;
+  int32_t  pointerPosY = 0;
+  int32_t  pointerPressure = 0;
+  int32_t  pointerTiltX = 0;
+  int32_t  pointerTiltY = 0;
+  float    pointerWheelX = 0;
+  float    pointerWheelY = 0;
 
   uint32_t textureId;
 
   #ifdef _WIN32
-    HWND     window;
-    WNDCLASS wc;
-    HDC      hdc;
-    HGLRC    hGLRC;
+    HWND       window = 0;
+    WNDCLASS   wc;
+    HDC        hdc = 0;
+    HGLRC      hGLRC = 0;
   #else
-    Window   window;
-    Display* display;
-    int      screen;
-    GC       gc;
-    GLXContext context;
+    Window     window = 0;
+    Display*   display = 0;
+    int        screen = 0;
+    GC         gc = 0;
+    GLXContext context = 0;
   #endif
 
 private:
+  void initKeycodes();
   void initGL();
+  void freeResources();
 
-  void* userData;
+  #ifdef _WIN32
+  #else
+    void processEvent (XEvent* event);
+    void processEvents();
+  #endif
+
+  void* userData = nullptr;
   };
 //}}}
 //{{{
-class cStub {
+class cCallbackStub {
 public:
-  cStub() {}
+  cCallbackStub() {}
 
   // statics
-  static cStub* getInstance (cMiniFB* miniFB);
+  static cCallbackStub* getInstance (cMiniFB* miniFB);
 
   static void activeStub (cMiniFB* miniFB);
   static void resizeStub (cMiniFB* miniFB);

@@ -11,10 +11,6 @@
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
-
-// I cannot find a way to get dpi under VirtualBox
-//#include <X11/Xresource.h>
-//#include <X11/extensions/Xrandr.h>
 #include <xkbcommon/xkbcommon.h>
 #include <X11/extensions/XInput.h>
 
@@ -222,25 +218,6 @@ namespace {
   //}}}
 
   //{{{
-  void initKeycodes (cMiniFB* miniFB) {
-
-    // clear keys
-    for (size_t i = 0; i < sizeof(gKeycodes) / sizeof(gKeycodes[0]); ++i)
-      gKeycodes[i] = KB_KEY_UNKNOWN;
-
-    // valid key code range is  [8,255], according to the Xlib manual
-    for (size_t i = 8; i <= 255; ++i) {
-      // try secondary keysym, for numeric keypad keys
-      int keySym  = XkbKeycodeToKeysym (miniFB->display, i, 0, 1);
-      gKeycodes[i] = translateKeyCodeB (keySym);
-      if (gKeycodes[i] == KB_KEY_UNKNOWN) {
-        keySym = XkbKeycodeToKeysym (miniFB->display, i, 0, 0);
-        gKeycodes[i] = translateKeyCodeA (keySym);
-        }
-      }
-    }
-  //}}}
-  //{{{
   int translateKey (int scancode) {
 
     if (scancode < 0 || scancode > 255)
@@ -320,221 +297,6 @@ namespace {
     return modifierKeys;
     }
   //}}}
-
-  //{{{
-  void processEvent (cMiniFB* miniFB, XEvent* event) {
-
-    switch (event->type) {
-      case KeyPress:
-      //{{{
-      case KeyRelease:
-        miniFB->keyCode = (eKey)translateKey (event->xkey.keycode);
-        miniFB->isDown = (event->type == KeyPress);
-        miniFB->modifierKeys = translateModEx (miniFB->keyCode, event->xkey.state, miniFB->isDown);
-        miniFB->keyStatus[miniFB->keyCode] = miniFB->isDown;
-        if (miniFB->keyFunc)
-          miniFB->keyFunc (miniFB);
-
-        if (miniFB->isDown) {
-          KeySym keysym;
-          XLookupString (&event->xkey, NULL, 0, &keysym, NULL);
-          if ((keysym >= 0x0020 && keysym <= 0x007e) ||
-              (keysym >= 0x00a0 && keysym <= 0x00ff)) {
-            miniFB->codepoint = keysym;
-            if (miniFB->charFunc)
-              miniFB->charFunc (miniFB);
-            }
-          else if ((keysym & 0xff000000) == 0x01000000)
-            keysym = keysym & 0x00ffffff;
-
-          miniFB->codepoint = keysym;
-          if (miniFB->charFunc)
-            miniFB->charFunc (miniFB);
-          // This does not seem to be working properly
-          // unsigned int codepoint = xkb_state_key_get_utf32(state, keysym);
-          // if (codepoint != 0)
-          //    kCall(char_inputFunc, codepoint);
-          }
-
-        break;
-      //}}}
-
-      case ButtonPress:
-      //{{{
-      case ButtonRelease:
-        {
-        miniFB->isDown = (event->type == ButtonPress);
-        miniFB->modifierKeys = translateMod (event->xkey.state);
-
-        // swap 2 & 3 ?
-        ePointerButton button = (ePointerButton)event->xbutton.button;
-        switch (button) {
-          case Button1:
-          case Button3:
-            miniFB->pointerButtonStatus[button & 0x07] = miniFB->isDown;
-            if (miniFB->buttonFunc)
-              miniFB->buttonFunc (miniFB);
-            break;
-
-          // wheel
-          case Button4:
-            miniFB->pointerWheelY = 1.0f;
-            if (miniFB->wheelFunc)
-              miniFB->wheelFunc (miniFB);
-            break;
-
-          case Button5:
-            miniFB->pointerWheelY = -1.0f;
-            if (miniFB->wheelFunc)
-              miniFB->wheelFunc (miniFB);
-            break;
-
-          case 6:
-            miniFB->pointerWheelX = 1.0f;
-            if (miniFB->wheelFunc)
-              miniFB->wheelFunc (miniFB);
-            break;
-
-          case 7:
-            miniFB->pointerWheelX = -1.0f;
-            if (miniFB->wheelFunc)
-              miniFB->wheelFunc (miniFB);
-            break;
-
-          default:
-            break;
-          }
-        }
-
-        break;
-      //}}}
-
-      //{{{
-      case MotionNotify: {
-        XDeviceMotionEvent* motionEvent = (XDeviceMotionEvent*)(event);
-        cLog::log (LOGINFO, fmt::format ("motionNotify {},{} {}",
-                                         event->xmotion.x, event->xmotion.y, motionEvent->serial));
-        miniFB->pointerTimestamp = 0;
-        miniFB->pointerPosX = event->xmotion.x;
-        miniFB->pointerPosY = event->xmotion.y;
-        miniFB->pointerPressure = miniFB->pointerButtonStatus[Button1] * 1024;
-        if (miniFB->moveFunc)
-          miniFB->moveFunc (miniFB);
-        }
-        break;
-      //}}}
-
-      //{{{
-      case ConfigureNotify:
-        miniFB->window_width  = event->xconfigure.width;
-        miniFB->window_height = event->xconfigure.height;
-        miniFB->windowScaledWidth  = miniFB->window_width;
-        miniFB->windowScaledHeight = miniFB->window_height;
-
-        miniFB->resizeDst (event->xconfigure.width, event->xconfigure.height);
-        miniFB->resizeGL();
-
-        if (miniFB->resizeFunc)
-          miniFB->resizeFunc (miniFB);
-
-        break;
-      //}}}
-
-      //{{{
-      case EnterNotify:
-        miniFB->pointerInside = true;
-        if (miniFB->activeFunc)
-          miniFB->activeFunc (miniFB);
-
-        break;
-      //}}}
-      //{{{
-      case LeaveNotify:
-        miniFB->pointerInside = false;
-        if (miniFB->activeFunc)
-          miniFB->activeFunc (miniFB);
-
-        break;
-      //}}}
-
-      //{{{
-      case FocusIn:
-        miniFB->isActive = true;
-        if (miniFB->activeFunc)
-          miniFB->activeFunc (miniFB);
-
-        break;
-      //}}}
-      //{{{
-      case FocusOut:
-        miniFB->isActive = false;
-        if (miniFB->activeFunc)
-          miniFB->activeFunc (miniFB);
-
-        break;
-      //}}}
-
-      //{{{
-      case DestroyNotify:
-        miniFB->closed = true;
-        return;
-      //}}}
-      //{{{
-      case ClientMessage:
-        if ((Atom)event->xclient.data.l[0] == gDeleteWindowAtom) {
-          if (miniFB) {
-            bool destroy = false;
-            if (!miniFB->closeFunc || miniFB->closeFunc (miniFB))
-              destroy = true;
-            if (destroy) {
-              miniFB->closed = true;
-              return;
-              }
-            }
-          }
-
-        break;
-      //}}}
-
-      default:
-        if (event->type == (int)gMotionType) {
-          XDeviceMotionEvent* motionEvent = (XDeviceMotionEvent*)(event);
-          int posX = motionEvent->x;
-          int posY = motionEvent->y;
-          //int posX = motionEvent->axis_data[0];
-          //int posY = motionEvent->axis_data[1];
-          int pressure = motionEvent->axis_data[2];
-          cLog::log (LOGINFO, fmt::format ("tablet motionEvent {},{} {} {}",
-                                           posX, posY, pressure, motionEvent->serial, event->type));
-          }
-        else
-          cLog::log (LOGINFO, fmt::format ("unused event {}", event->type));
-        break;
-      }
-    }
-  //}}}
-  //{{{
-  void processEvents (cMiniFB* miniFB) {
-
-    while (!miniFB->closed && XPending (miniFB->display)) {
-      XEvent event;
-      XNextEvent (miniFB->display, &event);
-      processEvent (miniFB, &event);
-      }
-    }
-  //}}}
-  //{{{
-  void freeResources (cMiniFB* miniFB)  {
-
-    if (gDevice)
-      XCloseDevice (miniFB->display, gDevice);
-
-    if (miniFB) {
-      miniFB->destroyGLcontext();
-      free (miniFB);
-      }
-    }
-  //}}}
   }
 
 // interface
@@ -558,7 +320,7 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
     }
     //}}}
 
-  initKeycodes (miniFB);
+  miniFB->initKeycodes();
   XAutoRepeatOff (miniFB->display);
 
   miniFB->screen = DefaultScreen (miniFB->display);
@@ -785,7 +547,7 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
 eUpdateState cMiniFB::updateEx (void* buffer, unsigned width, unsigned height) {
 
   if (closed) {
-    freeResources (this);
+    freeResources();
     return STATE_EXIT;
     }
 
@@ -800,7 +562,7 @@ eUpdateState cMiniFB::updateEx (void* buffer, unsigned width, unsigned height) {
 
   redrawGL (buffer);
 
-  processEvents (this);
+  processEvents();
 
   return STATE_OK;
   }
@@ -809,13 +571,13 @@ eUpdateState cMiniFB::updateEx (void* buffer, unsigned width, unsigned height) {
 eUpdateState cMiniFB::updateEvents() {
 
   if (closed) {
-    freeResources (this);
+    freeResources();
     return STATE_EXIT;
     }
 
   XFlush (display);
 
-  processEvents (this);
+  processEvents();
 
   return STATE_OK;
   }
@@ -855,5 +617,236 @@ bool cMiniFB::setViewport (unsigned offset_x, unsigned offset_y, unsigned width,
   calcDstFactor (window_width, window_height);
 
   return true;
+  }
+//}}}
+
+// private
+//{{{
+void cMiniFB::initKeycodes() {
+
+  // clear keys
+  for (size_t i = 0; i < sizeof(gKeycodes) / sizeof(gKeycodes[0]); ++i)
+    gKeycodes[i] = KB_KEY_UNKNOWN;
+
+  // valid key code range is  [8,255], according to the Xlib manual
+  for (size_t i = 8; i <= 255; ++i) {
+    // try secondary keysym, for numeric keypad keys
+    int keySym  = XkbKeycodeToKeysym (display, i, 0, 1);
+    gKeycodes[i] = translateKeyCodeB (keySym);
+    if (gKeycodes[i] == KB_KEY_UNKNOWN) {
+      keySym = XkbKeycodeToKeysym (display, i, 0, 0);
+      gKeycodes[i] = translateKeyCodeA (keySym);
+      }
+    }
+  }
+//}}}
+
+//{{{
+void cMiniFB::processEvent (XEvent* event) {
+
+  switch (event->type) {
+    case KeyPress:
+    //{{{
+    case KeyRelease:
+      keyCode = (eKey)translateKey (event->xkey.keycode);
+      isDown = (event->type == KeyPress);
+      modifierKeys = translateModEx (keyCode, event->xkey.state, isDown);
+      keyStatus[keyCode] = isDown;
+      if (keyFunc)
+        keyFunc (this);
+
+      if (isDown) {
+        KeySym keysym;
+        XLookupString (&event->xkey, NULL, 0, &keysym, NULL);
+        if ((keysym >= 0x0020 && keysym <= 0x007e) ||
+            (keysym >= 0x00a0 && keysym <= 0x00ff)) {
+          codepoint = keysym;
+          if (charFunc)
+            charFunc (this);
+          }
+        else if ((keysym & 0xff000000) == 0x01000000)
+          keysym = keysym & 0x00ffffff;
+
+        codepoint = keysym;
+        if (charFunc)
+          charFunc (this);
+        // This does not seem to be working properly
+        // unsigned int codepoint = xkb_state_key_get_utf32(state, keysym);
+        // if (codepoint != 0)
+        //    kCall(char_inputFunc, codepoint);
+        }
+
+      break;
+    //}}}
+
+    case ButtonPress:
+    //{{{
+    case ButtonRelease:
+      {
+      isDown = (event->type == ButtonPress);
+      modifierKeys = translateMod (event->xkey.state);
+
+      // swap 2 & 3 ?
+      ePointerButton button = (ePointerButton)event->xbutton.button;
+      switch (button) {
+        case Button1:
+        case Button3:
+          pointerButtonStatus[button & 0x07] = isDown;
+          if (buttonFunc)
+            buttonFunc (this);
+          break;
+
+        // wheel
+        case Button4:
+          pointerWheelY = 1.0f;
+          if (wheelFunc)
+            wheelFunc (this);
+          break;
+
+        case Button5:
+          pointerWheelY = -1.0f;
+          if (wheelFunc)
+            wheelFunc (this);
+          break;
+
+        case 6:
+          pointerWheelX = 1.0f;
+          if (wheelFunc)
+            wheelFunc (this);
+          break;
+
+        case 7:
+          pointerWheelX = -1.0f;
+          if (wheelFunc)
+            wheelFunc (this);
+          break;
+
+        default:
+          break;
+        }
+      }
+
+      break;
+    //}}}
+
+    //{{{
+    case MotionNotify: {
+      XDeviceMotionEvent* motionEvent = (XDeviceMotionEvent*)(event);
+      cLog::log (LOGINFO, fmt::format ("motionNotify {},{} {}",
+                                       event->xmotion.x, event->xmotion.y, motionEvent->serial));
+      pointerTimestamp = 0;
+      pointerPosX = event->xmotion.x;
+      pointerPosY = event->xmotion.y;
+      pointerPressure = pointerButtonStatus[Button1] * 1024;
+      if (moveFunc)
+        moveFunc (this);
+      }
+      break;
+    //}}}
+
+    //{{{
+    case ConfigureNotify:
+      window_width  = event->xconfigure.width;
+      window_height = event->xconfigure.height;
+      windowScaledWidth  = window_width;
+      windowScaledHeight = window_height;
+
+      resizeDst (event->xconfigure.width, event->xconfigure.height);
+      resizeGL();
+
+      if (resizeFunc)
+        resizeFunc (this);
+
+      break;
+    //}}}
+
+    //{{{
+    case EnterNotify:
+      pointerInside = true;
+      if (activeFunc)
+        activeFunc (this);
+
+      break;
+    //}}}
+    //{{{
+    case LeaveNotify:
+      pointerInside = false;
+      if (activeFunc)
+        activeFunc (this);
+
+      break;
+    //}}}
+
+    //{{{
+    case FocusIn:
+      isActive = true;
+      if (activeFunc)
+        activeFunc (this);
+
+      break;
+    //}}}
+    //{{{
+    case FocusOut:
+      isActive = false;
+      if (activeFunc)
+        activeFunc (this);
+
+      break;
+    //}}}
+
+    //{{{
+    case DestroyNotify:
+      closed = true;
+      return;
+    //}}}
+    //{{{
+    case ClientMessage:
+      if ((Atom)event->xclient.data.l[0] == gDeleteWindowAtom) {
+        bool destroy = false;
+        if (!closeFunc || closeFunc (this))
+          destroy = true;
+        if (destroy) {
+          closed = true;
+          return;
+          }
+        }
+
+      break;
+    //}}}
+
+    default:
+      if (event->type == (int)gMotionType) {
+        XDeviceMotionEvent* motionEvent = (XDeviceMotionEvent*)(event);
+        int posX = motionEvent->x;
+        int posY = motionEvent->y;
+        //int posX = motionEvent->axis_data[0];
+        //int posY = motionEvent->axis_data[1];
+        int pressure = motionEvent->axis_data[2];
+        cLog::log (LOGINFO, fmt::format ("tablet motionEvent {},{} {} {}",
+                                         posX, posY, pressure, motionEvent->serial, event->type));
+        }
+      else
+        cLog::log (LOGINFO, fmt::format ("unused event {}", event->type));
+      break;
+    }
+  }
+//}}}
+//{{{
+void cMiniFB::processEvents() {
+
+  while (!closed && XPending (display)) {
+    XEvent event;
+    XNextEvent (display, &event);
+    processEvent (&event);
+    }
+  }
+//}}}
+//{{{
+void cMiniFB::freeResources()  {
+
+  if (gDevice)
+    XCloseDevice (display, gDevice);
+
+  destroyGLcontext();
   }
 //}}}
