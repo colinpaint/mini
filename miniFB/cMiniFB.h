@@ -252,15 +252,15 @@ public:
   void resizeGL();
 
   // vars
-  void(*activeFunc)(cMiniFB* miniFB);
-  void(*resizeFunc)(cMiniFB* miniFB);
-  bool(*closeFunc)(cMiniFB* miniFB);
-  void(*keyFunc)(cMiniFB* miniFB);
-  void(*charFunc)(cMiniFB* miniFB);
-  void(*buttonFunc)(cMiniFB* miniFB);
-  void(*moveFunc)(cMiniFB* miniFB);
-  void(*wheelFunc)(cMiniFB* miniFB);
-  void(*enterFunc)(cMiniFB* miniFB);
+  void(*activeFunc)(cMiniFB* miniFB) = nullptr;
+  void(*resizeFunc)(cMiniFB* miniFB) = nullptr;
+  bool(*closeFunc)(cMiniFB* miniFB) = nullptr;
+  void(*keyFunc)(cMiniFB* miniFB) = nullptr;
+  void(*charFunc)(cMiniFB* miniFB) = nullptr;
+  void(*buttonFunc)(cMiniFB* miniFB) = nullptr;
+  void(*moveFunc)(cMiniFB* miniFB) = nullptr;
+  void(*wheelFunc)(cMiniFB* miniFB) = nullptr;
+  void(*enterFunc)(cMiniFB* miniFB) = nullptr;
 
   uint32_t windowWidth = 0;
   uint32_t windowHeight = 0;

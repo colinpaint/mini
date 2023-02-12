@@ -313,7 +313,7 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
   miniFB->display = XOpenDisplay (0);
   if (!miniFB->display) {
     //{{{  error, return
-    cLog::log (LOGERROR, fmt::format ("failed to create display"));
+    cLog::log (LOGERROR, fmt::format ("failed to create X11 display"));
     delete (miniFB);
     return 0;
     }
@@ -442,7 +442,7 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
 
   if (!miniFB->createGLcontext()) {
     //{{{  error, return
-    cLog::log (LOGERROR, fmt::format ("failed to create GL context"));
+    cLog::log (LOGERROR, fmt::format ("failed to create X11 GL context"));
     return 0;
     }
     //}}}
@@ -479,7 +479,7 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
   XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (miniFB->display, &count);
   if (!devices) {
     //{{{  error, return
-    cLog::log (LOGERROR, fmt::format ("X11 - no input device list"));
+    cLog::log (LOGERROR, fmt::format ("failed to find X11 input device list"));
     return 0;
     }
     //}}}

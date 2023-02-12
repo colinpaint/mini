@@ -57,6 +57,7 @@ namespace {
     typedef HCTX (WINAPI* WTMGRDEFCONTEXT) (HMGR, BOOL);
     typedef HCTX (WINAPI* WTMGRDEFCONTEXTEX) (HMGR, UINT, BOOL);
     //}}}
+
     //{{{
     struct sWinTabInfo {
       int32_t mPosX;
@@ -102,6 +103,7 @@ namespace {
       };
     //}}}
     sWinTabInfo* gWinTab = nullptr;
+
     //{{{
     bool winTabLoad (HWND window) {
 
@@ -359,22 +361,22 @@ namespace {
 
     uint32_t mods = 0;
 
-    if (GetKeyState(VK_SHIFT) & 0x8000)
+    if (GetKeyState (VK_SHIFT) & 0x8000)
       mods |= KB_MOD_SHIFT;
 
-    if (GetKeyState(VK_CONTROL) & 0x8000)
+    if (GetKeyState (VK_CONTROL) & 0x8000)
       mods |= KB_MOD_CONTROL;
 
-    if (GetKeyState(VK_MENU) & 0x8000)
+    if (GetKeyState (VK_MENU) & 0x8000)
       mods |= KB_MOD_ALT;
 
-    if ((GetKeyState(VK_LWIN) | GetKeyState(VK_RWIN)) & 0x8000)
+    if ((GetKeyState (VK_LWIN) | GetKeyState(VK_RWIN)) & 0x8000)
       mods |= KB_MOD_SUPER;
 
-    if (GetKeyState(VK_CAPITAL) & 1)
+    if (GetKeyState (VK_CAPITAL) & 1)
       mods |= KB_MOD_CAPS_LOCK;
 
-    if (GetKeyState(VK_NUMLOCK) & 1)
+    if (GetKeyState (VK_NUMLOCK) & 1)
       mods |= KB_MOD_NUM_LOCK;
 
     return mods;
@@ -915,12 +917,8 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
 
   miniFB->windowWidth  = rect.right;
   miniFB->windowHeight = rect.bottom;
-
-  miniFB->window = CreateWindowEx (0,
-                                   title, title,
-                                   s_window_style,
-                                   x, y,
-                                   miniFB->windowWidth, miniFB->windowHeight,
+  miniFB->window = CreateWindowEx (0, title, title, s_window_style,
+                                   x, y, miniFB->windowWidth, miniFB->windowHeight,
                                    0, 0, 0, 0);
   if (!miniFB->window) {
     //{{{  error, return
