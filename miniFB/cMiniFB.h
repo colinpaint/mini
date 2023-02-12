@@ -221,8 +221,7 @@ public:
   void setUserData (void* user_data) { userData = user_data; }
   bool setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
   bool setViewportBestFit (unsigned old_width, unsigned old_height);
-
-  // C style callbacks
+  //{{{  set C style callbacks
   void setActiveCallback (void(*callback)(cMiniFB* miniFB));
   void setResizeCallback (void(*callback)(cMiniFB* miniFB));
   void setCloseCallback  (bool(*callback)(cMiniFB* miniFB));
@@ -232,8 +231,8 @@ public:
   void setMoveCallback   (void(*callback)(cMiniFB* miniFB));
   void setWheelCallback  (void(*callback)(cMiniFB* miniFB));
   void setEnterCallback  (void(*callback)(cMiniFB* miniFB));
-
-  // function style callbacks
+  //}}}
+  //{{{  set function style callbacks
   void setActiveFunc (std::function <void (cMiniFB*)> func);
   void setResizeFunc (std::function <void (cMiniFB*)> func);
   void setCloseFunc  (std::function <bool (cMiniFB*)> func);
@@ -243,6 +242,7 @@ public:
   void setMoveFunc   (std::function <void (cMiniFB*)> func);
   void setWheelFunc  (std::function <void (cMiniFB*)> func);
   void setEnterFunc  (std::function <void (cMiniFB*)> func);
+  //}}}
 
   void resizeDst (uint32_t width, uint32_t height);
   void calcDstFactor (uint32_t width, uint32_t height);
@@ -252,7 +252,7 @@ public:
   void redrawGL (const void* pixels);
   void resizeGL();
 
-  // vars
+  //{{{  vars
   void(*activeFunc)(cMiniFB* miniFB) = nullptr;
   void(*resizeFunc)(cMiniFB* miniFB) = nullptr;
   bool(*closeFunc)(cMiniFB* miniFB) = nullptr;
@@ -319,6 +319,7 @@ public:
     GC         gc = 0;
     GLXContext context = 0;
   #endif
+  //}}}
 
 private:
   void initGL();
