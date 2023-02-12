@@ -1,4 +1,4 @@
-// cMiniFB.h
+// cMiniFB.h - mini frameBuffer, based on https://github.com/emoon/minifb but hacked to death
 #pragma once
 //{{{  includes
 #include <cstdint>
@@ -203,11 +203,10 @@ public:
   unsigned getWindowWidth() const { return window_width; }
   unsigned getWindowHeight() const { return window_height; }
 
+  int64_t getPointerTimestamp() const { return pointerTimestamp; }
   int getPointerX() const { return pointerPosX; }
   int getPointerY() const { return pointerPosY; }
   int getPointerPressure() const { return pointerPressure; }
-  int64_t getPointerTimestamp() const { return pointerTimestamp; }
-
   float getPointerWheelX() { return pointerWheelX; }
   float getPointerWheelY() { return pointerWheelY; }
 
