@@ -21,6 +21,7 @@
   #include <X11/cursorfont.h>
   #include <xkbcommon/xkbcommon.h>
   #include <X11/extensions/XInput.h>
+  #include <X11/extensions/XInput2.h>
 
   #include <GL/gl.h>
   #include <GL/glx.h>
