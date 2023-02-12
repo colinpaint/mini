@@ -128,39 +128,6 @@ namespace {
   }
 
 //{{{
-cCallbackStub* cCallbackStub::getInstance (cMiniFB* miniFB) {
-
-  //{{{
-  struct stub_vector {
-    vector<cCallbackStub*> instances;
-
-    stub_vector() = default;
-    //{{{
-    ~stub_vector() {
-      for (cCallbackStub* instance : instances)
-        delete instance;
-      }
-    //}}}
-
-    cCallbackStub* Get (cMiniFB *miniFB) {
-      for (cCallbackStub *instance : instances) {
-        if( instance->mMiniFB == miniFB) {
-          return instance;
-          }
-        }
-      instances.push_back (new cCallbackStub);
-      instances.back()->mMiniFB = miniFB;
-      return instances.back();
-      }
-    };
-  //}}}
-  static stub_vector gInstances;
-
-  return gInstances.Get (miniFB);
-  }
-//}}}
-
-//{{{
 eUpdateState cMiniFB::update (void *buffer) {
   return updateEx (buffer, bufferWidth, bufferHeight);
   }
@@ -325,11 +292,11 @@ void cMiniFB::setUserData (void* user_data) { userData = user_data; }
 //{{{
 bool cMiniFB::setViewportBestFit (unsigned old_width, unsigned old_height) {
 
-  unsigned new_width  = window_width;
-  unsigned new_height = window_height;
+  unsigned newWidth  = windowWidth;
+  unsigned newHeight = windowHeight;
 
-  float scale_x = new_width  / (float) old_width;
-  float scale_y = new_height / (float) old_height;
+  float scale_x = newWidth  / (float) old_width;
+  float scale_y = newHeight / (float) old_height;
   if (scale_x >= scale_y)
     scale_x = scale_y;
   else
@@ -338,8 +305,8 @@ bool cMiniFB::setViewportBestFit (unsigned old_width, unsigned old_height) {
   unsigned finalWidth  = (unsigned)((old_width  * scale_x) + 0.5f);
   unsigned finalHeight = (unsigned)((old_height * scale_y) + 0.5f);
 
-  unsigned offset_x = (new_width  - finalWidth)  >> 1;
-  unsigned offset_y = (new_height - finalHeight) >> 1;
+  unsigned offset_x = (newWidth  - finalWidth)  >> 1;
+  unsigned offset_y = (newHeight - finalHeight) >> 1;
 
   getMonitorScale (&scale_x, &scale_y);
   return setViewport ((unsigned)(offset_x / scale_x), (unsigned)(offset_y / scale_y),
@@ -445,26 +412,26 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
 //{{{
 void cMiniFB::resizeDst (uint32_t width, uint32_t height) {
 
-  dst_offset_x = (uint32_t) (width  * factor_x);
-  dst_offset_y = (uint32_t) (height * factor_y);
-  dst_width    = (uint32_t) (width  * factor_width);
-  dst_height   = (uint32_t) (height * factor_height);
+  dstOffsetX = (uint32_t) (width  * factorX);
+  dstOffsetY = (uint32_t) (height * factorY);
+  dstWidth    = (uint32_t) (width  * factorWidth);
+  dstHeight   = (uint32_t) (height * factorHeight);
   }
 //}}}
 //{{{
 void cMiniFB::calcDstFactor (uint32_t width, uint32_t height) {
 
-  if (dst_width == 0)
-    dst_width = width;
+  if (dstWidth == 0)
+    dstWidth = width;
 
-  factor_x     = (float) dst_offset_x / (float) width;
-  factor_width = (float) dst_width    / (float) width;
+  factorX     = (float)dstOffsetX / (float)width;
+  factorWidth = (float)dstWidth    / (float)width;
 
-  if (dst_height == 0)
-    dst_height = height;
+  if (dstHeight == 0)
+    dstHeight = height;
 
-  factor_y      = (float) dst_offset_y / (float) height;
-  factor_height = (float) dst_height   / (float) height;
+  factorY      = (float)dstOffsetY / (float)height;
+  factorHeight = (float)dstHeight   / (float)height;
   }
 //}}}
 
@@ -479,11 +446,11 @@ void cMiniFB::resizeGL() {
       glXMakeCurrent (display, window, context);
     #endif
 
-    glViewport (0,0, window_width,window_height);
+    glViewport (0,0, windowWidth,windowHeight);
 
     glMatrixMode (GL_PROJECTION);
     glLoadIdentity();
-    glOrtho (0, window_width, window_height, 0, 2048, -2048);
+    glOrtho (0, windowWidth, windowHeight, 0, 2048, -2048);
 
     glClear (GL_COLOR_BUFFER_BIT);
     }
@@ -515,10 +482,10 @@ void cMiniFB::redrawGL (const void* pixels) {
   glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 
   // vertices
-  float x = (float)dst_offset_x;
-  float y = (float)dst_offset_y;
-  float w = (float)dst_offset_x + dst_width;
-  float h = (float)dst_offset_y + dst_height;
+  float x = (float)dstOffsetX;
+  float y = (float)dstOffsetY;
+  float w = (float)dstOffsetX + dstWidth;
+  float h = (float)dstOffsetY + dstHeight;
   float vertices[] = { x, y, 0, 0,
                        w, y, 1, 0,
                        x, h, 0, 1,
@@ -604,11 +571,11 @@ void cMiniFB::destroyGLcontext() {
 //{{{
 void cMiniFB::initGL() {
 
-  glViewport (0, 0, window_width, window_height);
+  glViewport (0, 0, windowWidth, windowHeight);
 
   glMatrixMode (GL_PROJECTION);
   glLoadIdentity();
-  glOrtho (0, window_width, window_height, 0, 2048, -2048);
+  glOrtho (0, windowWidth, windowHeight, 0, 2048, -2048);
 
   glMatrixMode (GL_MODELVIEW);
   glLoadIdentity();
@@ -634,7 +601,39 @@ void cMiniFB::initGL() {
   }
 //}}}
 
-// callback stubs
+// cCallbackStub
+//{{{
+cCallbackStub* cCallbackStub::getInstance (cMiniFB* miniFB) {
+
+  //{{{
+  struct stub_vector {
+    vector<cCallbackStub*> instances;
+
+    stub_vector() = default;
+    //{{{
+    ~stub_vector() {
+      for (cCallbackStub* instance : instances)
+        delete instance;
+      }
+    //}}}
+
+    cCallbackStub* Get (cMiniFB *miniFB) {
+      for (cCallbackStub *instance : instances) {
+        if( instance->mMiniFB == miniFB) {
+          return instance;
+          }
+        }
+      instances.push_back (new cCallbackStub);
+      instances.back()->mMiniFB = miniFB;
+      return instances.back();
+      }
+    };
+  //}}}
+  static stub_vector gInstances;
+
+  return gInstances.Get (miniFB);
+  }
+//}}}
 //{{{
 void cCallbackStub::activeStub (cMiniFB* miniFB) {
   cCallbackStub::getInstance (miniFB)->mActiveFunc (miniFB);

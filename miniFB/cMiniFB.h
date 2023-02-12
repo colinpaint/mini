@@ -200,8 +200,8 @@ public:
 
   // gets
   bool isWindowActive() const { return isActive; }
-  unsigned getWindowWidth() const { return window_width; }
-  unsigned getWindowHeight() const { return window_height; }
+  unsigned getWindowWidth() const { return windowWidth; }
+  unsigned getWindowHeight() const { return windowHeight; }
 
   int64_t getPointerTimestamp() const { return pointerTimestamp; }
   int getPointerX() const { return pointerPosX; }
@@ -262,22 +262,22 @@ public:
   void(*wheelFunc)(cMiniFB* miniFB);
   void(*enterFunc)(cMiniFB* miniFB);
 
-  uint32_t window_width = 0;
-  uint32_t window_height = 0;
+  uint32_t windowWidth = 0;
+  uint32_t windowHeight = 0;
   uint32_t windowScaledWidth = 0;
   uint32_t windowScaledHeight = 0;
 
-  uint32_t dst_offset_x = 0;
-  uint32_t dst_offset_y = 0;
-  uint32_t dst_width = 0;
-  uint32_t dst_height = 0;
+  uint32_t dstOffsetX = 0;
+  uint32_t dstOffsetY = 0;
+  uint32_t dstWidth = 0;
+  uint32_t dstHeight = 0;
 
-  float    factor_x = 0;
-  float    factor_y = 0;
-  float    factor_width = 0;
-  float    factor_height = 0;
+  float    factorX = 0;
+  float    factorY = 0;
+  float    factorWidth = 0;
+  float    factorHeight = 0;
 
-  void*    draw_buffer = nullptr;
+  void*    drawBuffer = nullptr;
   uint32_t bufferWidth = 0;
   uint32_t bufferHeight = 0;
   uint32_t bufferStride = 0;

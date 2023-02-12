@@ -305,7 +305,6 @@ namespace {
   void getWindowsMonitorScale (HWND hWnd, float* scale_x, float* scale_y) {
 
     UINT x, y;
-
     if (gGetDpiForMonitor) {
       HMONITOR monitor = MonitorFromWindow (hWnd, MONITOR_DEFAULTTONEAREST);
       gGetDpiForMonitor (monitor, mfb_MDT_EFFECTIVE_DPI, &x, &y);
@@ -426,14 +425,14 @@ namespace {
 
           float scale_x, scale_y;
           getWindowsMonitorScale (hWnd, &scale_x, &scale_y);
-          miniFB->window_width = GET_X_LPARAM(lParam);
-          miniFB->window_height =  GET_Y_LPARAM(lParam);
-          miniFB->resizeDst (miniFB->window_width, miniFB->window_height);
+          miniFB->windowWidth = GET_X_LPARAM(lParam);
+          miniFB->windowHeight =  GET_Y_LPARAM(lParam);
+          miniFB->resizeDst (miniFB->windowWidth, miniFB->windowHeight);
 
           miniFB->resizeGL();
-          if (miniFB->window_width && miniFB->window_height) {
-            miniFB->windowScaledWidth  = (uint32_t)(miniFB->window_width  / scale_x);
-            miniFB->windowScaledHeight = (uint32_t)(miniFB->window_height / scale_y);
+          if (miniFB->windowWidth && miniFB->windowHeight) {
+            miniFB->windowScaledWidth  = (uint32_t)(miniFB->windowWidth  / scale_x);
+            miniFB->windowScaledHeight = (uint32_t)(miniFB->windowHeight / scale_y);
             if (miniFB->resizeFunc)
               miniFB->resizeFunc (miniFB);
             }
@@ -914,15 +913,15 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
 
   miniFB->calcDstFactor (width, height);
 
-  miniFB->window_width  = rect.right;
-  miniFB->window_height = rect.bottom;
+  miniFB->windowWidth  = rect.right;
+  miniFB->windowHeight = rect.bottom;
 
   miniFB->window = CreateWindowEx (0,
-                                           title, title,
-                                           s_window_style,
-                                           x, y,
-                                           miniFB->window_width, miniFB->window_height,
-                                           0, 0, 0, 0);
+                                   title, title,
+                                   s_window_style,
+                                   x, y,
+                                   miniFB->windowWidth, miniFB->windowHeight,
+                                   0, 0, 0, 0);
   if (!miniFB->window) {
     //{{{  error, return
     free (miniFB);
@@ -930,16 +929,13 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
     }
     //}}}
 
-  SetWindowLongPtr (miniFB->window, GWLP_USERDATA, (LONG_PTR) miniFB);
-
+  SetWindowLongPtr (miniFB->window, GWLP_USERDATA, (LONG_PTR)miniFB);
   if (flags & WF_ALWAYS_ON_TOP)
     SetWindowPos (miniFB->window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
   ShowWindow (miniFB->window, SW_NORMAL);
 
   miniFB->hdc = GetDC (miniFB->window);
-
   miniFB->createGLcontext();
-
   cLog::log (LOGINFO, "using windows OpenGL");
 
   #ifdef USE_WINTAB
@@ -967,7 +963,7 @@ eUpdateState cMiniFB::updateEx (void* buffer, unsigned width, unsigned height) {
   if (!buffer)
     return STATE_INVALID_BUFFER;
 
-  draw_buffer = buffer;
+  drawBuffer = buffer;
   bufferWidth = width;
   bufferStride = width * 4;
   bufferHeight = height;
@@ -1002,22 +998,22 @@ void cMiniFB::getMonitorScale (float* scale_x, float* scale_y) {
 //{{{
 bool cMiniFB::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
 
-  if (offset_x + width > window_width)
+  if (offset_x + width > windowWidth)
     return false;
 
-  if (offset_y + height > window_height)
+  if (offset_y + height > windowHeight)
     return false;
 
   float scale_x, scale_y;
   getWindowsMonitorScale (window, &scale_x, &scale_y);
 
-  dst_offset_x = (uint32_t)(offset_x * scale_x);
-  dst_offset_y = (uint32_t)(offset_y * scale_y);
+  dstOffsetX = (uint32_t)(offset_x * scale_x);
+  dstOffsetY = (uint32_t)(offset_y * scale_y);
 
-  dst_width = (uint32_t)(width  * scale_x);
-  dst_height = (uint32_t)(height * scale_y);
+  dstWidth = (uint32_t)(width  * scale_x);
+  dstHeight = (uint32_t)(height * scale_y);
 
-  calcDstFactor (window_width, window_height);
+  calcDstFactor (windowWidth, windowHeight);
 
   return true;
   }
@@ -1170,7 +1166,7 @@ void cMiniFB::freeResources() {
   window = 0;
   hdc = 0;
 
-  draw_buffer = 0x0;
+  drawBuffer = 0x0;
   closed = true;
 
   #ifdef USE_WINTAB

@@ -357,8 +357,8 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
   windowAttributes.background_pixel = BlackPixel (miniFB->display,miniFB-> screen);
   windowAttributes.backing_store = NotUseful;
 
-  miniFB->window_width  = width;
-  miniFB->window_height = height;
+  miniFB->windowWidth  = width;
+  miniFB->windowHeight = height;
   miniFB->bufferWidth  = width;
   miniFB->bufferHeight = height;
   miniFB->bufferStride = width * 4;
@@ -605,16 +605,16 @@ void cMiniFB::getMonitorScale (float* scale_x, float* scale_y) {
 //{{{
 bool cMiniFB::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height)  {
 
-  if (offset_x + width > window_width)
+  if (offset_x + width > windowWidth)
     return false;
-  if (offset_y + height > window_height)
+  if (offset_y + height > windowHeight)
     return false;
 
-  dst_offset_x = offset_x;
-  dst_offset_y = offset_y;
-  dst_width = width;
-  dst_height = height;
-  calcDstFactor (window_width, window_height);
+  dstOffsetX = offset_x;
+  dstOffsetY = offset_y;
+  dstWidth = width;
+  dstHeight = height;
+  calcDstFactor (windowWidth, windowHeight);
 
   return true;
   }
@@ -746,10 +746,10 @@ void cMiniFB::processEvent (XEvent* event) {
 
     //{{{
     case ConfigureNotify:
-      window_width  = event->xconfigure.width;
-      window_height = event->xconfigure.height;
-      windowScaledWidth  = window_width;
-      windowScaledHeight = window_height;
+      windowWidth  = event->xconfigure.width;
+      windowHeight = event->xconfigure.height;
+      windowScaledWidth  = windowWidth;
+      windowScaledHeight = windowHeight;
 
       resizeDst (event->xconfigure.width, event->xconfigure.height);
       resizeGL();
