@@ -1017,10 +1017,6 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
 
   #ifdef _WIN32
     //{{{  windows
-    RECT rect = { 0 };
-    int x = 0;
-    int y = 0;
-
     loadFunctions();
     dpiAware();
 
@@ -1031,6 +1027,9 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
 
     long s_window_style = WS_POPUP | WS_SYSMENU | WS_CAPTION;
     s_window_style = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME;
+    RECT rect = { 0 };
+    int x = 0;
+    int y = 0;
     if (flags & WF_FULLSCREEN) {
       //{{{  fullscreen
       flags = WF_FULLSCREEN;  // Remove all other flags
@@ -1049,7 +1048,6 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
         flags = WF_FULLSCREEN_DESKTOP;
       }
       //}}}
-
     if (flags & WF_BORDERLESS)
       s_window_style = WS_POPUP;
     if (flags & WF_RESIZABLE)
@@ -1065,11 +1063,13 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
       rect.right  = width;
       rect.bottom = height;
       AdjustWindowRect (&rect, s_window_style, 0);
+
       if (rect.left < 0) {
         width += rect.left * 2;
         rect.right += rect.left;
         rect.left = 0;
         }
+
       if (rect.bottom > (LONG) height) {
         height -= (rect.bottom - height);
         rect.bottom += (rect.bottom - height);
@@ -1088,6 +1088,7 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
 
       rect.right  -= rect.left;
       rect.bottom -= rect.top;
+
       x = (GetSystemMetrics(SM_CXSCREEN) - rect.right) / 2;
       y = (GetSystemMetrics(SM_CYSCREEN) - rect.bottom + rect.top) / 2;
       }
@@ -1100,7 +1101,6 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
     RegisterClass (&miniFB->wc);
 
     miniFB->calcDstFactor (width, height);
-
     miniFB->windowWidth  = rect.right;
     miniFB->windowHeight = rect.bottom;
     miniFB->window = CreateWindowEx (0, title, title, s_window_style,
@@ -1606,7 +1606,6 @@ void cMiniFB::getMonitorScale (float* scale_x, float* scale_y) {
 //}}}
 
 // sets
-void cMiniFB::setUserData (void* user_data) { userData = user_data; }
 //{{{
 bool cMiniFB::setViewportBestFit (unsigned old_width, unsigned old_height) {
 

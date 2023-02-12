@@ -218,7 +218,7 @@ public:
   void getMonitorScale (float* scale_x, float* scale_y);
 
   // sets
-  void setUserData (void* user_data);
+  void setUserData (void* user_data) { userData = user_data; }
   bool setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
   bool setViewportBestFit (unsigned old_width, unsigned old_height);
 
