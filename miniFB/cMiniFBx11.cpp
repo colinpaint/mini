@@ -29,7 +29,7 @@ extern void stretchImage (uint32_t* srcImage, uint32_t srcX, uint32_t srcY,
                           uint32_t dstWidth, uint32_t dstHeight, uint32_t dstPitch);
 
 namespace {
-  short int gKeycodes[512] = { 0 };
+  int16_t gKeycodes[512] = { 0 };
 
   Atom gDeleteWindowAtom;
   XDevice* gDevice = nullptr;
@@ -432,7 +432,7 @@ namespace {
         miniFB->windowScaledHeight = miniFB->window_height;
 
         miniFB->resizeDst (event->xconfigure.width, event->xconfigure.height);
-        resizeGL (miniFB);
+        miniFB->resizeGL();
 
         if (miniFB->resizeFunc)
           miniFB->resizeFunc (miniFB);
@@ -530,7 +530,7 @@ namespace {
       XCloseDevice (miniFB->display, gDevice);
 
     if (miniFB) {
-      destroyGLcontext (miniFB);
+      miniFB->destroyGLcontext();
       free (miniFB);
       }
     }
@@ -679,7 +679,7 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
   gDeleteWindowAtom = XInternAtom (miniFB->display, "WM_DELETE_WINDOW", False);
   XSetWMProtocols (miniFB->display, miniFB->window, &gDeleteWindowAtom, 1);
 
-  if (!createGLcontext (miniFB)) {
+  if (!miniFB->createGLcontext()) {
     //{{{  error, return
     cLog::log (LOGERROR, fmt::format ("failed to create GL context"));
     return 0;
@@ -798,7 +798,7 @@ eUpdateState cMiniFB::updateEx (void* buffer, unsigned width, unsigned height) {
     bufferHeight = height;
     }
 
-  redrawGL (this, buffer);
+  redrawGL (buffer);
 
   processEvents (this);
 

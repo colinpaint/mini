@@ -16,8 +16,6 @@ using namespace std;
 #endif
 
 namespace {
-  short int gKeycodes[512] = { 0 };
-
   #ifdef USE_WINTAB
     //{{{  use wintab
     //{{{
@@ -214,6 +212,141 @@ namespace {
     //}}}
     //}}}
   #endif
+
+  int16_t gKeycodes[512] = { 0 };
+  //{{{
+  void initKeycodes() {
+
+    if (gKeycodes[0x00B] != KB_KEY_0) {
+      //{{{  alpha numeric
+      gKeycodes[0x00B] = KB_KEY_0;
+      gKeycodes[0x002] = KB_KEY_1;
+      gKeycodes[0x003] = KB_KEY_2;
+      gKeycodes[0x004] = KB_KEY_3;
+      gKeycodes[0x005] = KB_KEY_4;
+      gKeycodes[0x006] = KB_KEY_5;
+      gKeycodes[0x007] = KB_KEY_6;
+      gKeycodes[0x008] = KB_KEY_7;
+      gKeycodes[0x009] = KB_KEY_8;
+      gKeycodes[0x00A] = KB_KEY_9;
+      gKeycodes[0x01E] = KB_KEY_A;
+      gKeycodes[0x030] = KB_KEY_B;
+      gKeycodes[0x02E] = KB_KEY_C;
+      gKeycodes[0x020] = KB_KEY_D;
+      gKeycodes[0x012] = KB_KEY_E;
+      gKeycodes[0x021] = KB_KEY_F;
+      gKeycodes[0x022] = KB_KEY_G;
+      gKeycodes[0x023] = KB_KEY_H;
+      gKeycodes[0x017] = KB_KEY_I;
+      gKeycodes[0x024] = KB_KEY_J;
+      gKeycodes[0x025] = KB_KEY_K;
+      gKeycodes[0x026] = KB_KEY_L;
+      gKeycodes[0x032] = KB_KEY_M;
+      gKeycodes[0x031] = KB_KEY_N;
+      gKeycodes[0x018] = KB_KEY_O;
+      gKeycodes[0x019] = KB_KEY_P;
+      gKeycodes[0x010] = KB_KEY_Q;
+      gKeycodes[0x013] = KB_KEY_R;
+      gKeycodes[0x01F] = KB_KEY_S;
+      gKeycodes[0x014] = KB_KEY_T;
+      gKeycodes[0x016] = KB_KEY_U;
+      gKeycodes[0x02F] = KB_KEY_V;
+      gKeycodes[0x011] = KB_KEY_W;
+      gKeycodes[0x02D] = KB_KEY_X;
+      gKeycodes[0x015] = KB_KEY_Y;
+      gKeycodes[0x02C] = KB_KEY_Z;
+      //}}}
+      //{{{  punctuation
+      gKeycodes[0x028] = KB_KEY_APOSTROPHE;
+      gKeycodes[0x02B] = KB_KEY_BACKSLASH;
+      gKeycodes[0x033] = KB_KEY_COMMA;
+      gKeycodes[0x00D] = KB_KEY_EQUAL;
+      gKeycodes[0x029] = KB_KEY_GRAVE_ACCENT;
+      gKeycodes[0x01A] = KB_KEY_LEFT_BRACKET;
+      gKeycodes[0x00C] = KB_KEY_MINUS;
+      gKeycodes[0x034] = KB_KEY_PERIOD;
+      gKeycodes[0x01B] = KB_KEY_RIGHT_BRACKET;
+      gKeycodes[0x027] = KB_KEY_SEMICOLON;
+      gKeycodes[0x035] = KB_KEY_SLASH;
+      gKeycodes[0x056] = KB_KEY_WORLD_2;
+      //}}}
+      //{{{  other
+      gKeycodes[0x00E] = KB_KEY_BACKSPACE;
+      gKeycodes[0x153] = KB_KEY_DELETE;
+      gKeycodes[0x14F] = KB_KEY_END;
+      gKeycodes[0x01C] = KB_KEY_ENTER;
+      gKeycodes[0x001] = KB_KEY_ESCAPE;
+      gKeycodes[0x147] = KB_KEY_HOME;
+      gKeycodes[0x152] = KB_KEY_INSERT;
+      gKeycodes[0x15D] = KB_KEY_MENU;
+      gKeycodes[0x151] = KB_KEY_PAGE_DOWN;
+      gKeycodes[0x149] = KB_KEY_PAGE_UP;
+      gKeycodes[0x045] = KB_KEY_PAUSE;
+      gKeycodes[0x146] = KB_KEY_PAUSE;
+      gKeycodes[0x039] = KB_KEY_SPACE;
+      gKeycodes[0x00F] = KB_KEY_TAB;
+      gKeycodes[0x03A] = KB_KEY_CAPS_LOCK;
+      gKeycodes[0x145] = KB_KEY_NUM_LOCK;
+      gKeycodes[0x046] = KB_KEY_SCROLL_LOCK;
+      gKeycodes[0x03B] = KB_KEY_F1;
+      gKeycodes[0x03C] = KB_KEY_F2;
+      gKeycodes[0x03D] = KB_KEY_F3;
+      gKeycodes[0x03E] = KB_KEY_F4;
+      gKeycodes[0x03F] = KB_KEY_F5;
+      gKeycodes[0x040] = KB_KEY_F6;
+      gKeycodes[0x041] = KB_KEY_F7;
+      gKeycodes[0x042] = KB_KEY_F8;
+      gKeycodes[0x043] = KB_KEY_F9;
+      gKeycodes[0x044] = KB_KEY_F10;
+      gKeycodes[0x057] = KB_KEY_F11;
+      gKeycodes[0x058] = KB_KEY_F12;
+      gKeycodes[0x064] = KB_KEY_F13;
+      gKeycodes[0x065] = KB_KEY_F14;
+      gKeycodes[0x066] = KB_KEY_F15;
+      gKeycodes[0x067] = KB_KEY_F16;
+      gKeycodes[0x068] = KB_KEY_F17;
+      gKeycodes[0x069] = KB_KEY_F18;
+      gKeycodes[0x06A] = KB_KEY_F19;
+      gKeycodes[0x06B] = KB_KEY_F20;
+      gKeycodes[0x06C] = KB_KEY_F21;
+      gKeycodes[0x06D] = KB_KEY_F22;
+      gKeycodes[0x06E] = KB_KEY_F23;
+      gKeycodes[0x076] = KB_KEY_F24;
+      gKeycodes[0x038] = KB_KEY_LEFT_ALT;
+      gKeycodes[0x01D] = KB_KEY_LEFT_CONTROL;
+      gKeycodes[0x02A] = KB_KEY_LEFT_SHIFT;
+      gKeycodes[0x15B] = KB_KEY_LEFT_SUPER;
+      gKeycodes[0x137] = KB_KEY_PRINT_SCREEN;
+      gKeycodes[0x138] = KB_KEY_RIGHT_ALT;
+      gKeycodes[0x11D] = KB_KEY_RIGHT_CONTROL;
+      gKeycodes[0x036] = KB_KEY_RIGHT_SHIFT;
+      gKeycodes[0x15C] = KB_KEY_RIGHT_SUPER;
+      gKeycodes[0x150] = KB_KEY_DOWN;
+      gKeycodes[0x14B] = KB_KEY_LEFT;
+      gKeycodes[0x14D] = KB_KEY_RIGHT;
+      gKeycodes[0x148] = KB_KEY_UP;
+      //}}}
+      //{{{  numpad
+      gKeycodes[0x052] = KB_KEY_KP_0;
+      gKeycodes[0x04F] = KB_KEY_KP_1;
+      gKeycodes[0x050] = KB_KEY_KP_2;
+      gKeycodes[0x051] = KB_KEY_KP_3;
+      gKeycodes[0x04B] = KB_KEY_KP_4;
+      gKeycodes[0x04C] = KB_KEY_KP_5;
+      gKeycodes[0x04D] = KB_KEY_KP_6;
+      gKeycodes[0x047] = KB_KEY_KP_7;
+      gKeycodes[0x048] = KB_KEY_KP_8;
+      gKeycodes[0x049] = KB_KEY_KP_9;
+      gKeycodes[0x04E] = KB_KEY_KP_ADD;
+      gKeycodes[0x053] = KB_KEY_KP_DECIMAL;
+      gKeycodes[0x135] = KB_KEY_KP_DIVIDE;
+      gKeycodes[0x11C] = KB_KEY_KP_ENTER;
+      gKeycodes[0x037] = KB_KEY_KP_MULTIPLY;
+      gKeycodes[0x04A] = KB_KEY_KP_SUBTRACT;
+      //}}}
+      }
+    }
+  //}}}
   //{{{  dpi
   // Copied (and modified) from Windows Kit 10 to avoid setting _WIN32_WINNT to a higher version
   enum mfb_PROCESS_DPI_AWARENESS {
@@ -354,139 +487,6 @@ namespace {
       }
     }
   //}}}
-  //}}}
-  //{{{
-  void initKeycodes() {
-
-    if (gKeycodes[0x00B] != KB_KEY_0) {
-      //{{{  alpha numeric
-      gKeycodes[0x00B] = KB_KEY_0;
-      gKeycodes[0x002] = KB_KEY_1;
-      gKeycodes[0x003] = KB_KEY_2;
-      gKeycodes[0x004] = KB_KEY_3;
-      gKeycodes[0x005] = KB_KEY_4;
-      gKeycodes[0x006] = KB_KEY_5;
-      gKeycodes[0x007] = KB_KEY_6;
-      gKeycodes[0x008] = KB_KEY_7;
-      gKeycodes[0x009] = KB_KEY_8;
-      gKeycodes[0x00A] = KB_KEY_9;
-      gKeycodes[0x01E] = KB_KEY_A;
-      gKeycodes[0x030] = KB_KEY_B;
-      gKeycodes[0x02E] = KB_KEY_C;
-      gKeycodes[0x020] = KB_KEY_D;
-      gKeycodes[0x012] = KB_KEY_E;
-      gKeycodes[0x021] = KB_KEY_F;
-      gKeycodes[0x022] = KB_KEY_G;
-      gKeycodes[0x023] = KB_KEY_H;
-      gKeycodes[0x017] = KB_KEY_I;
-      gKeycodes[0x024] = KB_KEY_J;
-      gKeycodes[0x025] = KB_KEY_K;
-      gKeycodes[0x026] = KB_KEY_L;
-      gKeycodes[0x032] = KB_KEY_M;
-      gKeycodes[0x031] = KB_KEY_N;
-      gKeycodes[0x018] = KB_KEY_O;
-      gKeycodes[0x019] = KB_KEY_P;
-      gKeycodes[0x010] = KB_KEY_Q;
-      gKeycodes[0x013] = KB_KEY_R;
-      gKeycodes[0x01F] = KB_KEY_S;
-      gKeycodes[0x014] = KB_KEY_T;
-      gKeycodes[0x016] = KB_KEY_U;
-      gKeycodes[0x02F] = KB_KEY_V;
-      gKeycodes[0x011] = KB_KEY_W;
-      gKeycodes[0x02D] = KB_KEY_X;
-      gKeycodes[0x015] = KB_KEY_Y;
-      gKeycodes[0x02C] = KB_KEY_Z;
-      //}}}
-      //{{{  punctuation
-      gKeycodes[0x028] = KB_KEY_APOSTROPHE;
-      gKeycodes[0x02B] = KB_KEY_BACKSLASH;
-      gKeycodes[0x033] = KB_KEY_COMMA;
-      gKeycodes[0x00D] = KB_KEY_EQUAL;
-      gKeycodes[0x029] = KB_KEY_GRAVE_ACCENT;
-      gKeycodes[0x01A] = KB_KEY_LEFT_BRACKET;
-      gKeycodes[0x00C] = KB_KEY_MINUS;
-      gKeycodes[0x034] = KB_KEY_PERIOD;
-      gKeycodes[0x01B] = KB_KEY_RIGHT_BRACKET;
-      gKeycodes[0x027] = KB_KEY_SEMICOLON;
-      gKeycodes[0x035] = KB_KEY_SLASH;
-      gKeycodes[0x056] = KB_KEY_WORLD_2;
-      //}}}
-      //{{{  other
-      gKeycodes[0x00E] = KB_KEY_BACKSPACE;
-      gKeycodes[0x153] = KB_KEY_DELETE;
-      gKeycodes[0x14F] = KB_KEY_END;
-      gKeycodes[0x01C] = KB_KEY_ENTER;
-      gKeycodes[0x001] = KB_KEY_ESCAPE;
-      gKeycodes[0x147] = KB_KEY_HOME;
-      gKeycodes[0x152] = KB_KEY_INSERT;
-      gKeycodes[0x15D] = KB_KEY_MENU;
-      gKeycodes[0x151] = KB_KEY_PAGE_DOWN;
-      gKeycodes[0x149] = KB_KEY_PAGE_UP;
-      gKeycodes[0x045] = KB_KEY_PAUSE;
-      gKeycodes[0x146] = KB_KEY_PAUSE;
-      gKeycodes[0x039] = KB_KEY_SPACE;
-      gKeycodes[0x00F] = KB_KEY_TAB;
-      gKeycodes[0x03A] = KB_KEY_CAPS_LOCK;
-      gKeycodes[0x145] = KB_KEY_NUM_LOCK;
-      gKeycodes[0x046] = KB_KEY_SCROLL_LOCK;
-      gKeycodes[0x03B] = KB_KEY_F1;
-      gKeycodes[0x03C] = KB_KEY_F2;
-      gKeycodes[0x03D] = KB_KEY_F3;
-      gKeycodes[0x03E] = KB_KEY_F4;
-      gKeycodes[0x03F] = KB_KEY_F5;
-      gKeycodes[0x040] = KB_KEY_F6;
-      gKeycodes[0x041] = KB_KEY_F7;
-      gKeycodes[0x042] = KB_KEY_F8;
-      gKeycodes[0x043] = KB_KEY_F9;
-      gKeycodes[0x044] = KB_KEY_F10;
-      gKeycodes[0x057] = KB_KEY_F11;
-      gKeycodes[0x058] = KB_KEY_F12;
-      gKeycodes[0x064] = KB_KEY_F13;
-      gKeycodes[0x065] = KB_KEY_F14;
-      gKeycodes[0x066] = KB_KEY_F15;
-      gKeycodes[0x067] = KB_KEY_F16;
-      gKeycodes[0x068] = KB_KEY_F17;
-      gKeycodes[0x069] = KB_KEY_F18;
-      gKeycodes[0x06A] = KB_KEY_F19;
-      gKeycodes[0x06B] = KB_KEY_F20;
-      gKeycodes[0x06C] = KB_KEY_F21;
-      gKeycodes[0x06D] = KB_KEY_F22;
-      gKeycodes[0x06E] = KB_KEY_F23;
-      gKeycodes[0x076] = KB_KEY_F24;
-      gKeycodes[0x038] = KB_KEY_LEFT_ALT;
-      gKeycodes[0x01D] = KB_KEY_LEFT_CONTROL;
-      gKeycodes[0x02A] = KB_KEY_LEFT_SHIFT;
-      gKeycodes[0x15B] = KB_KEY_LEFT_SUPER;
-      gKeycodes[0x137] = KB_KEY_PRINT_SCREEN;
-      gKeycodes[0x138] = KB_KEY_RIGHT_ALT;
-      gKeycodes[0x11D] = KB_KEY_RIGHT_CONTROL;
-      gKeycodes[0x036] = KB_KEY_RIGHT_SHIFT;
-      gKeycodes[0x15C] = KB_KEY_RIGHT_SUPER;
-      gKeycodes[0x150] = KB_KEY_DOWN;
-      gKeycodes[0x14B] = KB_KEY_LEFT;
-      gKeycodes[0x14D] = KB_KEY_RIGHT;
-      gKeycodes[0x148] = KB_KEY_UP;
-      //}}}
-      //{{{  numpad
-      gKeycodes[0x052] = KB_KEY_KP_0;
-      gKeycodes[0x04F] = KB_KEY_KP_1;
-      gKeycodes[0x050] = KB_KEY_KP_2;
-      gKeycodes[0x051] = KB_KEY_KP_3;
-      gKeycodes[0x04B] = KB_KEY_KP_4;
-      gKeycodes[0x04C] = KB_KEY_KP_5;
-      gKeycodes[0x04D] = KB_KEY_KP_6;
-      gKeycodes[0x047] = KB_KEY_KP_7;
-      gKeycodes[0x048] = KB_KEY_KP_8;
-      gKeycodes[0x049] = KB_KEY_KP_9;
-      gKeycodes[0x04E] = KB_KEY_KP_ADD;
-      gKeycodes[0x053] = KB_KEY_KP_DECIMAL;
-      gKeycodes[0x135] = KB_KEY_KP_DIVIDE;
-      gKeycodes[0x11C] = KB_KEY_KP_ENTER;
-      gKeycodes[0x037] = KB_KEY_KP_MULTIPLY;
-      gKeycodes[0x04A] = KB_KEY_KP_SUBTRACT;
-      //}}}
-      }
-    }
   //}}}
   //{{{
   uint32_t translateMod() {
@@ -957,9 +957,6 @@ namespace {
   //}}}
   //{{{
   void freeResources (cMiniFB* miniFB) {
-
-    if (!miniFB)
-      return;
 
     miniFB->destroyGLcontext();
 

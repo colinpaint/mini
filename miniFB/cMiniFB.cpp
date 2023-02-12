@@ -14,9 +14,7 @@
 
 using namespace std;
 //}}}
-
-#define TEXTURE0    0x84C0  // [ Core in gl 1.3, gles1 1.0, gles2 2.0, glsc2 2.0, Provided by GL_ARB_multitexture (gl) ]
-#define RGBA        0x1908  // [ Core in gl 1.0, gles1 1.0, gles2 2.0, glsc2 2.0 ]
+#define RGBA 0x1908  // [ Core in gl 1.0, gles1 1.0, gles2 2.0, glsc2 2.0 ]
 
 namespace {
   #ifdef _WIN32
@@ -350,6 +348,17 @@ bool cMiniFB::setViewportBestFit (unsigned old_width, unsigned old_height) {
 //}}}
 
 // set callbacks
+void cMiniFB::setActiveCallback (void(*callback)(cMiniFB* miniFB)) { activeFunc = callback; }
+void cMiniFB::setResizeCallback (void(*callback)(cMiniFB* miniFB)) { resizeFunc = callback; }
+void cMiniFB::setCloseCallback  (bool(*callback)(cMiniFB* miniFB))  { closeFunc = callback; }
+void cMiniFB::setKeyCallback    (void(*callback)(cMiniFB* miniFB)) { keyFunc = callback; }
+void cMiniFB::setCharCallback   (void(*callback)(cMiniFB* miniFB)) { charFunc = callback; }
+void cMiniFB::setButtonCallback (void(*callback)(cMiniFB* miniFB)) { buttonFunc = callback; }
+void cMiniFB::setMoveCallback   (void(*callback)(cMiniFB* miniFB)) { moveFunc = callback; }
+void cMiniFB::setWheelCallback  (void(*callback)(cMiniFB* miniFB)) { wheelFunc = callback; }
+void cMiniFB::setEnterCallback  (void(*callback)(cMiniFB* miniFB)) { enterFunc = callback; }
+
+// set func callbacks
 //{{{
 void cMiniFB::setActiveFunc (function <void (cMiniFB*)> func) {
 
@@ -431,16 +440,6 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
   setEnterCallback (cStub::enterStub);
   }
 //}}}
-
-void cMiniFB::setActiveCallback (miniFBFuncType callback) { activeFunc = callback; }
-void cMiniFB::setResizeCallback (miniFBFuncType callback) { resizeFunc = callback; }
-void cMiniFB::setCloseCallback  (closeFuncType callback)  { closeFunc = callback; }
-void cMiniFB::setKeyCallback    (miniFBFuncType callback) { keyFunc = callback; }
-void cMiniFB::setCharCallback   (miniFBFuncType callback) { charFunc = callback; }
-void cMiniFB::setButtonCallback (miniFBFuncType callback) { buttonFunc = callback; }
-void cMiniFB::setMoveCallback   (miniFBFuncType callback) { moveFunc = callback; }
-void cMiniFB::setWheelCallback  (miniFBFuncType callback) { wheelFunc = callback; }
-void cMiniFB::setEnterCallback  (miniFBFuncType callback) { enterFunc = callback; }
 
 // utils
 //{{{
@@ -571,7 +570,7 @@ bool cMiniFB::createGLcontext() {
     else
       cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
 
-    if (setup_pixel_format (miniFB) == false)
+    if (!setup_pixel_format (this))
       return false;
 
     glXMakeCurrent (display, window, context);
@@ -580,7 +579,7 @@ bool cMiniFB::createGLcontext() {
     cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
     cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
     cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
-    initGL (miniFB);
+    initGL();
   #endif
 
   return true;
@@ -620,7 +619,6 @@ void cMiniFB::initGL() {
   glEnable (GL_TEXTURE_2D);
 
   glGenTextures (1, &textureId);
-  //glActiveTexture (TEXTURE0);
   glBindTexture (GL_TEXTURE_2D, textureId);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);

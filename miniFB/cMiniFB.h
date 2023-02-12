@@ -1,6 +1,5 @@
 // cMiniFB.h
 #pragma once
-//{{{  includes
 #include <cstdint>
 #include <functional>
 
@@ -11,9 +10,16 @@
   #include <X11/Xlib.h>
   #include <GL/glx.h>
 #endif
-//}}}
 
 // enums
+//{{{
+enum eFlags { 
+              WF_RESIZABLE          = 0x01,
+              WF_FULLSCREEN         = 0x02,
+              WF_FULLSCREEN_DESKTOP = 0x04,
+              WF_BORDERLESS         = 0x08,
+              WF_ALWAYS_ON_TOP      = 0x10 };
+//}}}
 //{{{
 enum eUpdateState {
                     STATE_OK             =  0,
@@ -22,27 +28,32 @@ enum eUpdateState {
                     STATE_INVALID_BUFFER = -3,
                     STATE_INTERNAL_ERROR = -4 };
 //}}}
+
 //{{{
-enum ePointerButton { MOUSE_BTN_0, MOUSE_BTN_1, MOUSE_BTN_2, MOUSE_BTN_3,
-                      MOUSE_BTN_4, MOUSE_BTN_5, MOUSE_BTN_6, MOUSE_BTN_7 };
+enum ePointerButton { 
+  MOUSE_BTN_0, 
+  MOUSE_BTN_1, 
+  MOUSE_BTN_2, 
+  MOUSE_BTN_3,
+  MOUSE_BTN_4, 
+  MOUSE_BTN_5, 
+  MOUSE_BTN_6, 
+  MOUSE_BTN_7 
+  };
 //}}}
 #define MOUSE_LEFT   MOUSE_BTN_1
 #define MOUSE_RIGHT  MOUSE_BTN_2
 #define MOUSE_MIDDLE MOUSE_BTN_3
+
 //{{{
-enum eKeyModifier { KB_MOD_SHIFT     = 0x0001,
-                    KB_MOD_CONTROL   = 0x0002,
-                    KB_MOD_ALT       = 0x0004,
-                    KB_MOD_SUPER     = 0x0008,
-                    KB_MOD_CAPS_LOCK = 0x0010,
-                    KB_MOD_NUM_LOCK  = 0x0020 };
-//}}}
-//{{{
-enum eFlags { WF_RESIZABLE          = 0x01,
-              WF_FULLSCREEN         = 0x02,
-              WF_FULLSCREEN_DESKTOP = 0x04,
-              WF_BORDERLESS         = 0x08,
-              WF_ALWAYS_ON_TOP      = 0x10 };
+enum eKeyModifier { 
+  KB_MOD_SHIFT     = 0x0001,
+  KB_MOD_CONTROL   = 0x0002,
+  KB_MOD_ALT       = 0x0004,
+  KB_MOD_SUPER     = 0x0008,
+  KB_MOD_CAPS_LOCK = 0x0010,
+  KB_MOD_NUM_LOCK  = 0x0020 
+  };
 //}}}
 //{{{
 enum eKey {
@@ -173,14 +184,10 @@ enum eKey {
 //}}}
 #define KB_KEY_LAST KB_KEY_MENU
 
-class cMiniFB;
-typedef void(*miniFBFuncType)(cMiniFB* miniFB);
-typedef bool(*closeFuncType)(cMiniFB* miniFB);
-
 //{{{
 class cMiniFB {
 public:
-  // static
+  // statics
   static cMiniFB* create (const char* title, unsigned width, unsigned height, unsigned flags);
   static const char* getKeyName (eKey key);
 
@@ -213,7 +220,18 @@ public:
   bool setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
   bool setViewportBestFit (unsigned old_width, unsigned old_height);
 
-  // callbacks
+  // C style callbacks
+  void setActiveCallback (void(*callback)(cMiniFB* miniFB));
+  void setResizeCallback (void(*callback)(cMiniFB* miniFB));
+  void setCloseCallback  (bool(*callback)(cMiniFB* miniFB));
+  void setKeyCallback    (void(*callback)(cMiniFB* miniFB));
+  void setCharCallback   (void(*callback)(cMiniFB* miniFB));
+  void setButtonCallback (void(*callback)(cMiniFB* miniFB));
+  void setMoveCallback   (void(*callback)(cMiniFB* miniFB));
+  void setWheelCallback  (void(*callback)(cMiniFB* miniFB));
+  void setEnterCallback  (void(*callback)(cMiniFB* miniFB));
+
+  // func callbacks
   void setActiveFunc (std::function <void (cMiniFB*)> func);
   void setResizeFunc (std::function <void (cMiniFB*)> func);
   void setCloseFunc  (std::function <bool (cMiniFB*)> func);
@@ -224,35 +242,24 @@ public:
   void setWheelFunc  (std::function <void (cMiniFB*)> func);
   void setEnterFunc  (std::function <void (cMiniFB*)> func);
 
-  void setActiveCallback (miniFBFuncType callback);
-  void setResizeCallback (miniFBFuncType callback);
-  void setCloseCallback  (closeFuncType callback);
-  void setKeyCallback    (miniFBFuncType callback);
-  void setCharCallback   (miniFBFuncType callback);
-  void setButtonCallback (miniFBFuncType callback);
-  void setMoveCallback   (miniFBFuncType callback);
-  void setWheelCallback  (miniFBFuncType callback);
-  void setEnterCallback  (miniFBFuncType callback);
-
   void calcDstFactor (uint32_t width, uint32_t height);
   void resizeDst (uint32_t width, uint32_t height);
 
   bool createGLcontext();
   void destroyGLcontext();
-
   void redrawGL (const void* pixels);
   void resizeGL();
 
   // vars
-  miniFBFuncType activeFunc;
-  miniFBFuncType resizeFunc;
-  closeFuncType  closeFunc;
-  miniFBFuncType keyFunc;
-  miniFBFuncType charFunc;
-  miniFBFuncType buttonFunc;
-  miniFBFuncType moveFunc;
-  miniFBFuncType wheelFunc;
-  miniFBFuncType enterFunc;
+  void(*activeFunc)(cMiniFB* miniFB);
+  void(*resizeFunc)(cMiniFB* miniFB);
+  bool(*closeFunc)(cMiniFB* miniFB);
+  void(*keyFunc)(cMiniFB* miniFB);
+  void(*charFunc)(cMiniFB* miniFB);
+  void(*buttonFunc)(cMiniFB* miniFB);
+  void(*moveFunc)(cMiniFB* miniFB);
+  void(*wheelFunc)(cMiniFB* miniFB);
+  void(*enterFunc)(cMiniFB* miniFB);
 
   uint32_t window_width;
   uint32_t window_height;
