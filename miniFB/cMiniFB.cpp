@@ -4,22 +4,15 @@
 #include <vector>
 
 #ifdef _WIN32
-  #include <gl/gl.h>
   #include <windowsx.h>
+  #include <gl/gl.h>
+
   #ifdef USE_WINTAB
     #include "winTab.h"
     #define PACKETDATA PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE | PK_TIME
     #include "pktDef.h"
   #endif
 #else
-  #include <GL/gl.h>
-  #include <GL/glx.h>
-
-  #include <stdio.h>
-  #include <stdlib.h>
-  #include <string.h>
-  #include <unistd.h>
-
   #include <X11/Xlib.h>
   #include <X11/Xutil.h>
   #include <X11/XKBlib.h>
@@ -28,6 +21,9 @@
   #include <X11/cursorfont.h>
   #include <xkbcommon/xkbcommon.h>
   #include <X11/extensions/XInput.h>
+
+  #include <GL/gl.h>
+  #include <GL/glx.h>
 #endif
 
 #define RGBA 0x1908  // [ Core in gl 1.0, gles1 1.0, gles2 2.0, glsc2 2.0 ]
@@ -64,18 +60,19 @@ namespace {
 
       int pixelFormat = ChoosePixelFormat (hDC, &pfd);
       if (!pixelFormat) {
-        MessageBox (WindowFromDC (hDC), "ChoosePixelFormat failed.", "Error", MB_ICONERROR | MB_OK);
+        cLog::log (LOGERROR, fmt::format ("ChoosePixelFormat failed {}", MB_ICONERROR | MB_OK));
         return false;
         }
 
       if (!SetPixelFormat (hDC, pixelFormat, &pfd)) {
-        MessageBox (WindowFromDC (hDC), "SetPixelFormat failed.", "Error", MB_ICONERROR | MB_OK);
+        cLog::log (LOGERROR, fmt::format ("SetPixelFormat failed {}", MB_ICONERROR | MB_OK));
         return false;
         }
 
       return true;
       }
     //}}}
+
     typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC)(int);
     PFNWGLSWAPINTERVALEXTPROC SwapIntervalEXT = 0;
 
