@@ -194,6 +194,7 @@ public:
   static const char* getKeyName (eKey key);
 
   //
+  bool init (const char* title, uint32_t width, uint32_t height, uint32_t flags);
   eUpdateState update (void* buffer);
   eUpdateState updateEx (void* buffer, uint32_t width, uint32_t height);
   eUpdateState updateEvents();
@@ -244,13 +245,9 @@ public:
   void setEnterFunc  (std::function <void (cMiniFB*)> func);
   //}}}
 
-  void resizeDst (uint32_t width, uint32_t height);
-  void calcDstFactor (uint32_t width, uint32_t height);
-
-  bool createGLcontext();
-  void resizeGL();
-  void redrawGL (const void* pixels);
-  void destroyGLcontext();
+  #ifdef _WIN32
+    LRESULT CALLBACK processMessage (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+  #endif
 
   //{{{  vars
   void(*activeFunc)(cMiniFB* miniFB) = nullptr;
@@ -322,13 +319,22 @@ public:
   //}}}
 
 private:
-  void initGL();
-  void initKeycodes();
-  void freeResources();
-
   #ifndef _WIN32
     void processEvent (XEvent* event);
   #endif
+
+  bool createGLcontext();
+  void initGL();
+  void initKeycodes();
+
+  void resizeGL();
+  void redrawGL (const void* pixels);
+
+  void destroyGLcontext();
+  void freeResources();
+
+  void resizeDst (uint32_t width, uint32_t height);
+  void calcDstFactor (uint32_t width, uint32_t height);
 
   void* userData = nullptr;
   };

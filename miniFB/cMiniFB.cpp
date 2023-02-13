@@ -445,368 +445,7 @@ namespace {
         return DefWindowProc (hWnd, message, wParam, lParam);
         }
 
-      switch (message) {
-        //{{{
-        case WM_SIZE: {
-          if (wParam == SIZE_MINIMIZED)
-            return 0;
-
-          float scale_x, scale_y;
-          getWindowsMonitorScale (hWnd, &scale_x, &scale_y);
-          miniFB->windowWidth = GET_X_LPARAM(lParam);
-          miniFB->windowHeight =  GET_Y_LPARAM(lParam);
-          miniFB->resizeDst (miniFB->windowWidth, miniFB->windowHeight);
-
-          miniFB->resizeGL();
-          if (miniFB->windowWidth && miniFB->windowHeight) {
-            miniFB->windowScaledWidth  = (uint32_t)(miniFB->windowWidth  / scale_x);
-            miniFB->windowScaledHeight = (uint32_t)(miniFB->windowHeight / scale_y);
-            if (miniFB->resizeFunc)
-              miniFB->resizeFunc (miniFB);
-            }
-          break;
-          }
-        //}}}
-
-        //{{{
-        case WM_CLOSE:
-          // Obtain a confirmation of close
-          if (!miniFB->closeFunc || miniFB->closeFunc (miniFB)) {
-            miniFB->closed = true;
-            DestroyWindow (miniFB->window);
-            }
-          break;
-        //}}}
-        //{{{
-        case WM_DESTROY:
-          miniFB->closed = true;
-          break;
-        //}}}
-
-        //{{{
-        case WM_SETFOCUS:
-           miniFB->isActive = true;
-          if (miniFB->activeFunc)
-            miniFB->activeFunc (miniFB);
-          break;
-        //}}}
-        //{{{
-        case WM_KILLFOCUS:
-          miniFB->isActive = false;
-          if (miniFB->activeFunc)
-            miniFB->activeFunc (miniFB);
-          break;
-        //}}}
-
-        case WM_SYSKEYDOWN:
-        case WM_SYSKEYUP:
-        case WM_KEYDOWN:
-        //{{{
-        case WM_KEYUP: {
-          eKey keyCode = translateKey (wParam, lParam);
-          miniFB->isPressed = !((lParam >> 31) & 1);
-          miniFB->modifierKeys = translateMod();
-
-          if (keyCode == KB_KEY_UNKNOWN)
-            return 0;
-
-          miniFB->keyCode = keyCode;
-          miniFB->keyStatus[keyCode] = (uint8_t)miniFB->isPressed;
-          if (miniFB->keyFunc)
-            miniFB->keyFunc (miniFB);
-          break;
-          }
-        //}}}
-
-        case WM_CHAR:
-        //{{{
-        case WM_SYSCHAR:
-          {
-          static WCHAR highSurrogate = 0;
-
-          if (wParam >= 0xd800 && wParam <= 0xdbff)
-            highSurrogate = (WCHAR) wParam;
-          else {
-            miniFB->codepoint = 0;
-            if (wParam >= 0xdc00 && wParam <= 0xdfff) {
-              if (highSurrogate != 0) {
-                miniFB->codepoint += (highSurrogate - 0xd800) << 10;
-                miniFB->codepoint += (WCHAR) wParam - 0xdc00;
-                miniFB->codepoint += 0x10000;
-                }
-              }
-            else
-              miniFB->codepoint = (WCHAR) wParam;
-
-            highSurrogate = 0;
-            if (miniFB->charFunc)
-              miniFB->charFunc (miniFB);
-            }
-          }
-          break;
-        //}}}
-
-        #ifdef USE_WINTAB
-          //{{{
-          case WT_PACKET:
-            if ((HCTX)lParam == gWinTab->mContext) {
-              PACKET packet = {0};
-              if (gWinTab->mWTPacket (gWinTab->mContext, (UINT)wParam, &packet)) {
-                POINT point = { 0 };
-                point.x = packet.pkX;
-                point.y = packet.pkY;
-                ScreenToClient (hWnd, &point);
-
-                gWinTab->mTime = packet.pkTime;
-                gWinTab->mPosX = point.x;
-                gWinTab->mPosY = point.y;
-                gWinTab->mPressure = (float)packet.pkNormalPressure / (float)gWinTab->mMaxPressure;
-                gWinTab->mButtons = packet.pkButtons;
-                cLog::log (LOGINFO, fmt::format ("WT_PACKET press:{} time:{}", gWinTab->mPressure, gWinTab->mTime));
-                }
-              else
-                cLog::log (LOGERROR, fmt::format ("WT_PACKET no packet"));
-              }
-            else
-              cLog::log (LOGERROR, fmt::format ("WT_PACKET wrong context"));
-
-            break;
-          //}}}
-          //{{{
-          case WT_PROXIMITY:
-            if (lParam & 0xFFFF)
-              cLog::log (LOGINFO, fmt::format ("WT_PROXIMITY in {:x}", lParam));
-            else
-              cLog::log (LOGINFO, fmt::format ("WT_PROXIMITY out {:x}", lParam));
-
-            break;
-          //}}}
-        #endif
-
-        //{{{  POINTER_INFO
-        //POINTER_INPUT_TYPE         pointerType;
-        //UINT32                     pointerId;
-        //UINT32                     frameId;
-        //POINTER_FLAGS              pointerFlags;
-        //HANDLE                     sourceDevice;
-        //HWND                       hwndTarget;
-        //POINT                      ptPixelLocation;
-        //POINT                      ptHimetricLocation;
-        //POINT                      ptPixelLocationRaw;
-        //POINT                      ptHimetricLocationRaw;
-        //DWORD                      dwTime;
-        //UINT32                     historyCount;
-        //INT32                      InputData;
-        //DWORD                      dwKeyStates;
-        //UINT64                     PerformanceCount;
-        //POINTER_BUTTON_CHANGE_TYPE ButtonChangeType;
-        //}}}
-        //{{{  POINTER_INPUT
-          //PT_POINTER = 1,
-          //PT_TOUCH = 2,
-          //PT_PEN = 3,
-          //PT_MOUSE = 4,
-          //PT_TOUCHPAD = 5
-        //}}}
-        //{{{  POINTER_FLAG
-        //POINTER_FLAG_NONE 0x00000000
-        //POINTER_FLAG_NEW 0x00000001
-        //POINTER_FLAG_INRANGE 0x00000002
-        //POINTER_FLAG_INCONTACT 0x00000004
-        //POINTER_FLAG_FIRSTBUTTON 0x00000010
-        //POINTER_FLAG_SECONDBUTTON 0x00000020
-        //POINTER_FLAG_THIRDBUTTON 0x00000040
-        //POINTER_FLAG_FOURTHBUTTON 0x00000080
-        //POINTER_FLAG_FIFTHBUTTON 0x00000100
-        //POINTER_FLAG_PRIMARY 0x00002000
-        //POINTER_FLAG_CONFIDENCE 0x000004000
-        //POINTER_FLAG_CANCELED 0x000008000
-        //POINTER_FLAG_DOWN 0x00010000
-        //POINTER_FLAG_UPDATE 0x00020000
-        //POINTER_FLAG_UP 0x00040000
-        //POINTER_FLAG_WHEEL 0x00080000
-        //POINTER_FLAG_HWHEEL 0x00100000
-        //POINTER_FLAG_CAPTURECHANGED 0x00200000
-        //POINTER_FLAG_HASTRANSFORM 0x00400000
-        //}}}
-        //{{{  POINTER_BUTTON_CHANGE_TYPE {
-          //POINTER_CHANGE_NONE,
-          //POINTER_CHANGE_FIRSTBUTTON_DOWN,
-          //POINTER_CHANGE_FIRSTBUTTON_UP,
-          //POINTER_CHANGE_SECONDBUTTON_DOWN,
-          //POINTER_CHANGE_SECONDBUTTON_UP,
-          //POINTER_CHANGE_THIRDBUTTON_DOWN,
-          //POINTER_CHANGE_THIRDBUTTON_UP,
-          //POINTER_CHANGE_FOURTHBUTTON_DOWN,
-          //POINTER_CHANGE_FOURTHBUTTON_UP,
-          //POINTER_CHANGE_FIFTHBUTTON_DOWN,
-          //POINTER_CHANGE_FIFTHBUTTON_UP
-        //}}}
-        //{{{  POINTER_PEN_INFO
-          //POINTER_INFO pointerInfo;
-          //PEN_FLAGS    penFlags;
-          //PEN_MASK     penMask;
-          //UINT32       pressure;
-          //UINT32       rotation;
-          //INT32        tiltX;
-          //INT32        tiltY;
-        //}}}
-        //{{{
-        case WM_POINTERENTER:
-          miniFB->pointerInside = true;
-          if (miniFB->enterFunc)
-            miniFB->enterFunc (miniFB);
-          break;
-        //}}}
-        //{{{
-        case WM_POINTERLEAVE:
-          miniFB->pointerInside = false;
-          if (miniFB->enterFunc)
-            miniFB->enterFunc (miniFB);
-          break;
-        //}}}
-        //{{{
-        case WM_POINTERDOWN: {
-          POINTER_INFO pointerInfo;
-          if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
-            if (pointerInfo.pointerType == PT_MOUSE) {
-              cLog::log (LOGINFO, fmt::format ("WM_POINTERDOWN mouseDown"));
-              }
-            else if (pointerInfo.pointerType == PT_PEN) {
-              cLog::log (LOGINFO, fmt::format ("WM_POINTERDOWN penDown"));
-              }
-            else // unused PT_TOUCH, PT_TOUCHPAD
-              cLog::log (LOGERROR, fmt::format ("WM_POINTERDOWN - unknown type:{}", pointerInfo.pointerType));
-
-            miniFB->pointerButtonStatus[MOUSE_BTN_1] = 1;
-            miniFB->modifierKeys = translateMod();
-            miniFB->isDown = 1;
-            if (miniFB->buttonFunc)
-              miniFB->buttonFunc (miniFB);
-            }
-          else
-            cLog::log (LOGERROR, fmt::format ("WM_POINTERDOWN - no miniFB"));
-          break;
-          }
-        //}}}
-        //{{{
-        case WM_POINTERUP: {
-          POINTER_INFO pointerInfo;
-          if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
-            if (pointerInfo.pointerType == PT_MOUSE) {
-              cLog::log (LOGINFO, fmt::format ("WM_POINTERUP mouseUp"));
-              }
-            else if (pointerInfo.pointerType == PT_PEN) {
-              cLog::log (LOGINFO, fmt::format ("WM_POINTERUP penUp"));
-              }
-            else // unused PT_TOUCH, PT_TOUCHPAD
-              cLog::log (LOGERROR, fmt::format ("WM_POINTERUP - unknown type:{}", pointerInfo.pointerType));
-
-            miniFB->modifierKeys = translateMod();
-            miniFB->pointerButtonStatus[MOUSE_BTN_1] = 0;
-            miniFB->isDown = 0;
-            if (miniFB->buttonFunc)
-              miniFB->buttonFunc (miniFB);
-            }
-          else
-            cLog::log (LOGERROR, fmt::format ("WM_POINTERUP - no info"));
-          break;
-          }
-        //}}}
-        //{{{
-        case WM_POINTERUPDATE: {
-          POINTER_INFO pointerInfo;
-          if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
-            if (pointerInfo.pointerType == PT_MOUSE) {
-              #ifdef USE_WINTAB
-                cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE mouse @{} flag:{:x}", pointerInfo.dwTime, pointerInfo.pointerFlags));
-              #endif
-              miniFB->pointerInside = true;
-              miniFB->pointerTimestamp = pointerInfo.dwTime;
-              POINT clientPos = pointerInfo.ptPixelLocation;
-              ScreenToClient (hWnd, &clientPos);
-              miniFB->pointerPosX = clientPos.x;
-              miniFB->pointerPosY = clientPos.y;
-              miniFB->pointerPressure = miniFB->pointerButtonStatus[MOUSE_BTN_1] * 1024;
-              if (miniFB->moveFunc)
-                miniFB->moveFunc (miniFB);
-              }
-            else if (pointerInfo.pointerType == PT_PEN) {
-              POINTER_PEN_INFO pointerPenInfos[10];
-              uint32_t entriesCount = 10;
-              if (GetPointerPenInfoHistory (GET_POINTERID_WPARAM (wParam), &entriesCount, pointerPenInfos)) {
-                miniFB->pointerInside = true;
-                for (uint32_t i = entriesCount; i > 0; i--) {
-                  cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE pen i:{} @{}", i, pointerPenInfos[i-1].pointerInfo.dwTime));
-                  miniFB->pointerTimestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
-                  ScreenToClient (hWnd, &pointerPenInfos[i-1].pointerInfo.ptPixelLocation);
-                  miniFB->pointerPosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
-                  miniFB->pointerPosY = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
-                  miniFB->pointerPressure = pointerPenInfos[i-1].pressure;
-                  miniFB->pointerTiltX = 0;
-                  miniFB->pointerTiltY = 0;
-                  if (miniFB->moveFunc)
-                    miniFB->moveFunc (miniFB);
-                  }
-                }
-              }
-            else
-              cLog::log (LOGERROR, fmt::format ("WM_POINTERUPDATE - unknown type:{}", pointerInfo.pointerType));
-            }
-          else
-            cLog::log (LOGERROR, fmt::format ("WM_POINTERUPDATE - no info"));
-          break;
-          }
-        //}}}
-        //{{{
-        case WM_POINTERWHEEL:
-          cLog::log (LOGINFO, fmt::format ("pointerWheel"));
-          miniFB->pointerWheelX = 0;
-          miniFB->pointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-          if (miniFB->wheelFunc)
-            miniFB->wheelFunc (miniFB);
-          break;
-        //}}}
-
-        //{{{
-        //case 0x02E4://WM_GETDPISCALEDSIZE: {
-        //  SIZE* size = (SIZE*)lParam;
-        //  WORD dpi = (wParam);
-        //  return true;
-        //  break;
-        //  }
-        //}}}
-        //{{{
-        //case WM_DPICHANGED: //
-        //  const float xscale = HIWORD(wParam);
-        //  const float yscale = LOWORD(wParam);
-        //  break;
-        //}}}
-        case WM_POINTERACTIVATE:
-        case WM_POINTERCAPTURECHANGED:
-        case WM_POINTERDEVICECHANGE:
-        case WM_POINTERDEVICEINRANGE:
-        case WM_POINTERDEVICEOUTOFRANGE:
-        case WM_TOUCHHITTESTING:
-        case WM_INPUT:
-        case WM_NCPOINTERUPDATE:
-        case WM_NCPOINTERUP:
-        case WM_LBUTTONUP:
-        case WM_RBUTTONUP:
-        case WM_XBUTTONUP:
-        case WM_LBUTTONDOWN:
-        case WM_LBUTTONDBLCLK:
-        case WM_RBUTTONDOWN:
-        case WM_RBUTTONDBLCLK:
-        case WM_MOUSEMOVE:
-        case WM_MOUSELEAVE:
-        case WM_MOUSEWHEEL:
-        case WM_MOUSEHWHEEL:
-        default:
-          return DefWindowProc (hWnd, message, wParam, lParam);
-        }
-
-      return 0;
+      return miniFB->processMessage (hWnd, message, wParam, lParam);
       }
     //}}}
   #else
@@ -1090,22 +729,17 @@ namespace {
 
   tGlSwapIntervalProc gSwapInterval = 0;
   //{{{
-  bool CheckGLExtension (const char* name) {
+  bool checkGLExtension (const char* name) {
+  // TODO: This is deprecated on OpenGL 3+.
+  // Use glGetIntegerv (GL_NUM_EXTENSIONS, &n) and glGetStringi (GL_EXTENSIONS, index)
 
-    static const char* extensions = 0x0;
+    #ifdef _WIN32
+      const char* extensions = (const char*)glGetString (GL_EXTENSIONS);
+    #else
+      const char* extensions = glXQueryExtensionsString (glXGetCurrentDisplay(), DefaultScreen(glXGetCurrentDisplay()));
+    #endif
 
-    if (extensions == 0x0) {
-      #ifdef _WIN32
-        // TODO: This is deprecated on OpenGL 3+.
-        // Use glGetIntegerv (GL_NUM_EXTENSIONS, &n) and glGetStringi (GL_EXTENSIONS, index)
-        extensions = (const char*)glGetString (GL_EXTENSIONS);
-      #else
-        Display* display = glXGetCurrentDisplay();
-        extensions = glXQueryExtensionsString (display, DefaultScreen(display));
-      #endif
-      }
-
-    if (extensions != 0x0) {
+    if (!extensions) {
       const char* start = extensions;
       const char* end, *where;
       while(1) {
@@ -1206,7 +840,7 @@ void cCallbackStub::enterStub  (cMiniFB* miniFB) {
 //}}}
 //}}}
 
-// cMiniFB
+// cMiniFB static create
 //{{{
 cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, uint32_t flags) {
 
@@ -1218,15 +852,23 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
     }
     //}}}
 
+  return miniFB->init (title, width, height, flags) ? miniFB : nullptr;
+  }
+//}}}
+
+// cMiniFB
+//{{{
+bool cMiniFB::init (const char* title, uint32_t width, uint32_t height, uint32_t flags) {
+
   #ifdef _WIN32
     //{{{  windows
     loadFunctions();
     dpiAware();
 
-    miniFB->initKeycodes();
-    miniFB->bufferWidth  = width;
-    miniFB->bufferHeight = height;
-    miniFB->bufferStride = width * 4;
+    initKeycodes();
+    bufferWidth  = width;
+    bufferHeight = height;
+    bufferStride = width * 4;
 
     int x = 0;
     int y = 0;
@@ -1280,7 +922,7 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
     else if (!(flags & WF_FULLSCREEN)) {
       //{{{  desktop fullscreen
       float scale_x, scale_y;
-      miniFB->getMonitorScale (&scale_x, &scale_y);
+      getMonitorScale (&scale_x, &scale_y);
 
       rect.right  = (LONG) (width  * scale_x);
       rect.bottom = (LONG) (height * scale_y);
@@ -1293,35 +935,35 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
       }
       //}}}
 
-    miniFB->wc.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
-    miniFB->wc.lpfnWndProc = WndProc;
-    miniFB->wc.hCursor = LoadCursor(0, IDC_ARROW);
-    miniFB->wc.lpszClassName = title;
-    RegisterClass (&miniFB->wc);
+    wc.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
+    wc.lpfnWndProc = WndProc;
+    wc.hCursor = LoadCursor(0, IDC_ARROW);
+    wc.lpszClassName = title;
+    RegisterClass (&wc);
 
-    miniFB->calcDstFactor (width, height);
-    miniFB->windowWidth  = rect.right;
-    miniFB->windowHeight = rect.bottom;
-    miniFB->window = CreateWindowEx (0, title, title, windowStyle, x, y, miniFB->windowWidth, miniFB->windowHeight, 0, 0, 0, 0);
-    if (!miniFB->window) {
+    calcDstFactor (width, height);
+    windowWidth  = rect.right;
+    windowHeight = rect.bottom;
+    window = CreateWindowEx (0, title, title, windowStyle, x, y, windowWidth, windowHeight, 0, 0, 0, 0);
+    if (!window) {
       //{{{  error, return
-      free (miniFB);
-      return 0x0;
+      cLog::log (LOGERROR, fmt::format ("failed to create X11 window"));
+      return false;
       }
       //}}}
 
-    SetWindowLongPtr (miniFB->window, GWLP_USERDATA, (LONG_PTR)miniFB);
+    SetWindowLongPtr (window, GWLP_USERDATA, (LONG_PTR)this);
     if (flags & WF_ALWAYS_ON_TOP)
-      SetWindowPos (miniFB->window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-    ShowWindow (miniFB->window, SW_NORMAL);
+      SetWindowPos (window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    ShowWindow (window, SW_NORMAL);
 
-    miniFB->hdc = GetDC (miniFB->window);
-    miniFB->createGLcontext();
+    hdc = GetDC (window);
+    createGLcontext();
     cLog::log (LOGINFO, "using windows OpenGL");
 
     #ifdef USE_WINTAB
       // enable winTab, mainly for WT_PROXIMITY, get WT_PACKET
-      if (!winTabLoad (miniFB->window))
+      if (!winTabLoad (window))
         cLog::log (LOGERROR, fmt::format ("winTab load failed"));
     #endif
 
@@ -1330,26 +972,25 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
     //}}}
   #else
     //{{{  X11
-    miniFB->display = XOpenDisplay (0);
-    if (!miniFB->display) {
+    display = XOpenDisplay (0);
+    if (!display) {
       //{{{  error, return
       cLog::log (LOGERROR, fmt::format ("failed to create X11 display"));
-      delete (miniFB);
-      return 0;
+      return false;
       }
       //}}}
 
-    miniFB->initKeycodes();
-    XAutoRepeatOff (miniFB->display);
+    initKeycodes();
+    XAutoRepeatOff (display);
 
-    miniFB->screen = DefaultScreen (miniFB->display);
-    Visual* visual = DefaultVisual (miniFB->display, miniFB->screen);
+    screen = DefaultScreen (display);
+    Visual* visual = DefaultVisual (display, screen);
     //{{{  set format
     int formatCount;
     int convDepth = -1;
-    XPixmapFormatValues* formats = XListPixmapFormats (miniFB->display, &formatCount);
-    int depth = DefaultDepth (miniFB->display, miniFB->screen);
-    Window defaultRootWindow = DefaultRootWindow (miniFB->display);
+    XPixmapFormatValues* formats = XListPixmapFormats (display, &formatCount);
+    int depth = DefaultDepth (display, screen);
+    Window defaultRootWindow = DefaultRootWindow (display);
     for (int i = 0; i < formatCount; ++i) {
       if (depth == formats[i].depth) {
         convDepth = formats[i].bits_per_pixel;
@@ -1362,26 +1003,26 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
     if (convDepth != 32) {
       //{{{  error, return
       cLog::log (LOGERROR, fmt::format ("failed to create 32 bir depth"));
-      XCloseDisplay (miniFB->display);
-      return 0;
+      XCloseDisplay (display);
+      return false;
       }
       //}}}
     //}}}
     //{{{  set width, height
-    int screenWidth = DisplayWidth (miniFB->display, miniFB->screen);
-    int screenHeight = DisplayHeight (miniFB->display, miniFB->screen);
+    int screenWidth = DisplayWidth (display, screen);
+    int screenHeight = DisplayHeight (display, screen);
 
     XSetWindowAttributes windowAttributes;
-    windowAttributes.border_pixel = BlackPixel (miniFB->display, miniFB->screen);
-    windowAttributes.background_pixel = BlackPixel (miniFB->display,miniFB-> screen);
+    windowAttributes.border_pixel = BlackPixel (display, screen);
+    windowAttributes.background_pixel = BlackPixel (display, screen);
     windowAttributes.backing_store = NotUseful;
 
-    miniFB->windowWidth  = width;
-    miniFB->windowHeight = height;
-    miniFB->bufferWidth  = width;
-    miniFB->bufferHeight = height;
-    miniFB->bufferStride = width * 4;
-    miniFB->calcDstFactor (width, height);
+    windowWidth  = width;
+    windowHeight = height;
+    bufferWidth  = width;
+    bufferHeight = height;
+    bufferStride = width * 4;
+    calcDstFactor (width, height);
 
     int posX, posY;
     int windowWidth, windowHeight;
@@ -1405,25 +1046,25 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
       //}}}
     //}}}
 
-    miniFB->window = XCreateWindow (miniFB->display, defaultRootWindow,
-                                           posX, posY, windowWidth, windowHeight,
-                                           0, depth, InputOutput, visual,
-                                           CWBackPixel | CWBorderPixel | CWBackingStore,
-                                           &windowAttributes);
-    if (!miniFB->window) {
+    window = XCreateWindow (display, defaultRootWindow,
+                            posX, posY, windowWidth, windowHeight,
+                            0, depth, InputOutput, visual,
+                            CWBackPixel | CWBorderPixel | CWBackingStore,
+                            &windowAttributes);
+    if (!window) {
       //{{{  error, return
       cLog::log (LOGERROR, fmt::format ("failed to create X11 window"));
-      return 0;
+      return false;
       }
       //}}}
 
-    XSelectInput (miniFB->display, miniFB->window,
+    XSelectInput (display, window,
                   StructureNotifyMask | ExposureMask |
                   FocusChangeMask |
                   KeyPressMask | KeyReleaseMask |
                   ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
                   EnterWindowMask | LeaveWindowMask);
-    XStoreName (miniFB->display, miniFB->window, title);
+    XStoreName (display, window, title);
 
     if (flags & WF_BORDERLESS) {
       //{{{  borderless
@@ -1435,35 +1076,35 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
         unsigned long status;
         } sh = {2, 0, 0, 0, 0};
 
-      Atom sh_p = XInternAtom (miniFB->display, "_MOTIF_WM_HINTS", True);
-      XChangeProperty (miniFB->display, miniFB->window, sh_p, sh_p, 32,
+      Atom sh_p = XInternAtom (display, "_MOTIF_WM_HINTS", True);
+      XChangeProperty (display, window, sh_p, sh_p, 32,
                        PropModeReplace, (unsigned char*)&sh, 5);
       }
       //}}}
     if (flags & WF_ALWAYS_ON_TOP) {
       //{{{  always on top
-      Atom sa_p = XInternAtom (miniFB->display, "_NET_WM_STATE_ABOVE", False);
-      XChangeProperty (miniFB->display, miniFB->window,
-                       XInternAtom (miniFB->display, "_NET_WM_STATE", False), XA_ATOM, 32,
+      Atom sa_p = XInternAtom (display, "_NET_WM_STATE_ABOVE", False);
+      XChangeProperty (display, window,
+                       XInternAtom (display, "_NET_WM_STATE", False), XA_ATOM, 32,
                        PropModeReplace, (unsigned char*)&sa_p, 1);
       }
       //}}}
     if (flags & WF_FULLSCREEN) {
       //{{{  full screen
-      Atom sf_p = XInternAtom (miniFB->display, "_NET_WM_STATE_FULLSCREEN", True);
-      XChangeProperty (miniFB->display, miniFB->window,
-                       XInternAtom (miniFB->display, "_NET_WM_STATE", True), XA_ATOM, 32,
+      Atom sf_p = XInternAtom (display, "_NET_WM_STATE_FULLSCREEN", True);
+      XChangeProperty (display, window,
+                       XInternAtom (display, "_NET_WM_STATE", True), XA_ATOM, 32,
                        PropModeReplace, (unsigned char*)&sf_p, 1);
       }
       //}}}
 
-    gDeleteWindowAtom = XInternAtom (miniFB->display, "WM_DELETE_WINDOW", False);
-    XSetWMProtocols (miniFB->display, miniFB->window, &gDeleteWindowAtom, 1);
+    gDeleteWindowAtom = XInternAtom (display, "WM_DELETE_WINDOW", False);
+    XSetWMProtocols (display, window, &gDeleteWindowAtom, 1);
 
-    if (!miniFB->createGLcontext()) {
+    if (!createGLcontext()) {
       //{{{  error, return
       cLog::log (LOGERROR, fmt::format ("failed to create X11 GL context"));
-      return 0;
+      return false;
       }
       //}}}
 
@@ -1486,21 +1127,21 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
       sizeHints.max_height = height;
       }
       //}}}
-    XSetWMNormalHints (miniFB->display, miniFB->window, &sizeHints);
+    XSetWMNormalHints (display, window, &sizeHints);
     //}}}
-    XClearWindow (miniFB->display, miniFB->window);
-    XMapRaised (miniFB->display, miniFB->window);
-    XFlush (miniFB->display);
+    XClearWindow (display, window);
+    XMapRaised (display, window);
+    XFlush (display);
 
-    miniFB->gc = DefaultGC (miniFB->display, miniFB->screen);
+    gc = DefaultGC (display, screen);
     cLog::log (LOGINFO, "using X11 API");
 
     int32_t count;
-    XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (miniFB->display, &count);
+    XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (display, &count);
     if (!devices) {
       //{{{  error, return
       cLog::log (LOGERROR, fmt::format ("failed to find X11 input device list"));
-      return 0;
+      return false;
       }
       //}}}
     //{{{  search device list for "stylus"
@@ -1509,7 +1150,7 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
     for (int32_t i = 0; i < count; i++) {
       cLog::log (LOGINFO, fmt::format ("- device:{} name:{} id:{}", i, devices[i].name, devices[i].id));
       if (strstr (devices[i].name, "stylus")) { // "eraser"
-        gDevice = XOpenDevice (miniFB->display, devices[i].id);
+        gDevice = XOpenDevice (display, devices[i].id);
         XAnyClassPtr classPtr = devices[i].inputclassinfo;
         for (int32_t j = 0; j < devices[i].num_classes; j++) {
           switch (classPtr->c_class) {
@@ -1552,15 +1193,15 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
           classPtr = (XAnyClassPtr)((uint8_t*)classPtr + classPtr->length);
           }
         }
-      XSelectExtensionEvent (miniFB->display, miniFB->window, gEventClasses, gNumEventClasses);
+      XSelectExtensionEvent (display, window, gEventClasses, gNumEventClasses);
       }
     XFreeDeviceList (devices);
     //}}}
     //}}}
   #endif
 
-  miniFB->isInitialized = true;
-  return miniFB;
+  isInitialized = true;
+  return true;
   }
 //}}}
 //{{{
@@ -1925,429 +1566,375 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
 //}}}
 //}}}
 
-// utils
-//{{{
-void cMiniFB::resizeDst (uint32_t width, uint32_t height) {
+// message handler
+#ifdef _WIN32
+  //{{{
+  LRESULT CALLBACK cMiniFB::processMessage (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
-  dstOffsetX = (uint32_t) (width  * factorX);
-  dstOffsetY = (uint32_t) (height * factorY);
-  dstWidth    = (uint32_t) (width  * factorWidth);
-  dstHeight   = (uint32_t) (height * factorHeight);
-  }
-//}}}
-//{{{
-void cMiniFB::calcDstFactor (uint32_t width, uint32_t height) {
+    switch (message) {
+      //{{{
+      case WM_SIZE: {
+        if (wParam == SIZE_MINIMIZED)
+          return 0;
 
-  if (dstWidth == 0)
-    dstWidth = width;
+        float scale_x, scale_y;
+        getWindowsMonitorScale (hWnd, &scale_x, &scale_y);
+        windowWidth = GET_X_LPARAM(lParam);
+        windowHeight =  GET_Y_LPARAM(lParam);
+        resizeDst (windowWidth, windowHeight);
 
-  factorX     = (float)dstOffsetX / (float)width;
-  factorWidth = (float)dstWidth    / (float)width;
-
-  if (dstHeight == 0)
-    dstHeight = height;
-
-  factorY      = (float)dstOffsetY / (float)height;
-  factorHeight = (float)dstHeight   / (float)height;
-  }
-//}}}
-
-// openGL
-//{{{
-bool cMiniFB::createGLcontext() {
-
-  #ifdef _WIN32
-    //{{{  setup windows pixel format for openGL
-    PIXELFORMATDESCRIPTOR pfd = {sizeof(PIXELFORMATDESCRIPTOR), // size
-                                 1,                             // version
-                                 PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER, // support double-buffering
-                                 PFD_TYPE_RGBA,                 // color type
-                                 24,                            // preferred color depth
-                                 0, 0, 0, 0, 0, 0,              // color and shift bits (ignored)
-                                 0,                             // no alpha buffer
-                                 0,                             // alpha bits (ignored)
-                                 0,                             // no accumulation buffer
-                                 0, 0, 0, 0,                    // accum bits (ignored)
-                                 24,                            // depth buffer
-                                 8,                             // no stencil buffer
-                                 0,                             // no auxiliary buffers
-                                 PFD_MAIN_PLANE,                // main layer
-                                 0,                             // reserved
-                                 0, 0, 0,                       // no layer, visible, damage masks
-                                 };
-
-    int pixelFormat = ChoosePixelFormat (hdc, &pfd);
-    if (!pixelFormat) {
-      cLog::log (LOGERROR, fmt::format ("ChoosePixelFormat failed {}", MB_ICONERROR | MB_OK));
-      return false;
-      }
-
-    if (!SetPixelFormat (hdc, pixelFormat, &pfd)) {
-      cLog::log (LOGERROR, fmt::format ("SetPixelFormat failed {}", MB_ICONERROR | MB_OK));
-      return false;
-      }
-    //}}}
-    hGLRC = wglCreateContext (hdc);
-    wglMakeCurrent (hdc, hGLRC);
-
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
-
-    // get extensions
-    gSwapInterval = (tGlSwapIntervalProc)wglGetProcAddress ("wglSwapIntervalEXT");
-  #else
-    // check openGL version
-    GLint majorGLX = 0;
-    GLint minorGLX = 0;
-    glXQueryVersion (display, &majorGLX, &minorGLX);
-    if ((majorGLX <= 1) && (minorGLX < 2)) {
-      //{{{  error, return
-      cLog::log (LOGERROR, "GLX 1.2 or greater is required");
-      XCloseDisplay (display);
-      return false;
-      }
-      //}}}
-    else
-      cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
-
-    //{{{  setup pixel format for X11 openGL
-    GLint glxAttribs[] = {
-      GLX_RGBA,
-      GLX_DOUBLEBUFFER,
-      GLX_DEPTH_SIZE,     24,
-      GLX_STENCIL_SIZE,   8,
-      GLX_RED_SIZE,       8,
-      GLX_GREEN_SIZE,     8,
-      GLX_BLUE_SIZE,      8,
-      GLX_DEPTH_SIZE,     24,
-      GLX_STENCIL_SIZE,   8,
-      GLX_SAMPLE_BUFFERS, 0,
-      GLX_SAMPLES,        0,
-      None };
-
-    XVisualInfo* visualInfo = glXChooseVisual (display, screen, glxAttribs);
-    if (!visualInfo) {
-      cLog::log (LOGERROR, "Could not create correct visual window");
-      XCloseDisplay (display);
-      return false;
-      }
-    //}}}
-    context = glXCreateContext (display, visualInfo, NULL, GL_TRUE);
-    glXMakeCurrent (display, window, context);
-
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
-
-    if (CheckGLExtension ("GLX_EXT_swap_control"))
-      gSwapInterval = (tGlSwapIntervalProc)glXGetProcAddress ((const GLubyte*)"glXSwapIntervalEXT");
-  #endif
-
-  initGL();
-  return true;
-  }
-//}}}
-//{{{
-void cMiniFB::resizeGL() {
-
-  if (isInitialized) {
-    #ifdef _WIN32
-      wglMakeCurrent (hdc, hGLRC);
-    #else
-      glXMakeCurrent (display, window, context);
-    #endif
-
-    glViewport (0,0, windowWidth,windowHeight);
-
-    glMatrixMode (GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho (0, windowWidth, windowHeight, 0, 2048, -2048);
-
-    glClear (GL_COLOR_BUFFER_BIT);
-    }
-  }
-//}}}
-//{{{
-void cMiniFB::redrawGL (const void* pixels) {
-
-  #ifdef _WIN32
-    wglMakeCurrent (hdc, hGLRC);
-  #else
-    glXMakeCurrent (display, window, context);
-  #endif
-
-  GLenum format = RGBA;
-
-  // clear
-  //glClear (GL_COLOR_BUFFER_BIT);
-  glBindTexture (GL_TEXTURE_2D, textureId);
-  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, bufferWidth, bufferHeight, 0, format, GL_UNSIGNED_BYTE, pixels);
-  //glTexSubImage2D (GL_TEXTURE_2D, 0,
-  //                 0, 0, buffer_width, buffer_height,
-  //                 format, GL_UNSIGNED_BYTE, pixels);
-
-  // draw single texture
-  glEnableClientState (GL_VERTEX_ARRAY);
-  glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-
-  // vertices
-  float x = (float)dstOffsetX;
-  float y = (float)dstOffsetY;
-  float w = (float)dstOffsetX + dstWidth;
-  float h = (float)dstOffsetY + dstHeight;
-  float vertices[] = { x, y, 0, 0,
-                       w, y, 1, 0,
-                       x, h, 0, 1,
-                       w, h, 1, 1 };
-  glVertexPointer (2, GL_FLOAT, 4 * sizeof(float), vertices);
-  glTexCoordPointer (2, GL_FLOAT, 4 * sizeof(float), vertices + 2);
-  glDrawArrays (GL_TRIANGLE_STRIP, 0, 4);
-
-  glDisableClientState (GL_TEXTURE_COORD_ARRAY);
-  glDisableClientState (GL_VERTEX_ARRAY);
-  glBindTexture (GL_TEXTURE_2D, 0);
-
-  // swap buffer
-  #ifdef _WIN32
-    SwapBuffers (hdc);
-  #else
-    glXSwapBuffers (display, window);
-  #endif
-  }
-//}}}
-//{{{
-void cMiniFB::destroyGLcontext() {
-
-  #ifdef _WIN32
-    if (hGLRC) {
-      wglMakeCurrent (NULL, NULL);
-      wglDeleteContext (hGLRC);
-      hGLRC = 0;
-      }
-  #else
-    glXDestroyContext (display, context);
-  #endif
-  }
-//}}}
-
-// private
-//{{{
-void cMiniFB::initGL() {
-
-  glViewport (0, 0, windowWidth, windowHeight);
-
-  glMatrixMode (GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho (0, windowWidth, windowHeight, 0, 2048, -2048);
-
-  glMatrixMode (GL_MODELVIEW);
-  glLoadIdentity();
-
-  glDisable (GL_DEPTH_TEST);
-  glDisable (GL_STENCIL_TEST);
-
-  glEnable (GL_TEXTURE_2D);
-
-  glGenTextures (1, &textureId);
-  glBindTexture (GL_TEXTURE_2D, textureId);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  glEnableClientState (GL_VERTEX_ARRAY);
-  glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-
-  glDisableClientState (GL_TEXTURE_COORD_ARRAY);
-  glDisableClientState (GL_VERTEX_ARRAY);
-  glBindTexture (GL_TEXTURE_2D, 0);
-
-  #ifdef _WIN32
-    gSwapInterval (1);
-  #else
-    gSwapInterval (glXGetCurrentDisplay(), glXGetCurrentDrawable(), 1);
-  #endif
-  }
-//}}}
-//{{{
-void cMiniFB::initKeycodes() {
-
-  #ifdef _WIN32
-    if (gKeycodes[0x00B] != KB_KEY_0) {
-      //{{{  alpha numeric
-      gKeycodes[0x00B] = KB_KEY_0;
-      gKeycodes[0x002] = KB_KEY_1;
-      gKeycodes[0x003] = KB_KEY_2;
-      gKeycodes[0x004] = KB_KEY_3;
-      gKeycodes[0x005] = KB_KEY_4;
-      gKeycodes[0x006] = KB_KEY_5;
-      gKeycodes[0x007] = KB_KEY_6;
-      gKeycodes[0x008] = KB_KEY_7;
-      gKeycodes[0x009] = KB_KEY_8;
-      gKeycodes[0x00A] = KB_KEY_9;
-      gKeycodes[0x01E] = KB_KEY_A;
-      gKeycodes[0x030] = KB_KEY_B;
-      gKeycodes[0x02E] = KB_KEY_C;
-      gKeycodes[0x020] = KB_KEY_D;
-      gKeycodes[0x012] = KB_KEY_E;
-      gKeycodes[0x021] = KB_KEY_F;
-      gKeycodes[0x022] = KB_KEY_G;
-      gKeycodes[0x023] = KB_KEY_H;
-      gKeycodes[0x017] = KB_KEY_I;
-      gKeycodes[0x024] = KB_KEY_J;
-      gKeycodes[0x025] = KB_KEY_K;
-      gKeycodes[0x026] = KB_KEY_L;
-      gKeycodes[0x032] = KB_KEY_M;
-      gKeycodes[0x031] = KB_KEY_N;
-      gKeycodes[0x018] = KB_KEY_O;
-      gKeycodes[0x019] = KB_KEY_P;
-      gKeycodes[0x010] = KB_KEY_Q;
-      gKeycodes[0x013] = KB_KEY_R;
-      gKeycodes[0x01F] = KB_KEY_S;
-      gKeycodes[0x014] = KB_KEY_T;
-      gKeycodes[0x016] = KB_KEY_U;
-      gKeycodes[0x02F] = KB_KEY_V;
-      gKeycodes[0x011] = KB_KEY_W;
-      gKeycodes[0x02D] = KB_KEY_X;
-      gKeycodes[0x015] = KB_KEY_Y;
-      gKeycodes[0x02C] = KB_KEY_Z;
-      //}}}
-      //{{{  punctuation
-      gKeycodes[0x028] = KB_KEY_APOSTROPHE;
-      gKeycodes[0x02B] = KB_KEY_BACKSLASH;
-      gKeycodes[0x033] = KB_KEY_COMMA;
-      gKeycodes[0x00D] = KB_KEY_EQUAL;
-      gKeycodes[0x029] = KB_KEY_GRAVE_ACCENT;
-      gKeycodes[0x01A] = KB_KEY_LEFT_BRACKET;
-      gKeycodes[0x00C] = KB_KEY_MINUS;
-      gKeycodes[0x034] = KB_KEY_PERIOD;
-      gKeycodes[0x01B] = KB_KEY_RIGHT_BRACKET;
-      gKeycodes[0x027] = KB_KEY_SEMICOLON;
-      gKeycodes[0x035] = KB_KEY_SLASH;
-      gKeycodes[0x056] = KB_KEY_WORLD_2;
-      //}}}
-      //{{{  other
-      gKeycodes[0x00E] = KB_KEY_BACKSPACE;
-      gKeycodes[0x153] = KB_KEY_DELETE;
-      gKeycodes[0x14F] = KB_KEY_END;
-      gKeycodes[0x01C] = KB_KEY_ENTER;
-      gKeycodes[0x001] = KB_KEY_ESCAPE;
-      gKeycodes[0x147] = KB_KEY_HOME;
-      gKeycodes[0x152] = KB_KEY_INSERT;
-      gKeycodes[0x15D] = KB_KEY_MENU;
-      gKeycodes[0x151] = KB_KEY_PAGE_DOWN;
-      gKeycodes[0x149] = KB_KEY_PAGE_UP;
-      gKeycodes[0x045] = KB_KEY_PAUSE;
-      gKeycodes[0x146] = KB_KEY_PAUSE;
-      gKeycodes[0x039] = KB_KEY_SPACE;
-      gKeycodes[0x00F] = KB_KEY_TAB;
-      gKeycodes[0x03A] = KB_KEY_CAPS_LOCK;
-      gKeycodes[0x145] = KB_KEY_NUM_LOCK;
-      gKeycodes[0x046] = KB_KEY_SCROLL_LOCK;
-      gKeycodes[0x03B] = KB_KEY_F1;
-      gKeycodes[0x03C] = KB_KEY_F2;
-      gKeycodes[0x03D] = KB_KEY_F3;
-      gKeycodes[0x03E] = KB_KEY_F4;
-      gKeycodes[0x03F] = KB_KEY_F5;
-      gKeycodes[0x040] = KB_KEY_F6;
-      gKeycodes[0x041] = KB_KEY_F7;
-      gKeycodes[0x042] = KB_KEY_F8;
-      gKeycodes[0x043] = KB_KEY_F9;
-      gKeycodes[0x044] = KB_KEY_F10;
-      gKeycodes[0x057] = KB_KEY_F11;
-      gKeycodes[0x058] = KB_KEY_F12;
-      gKeycodes[0x064] = KB_KEY_F13;
-      gKeycodes[0x065] = KB_KEY_F14;
-      gKeycodes[0x066] = KB_KEY_F15;
-      gKeycodes[0x067] = KB_KEY_F16;
-      gKeycodes[0x068] = KB_KEY_F17;
-      gKeycodes[0x069] = KB_KEY_F18;
-      gKeycodes[0x06A] = KB_KEY_F19;
-      gKeycodes[0x06B] = KB_KEY_F20;
-      gKeycodes[0x06C] = KB_KEY_F21;
-      gKeycodes[0x06D] = KB_KEY_F22;
-      gKeycodes[0x06E] = KB_KEY_F23;
-      gKeycodes[0x076] = KB_KEY_F24;
-      gKeycodes[0x038] = KB_KEY_LEFT_ALT;
-      gKeycodes[0x01D] = KB_KEY_LEFT_CONTROL;
-      gKeycodes[0x02A] = KB_KEY_LEFT_SHIFT;
-      gKeycodes[0x15B] = KB_KEY_LEFT_SUPER;
-      gKeycodes[0x137] = KB_KEY_PRINT_SCREEN;
-      gKeycodes[0x138] = KB_KEY_RIGHT_ALT;
-      gKeycodes[0x11D] = KB_KEY_RIGHT_CONTROL;
-      gKeycodes[0x036] = KB_KEY_RIGHT_SHIFT;
-      gKeycodes[0x15C] = KB_KEY_RIGHT_SUPER;
-      gKeycodes[0x150] = KB_KEY_DOWN;
-      gKeycodes[0x14B] = KB_KEY_LEFT;
-      gKeycodes[0x14D] = KB_KEY_RIGHT;
-      gKeycodes[0x148] = KB_KEY_UP;
-      //}}}
-      //{{{  numpad
-      gKeycodes[0x052] = KB_KEY_KP_0;
-      gKeycodes[0x04F] = KB_KEY_KP_1;
-      gKeycodes[0x050] = KB_KEY_KP_2;
-      gKeycodes[0x051] = KB_KEY_KP_3;
-      gKeycodes[0x04B] = KB_KEY_KP_4;
-      gKeycodes[0x04C] = KB_KEY_KP_5;
-      gKeycodes[0x04D] = KB_KEY_KP_6;
-      gKeycodes[0x047] = KB_KEY_KP_7;
-      gKeycodes[0x048] = KB_KEY_KP_8;
-      gKeycodes[0x049] = KB_KEY_KP_9;
-      gKeycodes[0x04E] = KB_KEY_KP_ADD;
-      gKeycodes[0x053] = KB_KEY_KP_DECIMAL;
-      gKeycodes[0x135] = KB_KEY_KP_DIVIDE;
-      gKeycodes[0x11C] = KB_KEY_KP_ENTER;
-      gKeycodes[0x037] = KB_KEY_KP_MULTIPLY;
-      gKeycodes[0x04A] = KB_KEY_KP_SUBTRACT;
-      //}}}
-      }
-  #else
-    // clear keys
-    for (size_t i = 0; i < sizeof(gKeycodes) / sizeof(gKeycodes[0]); ++i)
-      gKeycodes[i] = KB_KEY_UNKNOWN;
-
-    // valid key code range is  [8,255], according to the Xlib manual
-    for (size_t i = 8; i <= 255; ++i) {
-      // try secondary keysym, for numeric keypad keys
-      int keySym  = XkbKeycodeToKeysym (display, i, 0, 1);
-      gKeycodes[i] = translateKeyCodeB (keySym);
-      if (gKeycodes[i] == KB_KEY_UNKNOWN) {
-        keySym = XkbKeycodeToKeysym (display, i, 0, 0);
-        gKeycodes[i] = translateKeyCodeA (keySym);
+        resizeGL();
+        if (windowWidth && windowHeight) {
+          windowScaledWidth  = (uint32_t)(windowWidth  / scale_x);
+          windowScaledHeight = (uint32_t)(windowHeight / scale_y);
+          if (resizeFunc)
+            resizeFunc (this);
+          }
+        break;
         }
+      //}}}
+
+      //{{{
+      case WM_CLOSE:
+        // Obtain a confirmation of close
+        if (!closeFunc || closeFunc (this)) {
+          closed = true;
+          DestroyWindow (window);
+          }
+        break;
+      //}}}
+      //{{{
+      case WM_DESTROY:
+        closed = true;
+        break;
+      //}}}
+
+      //{{{
+      case WM_SETFOCUS:
+         isActive = true;
+        if (activeFunc)
+          activeFunc (this);
+        break;
+      //}}}
+      //{{{
+      case WM_KILLFOCUS:
+        isActive = false;
+        if (activeFunc)
+          activeFunc (this);
+        break;
+      //}}}
+
+      case WM_SYSKEYDOWN:
+      case WM_SYSKEYUP:
+      case WM_KEYDOWN:
+      //{{{
+      case WM_KEYUP: {
+        keyCode = translateKey (wParam, lParam);
+        isPressed = !((lParam >> 31) & 1);
+        modifierKeys = translateMod();
+
+        if (keyCode == KB_KEY_UNKNOWN)
+          return 0;
+
+        keyStatus[keyCode] = (uint8_t)isPressed;
+        if (keyFunc)
+          keyFunc (this);
+        break;
+        }
+      //}}}
+
+      case WM_CHAR:
+      //{{{
+      case WM_SYSCHAR:
+        {
+        static WCHAR highSurrogate = 0;
+
+        if (wParam >= 0xd800 && wParam <= 0xdbff)
+          highSurrogate = (WCHAR) wParam;
+        else {
+          codepoint = 0;
+          if (wParam >= 0xdc00 && wParam <= 0xdfff) {
+            if (highSurrogate != 0) {
+              codepoint += (highSurrogate - 0xd800) << 10;
+              codepoint += (WCHAR) wParam - 0xdc00;
+              codepoint += 0x10000;
+              }
+            }
+          else
+            codepoint = (WCHAR) wParam;
+
+          highSurrogate = 0;
+          if (charFunc)
+            charFunc (this);
+          }
+        }
+        break;
+      //}}}
+
+      #ifdef USE_WINTAB
+        //{{{
+        case WT_PACKET:
+          if ((HCTX)lParam == gWinTab->mContext) {
+            PACKET packet = {0};
+            if (gWinTab->mWTPacket (gWinTab->mContext, (UINT)wParam, &packet)) {
+              POINT point = { 0 };
+              point.x = packet.pkX;
+              point.y = packet.pkY;
+              ScreenToClient (hWnd, &point);
+
+              gWinTab->mTime = packet.pkTime;
+              gWinTab->mPosX = point.x;
+              gWinTab->mPosY = point.y;
+              gWinTab->mPressure = (float)packet.pkNormalPressure / (float)gWinTab->mMaxPressure;
+              gWinTab->mButtons = packet.pkButtons;
+              cLog::log (LOGINFO, fmt::format ("WT_PACKET press:{} time:{}", gWinTab->mPressure, gWinTab->mTime));
+              }
+            else
+              cLog::log (LOGERROR, fmt::format ("WT_PACKET no packet"));
+            }
+          else
+            cLog::log (LOGERROR, fmt::format ("WT_PACKET wrong context"));
+
+          break;
+        //}}}
+        //{{{
+        case WT_PROXIMITY:
+          if (lParam & 0xFFFF)
+            cLog::log (LOGINFO, fmt::format ("WT_PROXIMITY in {:x}", lParam));
+          else
+            cLog::log (LOGINFO, fmt::format ("WT_PROXIMITY out {:x}", lParam));
+
+          break;
+        //}}}
+      #endif
+
+      //{{{  POINTER_INFO
+      //POINTER_INPUT_TYPE         pointerType;
+      //UINT32                     pointerId;
+      //UINT32                     frameId;
+      //POINTER_FLAGS              pointerFlags;
+      //HANDLE                     sourceDevice;
+      //HWND                       hwndTarget;
+      //POINT                      ptPixelLocation;
+      //POINT                      ptHimetricLocation;
+      //POINT                      ptPixelLocationRaw;
+      //POINT                      ptHimetricLocationRaw;
+      //DWORD                      dwTime;
+      //UINT32                     historyCount;
+      //INT32                      InputData;
+      //DWORD                      dwKeyStates;
+      //UINT64                     PerformanceCount;
+      //POINTER_BUTTON_CHANGE_TYPE ButtonChangeType;
+      //}}}
+      //{{{  POINTER_INPUT
+        //PT_POINTER = 1,
+        //PT_TOUCH = 2,
+        //PT_PEN = 3,
+        //PT_MOUSE = 4,
+        //PT_TOUCHPAD = 5
+      //}}}
+      //{{{  POINTER_FLAG
+      //POINTER_FLAG_NONE 0x00000000
+      //POINTER_FLAG_NEW 0x00000001
+      //POINTER_FLAG_INRANGE 0x00000002
+      //POINTER_FLAG_INCONTACT 0x00000004
+      //POINTER_FLAG_FIRSTBUTTON 0x00000010
+      //POINTER_FLAG_SECONDBUTTON 0x00000020
+      //POINTER_FLAG_THIRDBUTTON 0x00000040
+      //POINTER_FLAG_FOURTHBUTTON 0x00000080
+      //POINTER_FLAG_FIFTHBUTTON 0x00000100
+      //POINTER_FLAG_PRIMARY 0x00002000
+      //POINTER_FLAG_CONFIDENCE 0x000004000
+      //POINTER_FLAG_CANCELED 0x000008000
+      //POINTER_FLAG_DOWN 0x00010000
+      //POINTER_FLAG_UPDATE 0x00020000
+      //POINTER_FLAG_UP 0x00040000
+      //POINTER_FLAG_WHEEL 0x00080000
+      //POINTER_FLAG_HWHEEL 0x00100000
+      //POINTER_FLAG_CAPTURECHANGED 0x00200000
+      //POINTER_FLAG_HASTRANSFORM 0x00400000
+      //}}}
+      //{{{  POINTER_BUTTON_CHANGE_TYPE {
+        //POINTER_CHANGE_NONE,
+        //POINTER_CHANGE_FIRSTBUTTON_DOWN,
+        //POINTER_CHANGE_FIRSTBUTTON_UP,
+        //POINTER_CHANGE_SECONDBUTTON_DOWN,
+        //POINTER_CHANGE_SECONDBUTTON_UP,
+        //POINTER_CHANGE_THIRDBUTTON_DOWN,
+        //POINTER_CHANGE_THIRDBUTTON_UP,
+        //POINTER_CHANGE_FOURTHBUTTON_DOWN,
+        //POINTER_CHANGE_FOURTHBUTTON_UP,
+        //POINTER_CHANGE_FIFTHBUTTON_DOWN,
+        //POINTER_CHANGE_FIFTHBUTTON_UP
+      //}}}
+      //{{{  POINTER_PEN_INFO
+        //POINTER_INFO pointerInfo;
+        //PEN_FLAGS    penFlags;
+        //PEN_MASK     penMask;
+        //UINT32       pressure;
+        //UINT32       rotation;
+        //INT32        tiltX;
+        //INT32        tiltY;
+      //}}}
+      //{{{
+      case WM_POINTERENTER:
+        pointerInside = true;
+        if (enterFunc)
+          enterFunc (this);
+        break;
+      //}}}
+      //{{{
+      case WM_POINTERLEAVE:
+        pointerInside = false;
+        if (enterFunc)
+          enterFunc (this);
+        break;
+      //}}}
+      //{{{
+      case WM_POINTERDOWN: {
+        POINTER_INFO pointerInfo;
+        if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
+          if (pointerInfo.pointerType == PT_MOUSE) {
+            cLog::log (LOGINFO, fmt::format ("WM_POINTERDOWN mouseDown"));
+            }
+          else if (pointerInfo.pointerType == PT_PEN) {
+            cLog::log (LOGINFO, fmt::format ("WM_POINTERDOWN penDown"));
+            }
+          else // unused PT_TOUCH, PT_TOUCHPAD
+            cLog::log (LOGERROR, fmt::format ("WM_POINTERDOWN - unknown type:{}", pointerInfo.pointerType));
+
+          pointerButtonStatus[MOUSE_BTN_1] = 1;
+          modifierKeys = translateMod();
+          isDown = 1;
+          if (buttonFunc)
+            buttonFunc (this);
+          }
+        else
+          cLog::log (LOGERROR, fmt::format ("WM_POINTERDOWN - no miniFB"));
+        break;
+        }
+      //}}}
+      //{{{
+      case WM_POINTERUP: {
+        POINTER_INFO pointerInfo;
+        if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
+          if (pointerInfo.pointerType == PT_MOUSE) {
+            cLog::log (LOGINFO, fmt::format ("WM_POINTERUP mouseUp"));
+            }
+          else if (pointerInfo.pointerType == PT_PEN) {
+            cLog::log (LOGINFO, fmt::format ("WM_POINTERUP penUp"));
+            }
+          else // unused PT_TOUCH, PT_TOUCHPAD
+            cLog::log (LOGERROR, fmt::format ("WM_POINTERUP - unknown type:{}", pointerInfo.pointerType));
+
+          modifierKeys = translateMod();
+          pointerButtonStatus[MOUSE_BTN_1] = 0;
+          isDown = 0;
+          if (buttonFunc)
+            buttonFunc (this);
+          }
+        else
+          cLog::log (LOGERROR, fmt::format ("WM_POINTERUP - no info"));
+        break;
+        }
+      //}}}
+      //{{{
+      case WM_POINTERUPDATE: {
+        POINTER_INFO pointerInfo;
+        if (GetPointerInfo (GET_POINTERID_WPARAM (wParam), &pointerInfo)) {
+          if (pointerInfo.pointerType == PT_MOUSE) {
+            #ifdef USE_WINTAB
+              cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE mouse @{} flag:{:x}", pointerInfo.dwTime, pointerInfo.pointerFlags));
+            #endif
+            pointerInside = true;
+            pointerTimestamp = pointerInfo.dwTime;
+            POINT clientPos = pointerInfo.ptPixelLocation;
+            ScreenToClient (hWnd, &clientPos);
+            pointerPosX = clientPos.x;
+            pointerPosY = clientPos.y;
+            pointerPressure = pointerButtonStatus[MOUSE_BTN_1] * 1024;
+            if (moveFunc)
+              moveFunc (this);
+            }
+          else if (pointerInfo.pointerType == PT_PEN) {
+            POINTER_PEN_INFO pointerPenInfos[10];
+            uint32_t entriesCount = 10;
+            if (GetPointerPenInfoHistory (GET_POINTERID_WPARAM (wParam), &entriesCount, pointerPenInfos)) {
+              pointerInside = true;
+              for (uint32_t i = entriesCount; i > 0; i--) {
+                cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE pen i:{} @{}", i, pointerPenInfos[i-1].pointerInfo.dwTime));
+                pointerTimestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
+                ScreenToClient (hWnd, &pointerPenInfos[i-1].pointerInfo.ptPixelLocation);
+                pointerPosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
+                pointerPosY = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
+                pointerPressure = pointerPenInfos[i-1].pressure;
+                pointerTiltX = 0;
+                pointerTiltY = 0;
+                if (moveFunc)
+                  moveFunc (this);
+                }
+              }
+            }
+          else
+            cLog::log (LOGERROR, fmt::format ("WM_POINTERUPDATE - unknown type:{}", pointerInfo.pointerType));
+          }
+        else
+          cLog::log (LOGERROR, fmt::format ("WM_POINTERUPDATE - no info"));
+        break;
+        }
+      //}}}
+      //{{{
+      case WM_POINTERWHEEL:
+        cLog::log (LOGINFO, fmt::format ("pointerWheel"));
+        pointerWheelX = 0;
+        pointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
+        if (wheelFunc)
+          wheelFunc (this);
+        break;
+      //}}}
+
+      //{{{
+      //case 0x02E4://WM_GETDPISCALEDSIZE: {
+      //  SIZE* size = (SIZE*)lParam;
+      //  WORD dpi = (wParam);
+      //  return true;
+      //  break;
+      //  }
+      //}}}
+      //{{{
+      //case WM_DPICHANGED: //
+      //  const float xscale = HIWORD(wParam);
+      //  const float yscale = LOWORD(wParam);
+      //  break;
+      //}}}
+      case WM_POINTERACTIVATE:
+      case WM_POINTERCAPTURECHANGED:
+      case WM_POINTERDEVICECHANGE:
+      case WM_POINTERDEVICEINRANGE:
+      case WM_POINTERDEVICEOUTOFRANGE:
+      case WM_TOUCHHITTESTING:
+      case WM_INPUT:
+      case WM_NCPOINTERUPDATE:
+      case WM_NCPOINTERUP:
+      case WM_LBUTTONUP:
+      case WM_RBUTTONUP:
+      case WM_XBUTTONUP:
+      case WM_LBUTTONDOWN:
+      case WM_LBUTTONDBLCLK:
+      case WM_RBUTTONDOWN:
+      case WM_RBUTTONDBLCLK:
+      case WM_MOUSEMOVE:
+      case WM_MOUSELEAVE:
+      case WM_MOUSEWHEEL:
+      case WM_MOUSEHWHEEL:
+      default:
+        return DefWindowProc (hWnd, message, wParam, lParam);
       }
-  #endif
-  }
-//}}}
-//{{{
-void cMiniFB::freeResources() {
 
-  #ifdef _WIN32
-    destroyGLcontext();
-    if (window && hdc) {
-      ReleaseDC (window, hdc);
-      DestroyWindow (window);
-      }
-    window = 0;
-    hdc = 0;
-
-    drawBuffer = 0x0;
-    closed = true;
-
-    #ifdef USE_WINTAB
-      winTabUnload();
-    #endif
-  #else
-    if (gDevice)
-      XCloseDevice (display, gDevice);
-    destroyGLcontext();
-  #endif
-  }
-//}}}
-
-#ifndef _WIN32
+    return 0;
+    }
+  //}}}
+#else
   //{{{
   void cMiniFB::processEvent (XEvent* event) {
 
@@ -2539,3 +2126,432 @@ void cMiniFB::freeResources() {
     }
   //}}}
 #endif
+
+// private
+//{{{
+bool cMiniFB::createGLcontext() {
+
+  #ifdef _WIN32
+    //{{{  setup windows pixel format for openGL
+    PIXELFORMATDESCRIPTOR pfd = {sizeof(PIXELFORMATDESCRIPTOR), // size
+                                 1,                             // version
+                                 PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER, // support double-buffering
+                                 PFD_TYPE_RGBA,                 // color type
+                                 24,                            // preferred color depth
+                                 0, 0, 0, 0, 0, 0,              // color and shift bits (ignored)
+                                 0,                             // no alpha buffer
+                                 0,                             // alpha bits (ignored)
+                                 0,                             // no accumulation buffer
+                                 0, 0, 0, 0,                    // accum bits (ignored)
+                                 24,                            // depth buffer
+                                 8,                             // no stencil buffer
+                                 0,                             // no auxiliary buffers
+                                 PFD_MAIN_PLANE,                // main layer
+                                 0,                             // reserved
+                                 0, 0, 0,                       // no layer, visible, damage masks
+                                 };
+
+    int pixelFormat = ChoosePixelFormat (hdc, &pfd);
+    if (!pixelFormat) {
+      cLog::log (LOGERROR, fmt::format ("ChoosePixelFormat failed {}", MB_ICONERROR | MB_OK));
+      return false;
+      }
+
+    if (!SetPixelFormat (hdc, pixelFormat, &pfd)) {
+      cLog::log (LOGERROR, fmt::format ("SetPixelFormat failed {}", MB_ICONERROR | MB_OK));
+      return false;
+      }
+    //}}}
+    hGLRC = wglCreateContext (hdc);
+    wglMakeCurrent (hdc, hGLRC);
+
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
+
+    // get extensions
+    gSwapInterval = (tGlSwapIntervalProc)wglGetProcAddress ("wglSwapIntervalEXT");
+  #else
+    // check openGL version
+    GLint majorGLX = 0;
+    GLint minorGLX = 0;
+    glXQueryVersion (display, &majorGLX, &minorGLX);
+    if ((majorGLX <= 1) && (minorGLX < 2)) {
+      //{{{  error, return
+      cLog::log (LOGERROR, "GLX 1.2 or greater is required");
+      XCloseDisplay (display);
+
+      return false;
+      }
+      //}}}
+    else
+      cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
+
+    //{{{  setup pixel format for X11 openGL
+    GLint glxAttribs[] = {
+      GLX_RGBA,
+      GLX_DOUBLEBUFFER,
+      GLX_DEPTH_SIZE,     24,
+      GLX_STENCIL_SIZE,   8,
+      GLX_RED_SIZE,       8,
+      GLX_GREEN_SIZE,     8,
+      GLX_BLUE_SIZE,      8,
+      GLX_DEPTH_SIZE,     24,
+      GLX_STENCIL_SIZE,   8,
+      GLX_SAMPLE_BUFFERS, 0,
+      GLX_SAMPLES,        0,
+      None };
+
+    XVisualInfo* visualInfo = glXChooseVisual (display, screen, glxAttribs);
+    if (!visualInfo) {
+      cLog::log (LOGERROR, "Could not create correct visual window");
+      XCloseDisplay (display);
+      return false;
+      }
+    //}}}
+    context = glXCreateContext (display, visualInfo, NULL, GL_TRUE);
+    glXMakeCurrent (display, window, context);
+
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
+
+    if (checkGLExtension ("GLX_EXT_swap_control"))
+      gSwapInterval = (tGlSwapIntervalProc)glXGetProcAddress ((const GLubyte*)"glXSwapIntervalEXT");
+  #endif
+
+  initGL();
+  return true;
+  }
+//}}}
+//{{{
+void cMiniFB::initGL() {
+
+  glViewport (0, 0, windowWidth, windowHeight);
+
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho (0, windowWidth, windowHeight, 0, 2048, -2048);
+
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity();
+
+  glDisable (GL_DEPTH_TEST);
+  glDisable (GL_STENCIL_TEST);
+
+  glEnable (GL_TEXTURE_2D);
+
+  glGenTextures (1, &textureId);
+  glBindTexture (GL_TEXTURE_2D, textureId);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  glEnableClientState (GL_VERTEX_ARRAY);
+  glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+
+  glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+  glDisableClientState (GL_VERTEX_ARRAY);
+  glBindTexture (GL_TEXTURE_2D, 0);
+
+  if (!gSwapInterval) {
+    //{{{  error, return
+    cLog::log (LOGERROR, "no swapInterval extension");
+    return;
+    }
+    //}}}
+  #ifdef _WIN32
+    gSwapInterval (1);
+  #else
+    gSwapInterval (glXGetCurrentDisplay(), glXGetCurrentDrawable(), 1);
+  #endif
+  }
+//}}}
+//{{{
+void cMiniFB::initKeycodes() {
+
+  #ifdef _WIN32
+    if (gKeycodes[0x00B] != KB_KEY_0) {
+      //{{{  alpha numeric
+      gKeycodes[0x00B] = KB_KEY_0;
+      gKeycodes[0x002] = KB_KEY_1;
+      gKeycodes[0x003] = KB_KEY_2;
+      gKeycodes[0x004] = KB_KEY_3;
+      gKeycodes[0x005] = KB_KEY_4;
+      gKeycodes[0x006] = KB_KEY_5;
+      gKeycodes[0x007] = KB_KEY_6;
+      gKeycodes[0x008] = KB_KEY_7;
+      gKeycodes[0x009] = KB_KEY_8;
+      gKeycodes[0x00A] = KB_KEY_9;
+      gKeycodes[0x01E] = KB_KEY_A;
+      gKeycodes[0x030] = KB_KEY_B;
+      gKeycodes[0x02E] = KB_KEY_C;
+      gKeycodes[0x020] = KB_KEY_D;
+      gKeycodes[0x012] = KB_KEY_E;
+      gKeycodes[0x021] = KB_KEY_F;
+      gKeycodes[0x022] = KB_KEY_G;
+      gKeycodes[0x023] = KB_KEY_H;
+      gKeycodes[0x017] = KB_KEY_I;
+      gKeycodes[0x024] = KB_KEY_J;
+      gKeycodes[0x025] = KB_KEY_K;
+      gKeycodes[0x026] = KB_KEY_L;
+      gKeycodes[0x032] = KB_KEY_M;
+      gKeycodes[0x031] = KB_KEY_N;
+      gKeycodes[0x018] = KB_KEY_O;
+      gKeycodes[0x019] = KB_KEY_P;
+      gKeycodes[0x010] = KB_KEY_Q;
+      gKeycodes[0x013] = KB_KEY_R;
+      gKeycodes[0x01F] = KB_KEY_S;
+      gKeycodes[0x014] = KB_KEY_T;
+      gKeycodes[0x016] = KB_KEY_U;
+      gKeycodes[0x02F] = KB_KEY_V;
+      gKeycodes[0x011] = KB_KEY_W;
+      gKeycodes[0x02D] = KB_KEY_X;
+      gKeycodes[0x015] = KB_KEY_Y;
+      gKeycodes[0x02C] = KB_KEY_Z;
+      //}}}
+      //{{{  punctuation
+      gKeycodes[0x028] = KB_KEY_APOSTROPHE;
+      gKeycodes[0x02B] = KB_KEY_BACKSLASH;
+      gKeycodes[0x033] = KB_KEY_COMMA;
+      gKeycodes[0x00D] = KB_KEY_EQUAL;
+      gKeycodes[0x029] = KB_KEY_GRAVE_ACCENT;
+      gKeycodes[0x01A] = KB_KEY_LEFT_BRACKET;
+      gKeycodes[0x00C] = KB_KEY_MINUS;
+      gKeycodes[0x034] = KB_KEY_PERIOD;
+      gKeycodes[0x01B] = KB_KEY_RIGHT_BRACKET;
+      gKeycodes[0x027] = KB_KEY_SEMICOLON;
+      gKeycodes[0x035] = KB_KEY_SLASH;
+      gKeycodes[0x056] = KB_KEY_WORLD_2;
+      //}}}
+      //{{{  other
+      gKeycodes[0x00E] = KB_KEY_BACKSPACE;
+      gKeycodes[0x153] = KB_KEY_DELETE;
+      gKeycodes[0x14F] = KB_KEY_END;
+      gKeycodes[0x01C] = KB_KEY_ENTER;
+      gKeycodes[0x001] = KB_KEY_ESCAPE;
+      gKeycodes[0x147] = KB_KEY_HOME;
+      gKeycodes[0x152] = KB_KEY_INSERT;
+      gKeycodes[0x15D] = KB_KEY_MENU;
+      gKeycodes[0x151] = KB_KEY_PAGE_DOWN;
+      gKeycodes[0x149] = KB_KEY_PAGE_UP;
+      gKeycodes[0x045] = KB_KEY_PAUSE;
+      gKeycodes[0x146] = KB_KEY_PAUSE;
+      gKeycodes[0x039] = KB_KEY_SPACE;
+      gKeycodes[0x00F] = KB_KEY_TAB;
+      gKeycodes[0x03A] = KB_KEY_CAPS_LOCK;
+      gKeycodes[0x145] = KB_KEY_NUM_LOCK;
+      gKeycodes[0x046] = KB_KEY_SCROLL_LOCK;
+      gKeycodes[0x03B] = KB_KEY_F1;
+      gKeycodes[0x03C] = KB_KEY_F2;
+      gKeycodes[0x03D] = KB_KEY_F3;
+      gKeycodes[0x03E] = KB_KEY_F4;
+      gKeycodes[0x03F] = KB_KEY_F5;
+      gKeycodes[0x040] = KB_KEY_F6;
+      gKeycodes[0x041] = KB_KEY_F7;
+      gKeycodes[0x042] = KB_KEY_F8;
+      gKeycodes[0x043] = KB_KEY_F9;
+      gKeycodes[0x044] = KB_KEY_F10;
+      gKeycodes[0x057] = KB_KEY_F11;
+      gKeycodes[0x058] = KB_KEY_F12;
+      gKeycodes[0x064] = KB_KEY_F13;
+      gKeycodes[0x065] = KB_KEY_F14;
+      gKeycodes[0x066] = KB_KEY_F15;
+      gKeycodes[0x067] = KB_KEY_F16;
+      gKeycodes[0x068] = KB_KEY_F17;
+      gKeycodes[0x069] = KB_KEY_F18;
+      gKeycodes[0x06A] = KB_KEY_F19;
+      gKeycodes[0x06B] = KB_KEY_F20;
+      gKeycodes[0x06C] = KB_KEY_F21;
+      gKeycodes[0x06D] = KB_KEY_F22;
+      gKeycodes[0x06E] = KB_KEY_F23;
+      gKeycodes[0x076] = KB_KEY_F24;
+      gKeycodes[0x038] = KB_KEY_LEFT_ALT;
+      gKeycodes[0x01D] = KB_KEY_LEFT_CONTROL;
+      gKeycodes[0x02A] = KB_KEY_LEFT_SHIFT;
+      gKeycodes[0x15B] = KB_KEY_LEFT_SUPER;
+      gKeycodes[0x137] = KB_KEY_PRINT_SCREEN;
+      gKeycodes[0x138] = KB_KEY_RIGHT_ALT;
+      gKeycodes[0x11D] = KB_KEY_RIGHT_CONTROL;
+      gKeycodes[0x036] = KB_KEY_RIGHT_SHIFT;
+      gKeycodes[0x15C] = KB_KEY_RIGHT_SUPER;
+      gKeycodes[0x150] = KB_KEY_DOWN;
+      gKeycodes[0x14B] = KB_KEY_LEFT;
+      gKeycodes[0x14D] = KB_KEY_RIGHT;
+      gKeycodes[0x148] = KB_KEY_UP;
+      //}}}
+      //{{{  numpad
+      gKeycodes[0x052] = KB_KEY_KP_0;
+      gKeycodes[0x04F] = KB_KEY_KP_1;
+      gKeycodes[0x050] = KB_KEY_KP_2;
+      gKeycodes[0x051] = KB_KEY_KP_3;
+      gKeycodes[0x04B] = KB_KEY_KP_4;
+      gKeycodes[0x04C] = KB_KEY_KP_5;
+      gKeycodes[0x04D] = KB_KEY_KP_6;
+      gKeycodes[0x047] = KB_KEY_KP_7;
+      gKeycodes[0x048] = KB_KEY_KP_8;
+      gKeycodes[0x049] = KB_KEY_KP_9;
+      gKeycodes[0x04E] = KB_KEY_KP_ADD;
+      gKeycodes[0x053] = KB_KEY_KP_DECIMAL;
+      gKeycodes[0x135] = KB_KEY_KP_DIVIDE;
+      gKeycodes[0x11C] = KB_KEY_KP_ENTER;
+      gKeycodes[0x037] = KB_KEY_KP_MULTIPLY;
+      gKeycodes[0x04A] = KB_KEY_KP_SUBTRACT;
+      //}}}
+      }
+  #else
+    // clear keys
+    for (size_t i = 0; i < sizeof(gKeycodes) / sizeof(gKeycodes[0]); ++i)
+      gKeycodes[i] = KB_KEY_UNKNOWN;
+
+    // valid key code range is  [8,255], according to the Xlib manual
+    for (size_t i = 8; i <= 255; ++i) {
+      // try secondary keysym, for numeric keypad keys
+      int keySym  = XkbKeycodeToKeysym (display, i, 0, 1);
+      gKeycodes[i] = translateKeyCodeB (keySym);
+      if (gKeycodes[i] == KB_KEY_UNKNOWN) {
+        keySym = XkbKeycodeToKeysym (display, i, 0, 0);
+        gKeycodes[i] = translateKeyCodeA (keySym);
+        }
+      }
+  #endif
+  }
+//}}}
+
+//{{{
+void cMiniFB::resizeGL() {
+
+  if (isInitialized) {
+    #ifdef _WIN32
+      wglMakeCurrent (hdc, hGLRC);
+    #else
+      glXMakeCurrent (display, window, context);
+    #endif
+
+    glViewport (0,0, windowWidth,windowHeight);
+
+    glMatrixMode (GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho (0, windowWidth, windowHeight, 0, 2048, -2048);
+
+    glClear (GL_COLOR_BUFFER_BIT);
+    }
+  }
+//}}}
+//{{{
+void cMiniFB::redrawGL (const void* pixels) {
+
+  #ifdef _WIN32
+    wglMakeCurrent (hdc, hGLRC);
+  #else
+    glXMakeCurrent (display, window, context);
+  #endif
+
+  GLenum format = RGBA;
+
+  // clear
+  //glClear (GL_COLOR_BUFFER_BIT);
+
+  glBindTexture (GL_TEXTURE_2D, textureId);
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, bufferWidth, bufferHeight, 0, format, GL_UNSIGNED_BYTE, pixels);
+  //glTexSubImage2D (GL_TEXTURE_2D, 0,
+  //                 0, 0, buffer_width, buffer_height,
+  //                 format, GL_UNSIGNED_BYTE, pixels);
+
+  // draw single texture
+  glEnableClientState (GL_VERTEX_ARRAY);
+  glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+
+  // vertices
+  float x = (float)dstOffsetX;
+  float y = (float)dstOffsetY;
+  float w = (float)dstOffsetX + dstWidth;
+  float h = (float)dstOffsetY + dstHeight;
+  float vertices[] = { x, y, 0, 0,
+                       w, y, 1, 0,
+                       x, h, 0, 1,
+                       w, h, 1, 1 };
+  glVertexPointer (2, GL_FLOAT, 4 * sizeof(float), vertices);
+  glTexCoordPointer (2, GL_FLOAT, 4 * sizeof(float), vertices + 2);
+  glDrawArrays (GL_TRIANGLE_STRIP, 0, 4);
+
+  glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+  glDisableClientState (GL_VERTEX_ARRAY);
+  glBindTexture (GL_TEXTURE_2D, 0);
+
+  // swap buffer
+  #ifdef _WIN32
+    SwapBuffers (hdc);
+  #else
+    glXSwapBuffers (display, window);
+  #endif
+  }
+//}}}
+
+//{{{
+void cMiniFB::destroyGLcontext() {
+
+  #ifdef _WIN32
+    if (hGLRC) {
+      wglMakeCurrent (NULL, NULL);
+      wglDeleteContext (hGLRC);
+      hGLRC = 0;
+      }
+  #else
+    glXDestroyContext (display, context);
+  #endif
+  }
+//}}}
+//{{{
+void cMiniFB::freeResources() {
+
+  #ifdef _WIN32
+    destroyGLcontext();
+    if (window && hdc) {
+      ReleaseDC (window, hdc);
+      DestroyWindow (window);
+      }
+    window = 0;
+    hdc = 0;
+
+    drawBuffer = 0x0;
+    closed = true;
+
+    #ifdef USE_WINTAB
+      winTabUnload();
+    #endif
+  #else
+    if (gDevice)
+      XCloseDevice (display, gDevice);
+    destroyGLcontext();
+  #endif
+  }
+//}}}
+
+//{{{
+void cMiniFB::resizeDst (uint32_t width, uint32_t height) {
+
+  dstOffsetX = (uint32_t) (width  * factorX);
+  dstOffsetY = (uint32_t) (height * factorY);
+  dstWidth    = (uint32_t) (width  * factorWidth);
+  dstHeight   = (uint32_t) (height * factorHeight);
+  }
+//}}}
+//{{{
+void cMiniFB::calcDstFactor (uint32_t width, uint32_t height) {
+
+  if (dstWidth == 0)
+    dstWidth = width;
+
+  factorX     = (float)dstOffsetX / (float)width;
+  factorWidth = (float)dstWidth    / (float)width;
+
+  if (dstHeight == 0)
+    dstHeight = height;
+
+  factorY      = (float)dstOffsetY / (float)height;
+  factorHeight = (float)dstHeight   / (float)height;
+  }
+//}}}
