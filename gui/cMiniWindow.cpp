@@ -44,14 +44,14 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // state funcs
   //{{{
-  mMiniFB->setActiveFunc ([&](cMiniFB* info) {
-    cLog::log (LOGINFO, fmt::format ("active {} unused", info->isActive));
+  mMiniFB->setActiveFunc ([&](cMiniFB* miniFB) {
+    cLog::log (LOGINFO, fmt::format ("active {} unused", miniFB->isActive));
     });
   //}}}
   //{{{
-  mMiniFB->setResizeFunc ([&](struct cMiniFB* info) {
-    int width = info->windowScaledWidth;
-    int height = info->windowScaledHeight;
+  mMiniFB->setResizeFunc ([&](struct cMiniFB* miniFB) {
+    int width = miniFB->windowScaledWidth;
+    int height = miniFB->windowScaledHeight;
 
     cLog::log (LOGINFO, fmt::format ("resize {} {}", width, height));
     uint32_t x = 0;
@@ -64,7 +64,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
       y = (height - getHeight()) >> 1;
       setHeight (height);
       }
-    info->setViewport (x, y, width, height);
+    miniFB->setViewport (x, y, width, height);
     });
   //}}}
   //{{{
