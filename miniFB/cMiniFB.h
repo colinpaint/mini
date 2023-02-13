@@ -2,6 +2,7 @@
 #pragma once
 //{{{  includes
 #include <cstdint>
+#include <string>
 #include <functional>
 
 #ifdef _WIN32
@@ -187,8 +188,8 @@ enum eMiniKey {
 class cMiniFB {
 public:
   // statics
-  static cMiniFB* create (const char* title, uint32_t width, uint32_t height, uint32_t flags);
-  static const char* getKeyName (eMiniKey key);
+  static cMiniFB* create (const std::string& title, uint32_t width, uint32_t height, uint32_t flags);
+  static std::string getKeyName (eMiniKey key);
 
   eMiniState update (void* buffer);
   eMiniState updateEvents();
@@ -257,7 +258,7 @@ private:
     void processEvent (XEvent* event);
   #endif
 
-  bool init (const char* title, uint32_t width, uint32_t height, uint32_t flags);
+  bool init (const std::string& title, uint32_t width, uint32_t height, uint32_t flags);
   void initKeycodes();
   void freeResources();
 

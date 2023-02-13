@@ -191,9 +191,9 @@ private:
   cPaint* mPaint = nullptr;
   cTiledMap* mTiledMap = nullptr;
 
+  vector <cBox*> mRadioBoxes;
   cSongLoader* mSongLoader = nullptr;
   cSongLoaderBox* mSongLoaderBox = nullptr;
-  vector <cBox*> mRadioBoxes;
   };
 
 // main

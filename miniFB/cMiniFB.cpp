@@ -36,207 +36,206 @@ using namespace std;
 //}}}
 
 namespace {
-  #ifdef USE_WINTAB
-    //{{{  wintab
-    //{{{
-    // Use this enum in conjunction with winTab->Buttons to check for tablet button presses.
-    //  e.g. To check for lower pen button press, use:
-    //    if (winTab->Buttons & eWinTabButtons_Pen_Lower) {
-    //      Lower button is pressed
-    enum eWinTabButtons_ {
-      eWinTabButtons_Pen_Touch = 1, // Pen touching tablet
-      eWinTabButtons_Pen_Lower = 2, // Lower pen button pressed
-      eWinTabButtons_Pen_Upper = 4, // Upper pen button pressed
-      };
-    //}}}
-    //{{{  WTfunction addresses
-    typedef UINT (WINAPI* WTINFOA) (UINT, UINT, LPVOID);
-    typedef HCTX (WINAPI* WTOPENA) (HWND, LPLOGCONTEXTA, BOOL);
-
-    typedef bool (WINAPI* WTGETA) (HCTX, LPLOGCONTEXTA);
-    typedef bool (WINAPI* WTSETA) (HCTX, LPLOGCONTEXTA);
-
-    typedef bool (WINAPI* WTCLOSE) (HCTX);
-    typedef bool (WINAPI* WTPACKET) (HCTX, UINT, LPVOID);
-    typedef bool (WINAPI* WTENABLE) (HCTX, BOOL);
-    typedef bool (WINAPI* WTOVERLAP) (HCTX, BOOL);
-
-    typedef bool (WINAPI* WTSAVE) (HCTX, LPVOID);
-    typedef bool (WINAPI* WTCONFIG) (HCTX, HWND);
-    typedef HCTX (WINAPI* WTRESTORE) (HWND, LPVOID, BOOL);
-
-    typedef bool (WINAPI* WTEXTSET) (HCTX, UINT, LPVOID);
-    typedef bool (WINAPI* WTEXTGET) (HCTX, UINT, LPVOID);
-
-    typedef bool (WINAPI* WTQUEUESIZESET) (HCTX, int);
-    typedef int  (WINAPI* WTDATAPEEK) (HCTX, UINT, UINT, int, LPVOID, LPINT);
-    typedef int  (WINAPI* WTPACKETSGET) (HCTX, int, LPVOID);
-
-    typedef HMGR (WINAPI* WTMGROPEN) (HWND, UINT);
-    typedef bool (WINAPI* WTMGRCLOSE) (HMGR);
-    typedef HCTX (WINAPI* WTMGRDEFCONTEXT) (HMGR, BOOL);
-    typedef HCTX (WINAPI* WTMGRDEFCONTEXTEX) (HMGR, UINT, BOOL);
-    //}}}
-    //{{{
-    struct sWinTabInfo {
-      int32_t mPosX;
-      int32_t mPosY;
-      float mPressure; // Range: 0.0f to 1.0f
-      int32_t mButtons;  // Bit field. Use with the eWinTabButtons_ enum.
-
-      DWORD mTime;
-
-      int32_t mRangeX;
-      int32_t mRangeY;
-      int32_t mMaxPressure;
-
-      HINSTANCE mDll;
-      HCTX mContext;
-
-      WTINFOA           mWTInfoA;
-      WTOPENA           mWTOpenA;
-
-      WTGETA            mWTGetA;
-      WTSETA            mWTSetA;
-
-      WTCLOSE           mWTClose;
-      WTPACKET          mWTPacket;
-      WTENABLE          mWTEnable;
-
-      WTOVERLAP         mWTOverlap;
-      WTSAVE            mWTSave;
-      WTCONFIG          mWTConfig;
-      WTRESTORE         mWTRestore;
-
-      WTEXTSET          mWTExtSet;
-      WTEXTGET          mWTExtGet;
-
-      WTQUEUESIZESET    mWTQueueSizeSet;
-      WTDATAPEEK        mWTDataPeek;
-      WTPACKETSGET      mWTPacketsGet;
-
-      WTMGROPEN         mWTMgrOpen;
-      WTMGRCLOSE        mWTMgrClose;
-      WTMGRDEFCONTEXT   mWTMgrDefContext;
-      WTMGRDEFCONTEXTEX mWTMgrDefContextEx;
-      };
-    //}}}
-
-    sWinTabInfo* gWinTab = nullptr;
-
-    //{{{
-    bool winTabLoad (HWND window) {
-
-      gWinTab = (sWinTabInfo*)calloc (1, sizeof(sWinTabInfo));
-      if (!gWinTab)
-        return false;
-
-      // load wintab32.dll, get function addresses
-      gWinTab->mDll = LoadLibraryA ("Wintab32.dll");
-      if (!gWinTab->mDll) {
-        //{{{  error, return
-        cLog::log (LOGERROR, fmt::format ("Wintab32.dll not found"));
-        return false;
-        }
-        //}}}
-
-      //{{{  get WT function addresses
-      gWinTab->mWTInfoA = (WTINFOA)GetProcAddress (gWinTab->mDll, "WTInfoA");
-      gWinTab->mWTOpenA = (WTOPENA)GetProcAddress (gWinTab->mDll, "WTOpenA");
-
-      gWinTab->mWTGetA = (WTGETA)GetProcAddress (gWinTab->mDll, "WTGetA");
-      gWinTab->mWTSetA = (WTSETA)GetProcAddress (gWinTab->mDll, "WTSetA");
-
-      gWinTab->mWTClose = (WTCLOSE)GetProcAddress (gWinTab->mDll, "WTClose");
-      gWinTab->mWTPacket = (WTPACKET)GetProcAddress (gWinTab->mDll, "WTPacket");
-      gWinTab->mWTEnable = (WTENABLE)GetProcAddress (gWinTab->mDll, "WTEnable");
-      gWinTab->mWTOverlap = (WTOVERLAP)GetProcAddress (gWinTab->mDll, "WTOverlap");
-
-      gWinTab->mWTSave = (WTSAVE)GetProcAddress (gWinTab->mDll, "WTSave");
-      gWinTab->mWTConfig = (WTCONFIG)GetProcAddress (gWinTab->mDll, "WTConfig");
-      gWinTab->mWTRestore = (WTRESTORE)GetProcAddress (gWinTab->mDll, "WTRestore");
-
-      gWinTab->mWTExtSet = (WTEXTSET)GetProcAddress (gWinTab->mDll, "WTExtSet");
-      gWinTab->mWTExtGet = (WTEXTGET)GetProcAddress (gWinTab->mDll, "WTExtGet");
-
-      gWinTab->mWTQueueSizeSet = (WTQUEUESIZESET)GetProcAddress (gWinTab->mDll, "WTQueueSizeSet");
-      gWinTab->mWTDataPeek = (WTDATAPEEK)GetProcAddress (gWinTab->mDll, "WTDataPeek");
-      gWinTab->mWTPacketsGet = (WTPACKETSGET)GetProcAddress (gWinTab->mDll, "WTPacketsGet");
-
-      gWinTab->mWTMgrOpen = (WTMGROPEN)GetProcAddress (gWinTab->mDll, "WTMgrOpen");
-      gWinTab->mWTMgrClose = (WTMGRCLOSE)GetProcAddress (gWinTab->mDll, "WTMgrClose");
-
-      gWinTab->mWTMgrDefContext = (WTMGRDEFCONTEXT)GetProcAddress (gWinTab->mDll, "WTMgrDefContext");
-      gWinTab->mWTMgrDefContextEx = (WTMGRDEFCONTEXTEX)GetProcAddress (gWinTab->mDll, "WTMgrDefContextEx");                \
-      //}}}
-
-      if (!gWinTab->mWTInfoA (0, 0, NULL)) {
-        //{{{  error, return
-        cLog::log (LOGERROR, fmt::format ("winTab services not available"));
-        return false;
-        }
-        //}}}
-
-      LOGCONTEXTA logContext = {0};
-      gWinTab->mWTInfoA (WTI_DEFSYSCTX, 0, &logContext);
-      logContext.lcPktData = PACKETDATA;
-      logContext.lcOptions |= CXO_MESSAGES | CXO_SYSTEM; // | CXO_PEN;
-      logContext.lcPktMode = 0;   // absolute mode
-      logContext.lcMoveMask = PACKETDATA;
-      logContext.lcBtnUpMask = logContext.lcBtnDnMask;
-
-      logContext.lcOutOrgX = 0;
-      logContext.lcOutOrgY = 0;
-      logContext.lcOutExtX = GetSystemMetrics (SM_CXSCREEN);
-      logContext.lcOutExtY = -GetSystemMetrics (SM_CYSCREEN);
-
-      logContext.lcSysOrgX = 0;
-      logContext.lcSysOrgY = 0;
-      logContext.lcSysExtX = GetSystemMetrics (SM_CXSCREEN);
-      logContext.lcSysExtY = GetSystemMetrics (SM_CYSCREEN);
-
-      gWinTab->mContext = gWinTab->mWTOpenA (window, &logContext, TRUE);
-      if (!gWinTab->mContext) {
-        //{{{  error, return
-        cLog::log (LOGERROR, fmt::format ("winTab failed to open"));
-        return false;
-        }
-        //}}}
-
-      AXIS rangeX = {0};
-      gWinTab->mWTInfoA (WTI_DEVICES, DVC_X, &rangeX);
-      gWinTab->mRangeX = rangeX.axMax;
-
-      AXIS rangeY = {0};
-      gWinTab->mWTInfoA (WTI_DEVICES, DVC_Y, &rangeY);
-      gWinTab->mRangeY = rangeY.axMax;
-
-      AXIS pressure = {0};
-      gWinTab->mWTInfoA (WTI_DEVICES, DVC_NPRESSURE, &pressure);
-      gWinTab->mMaxPressure = pressure.axMax;
-
-      return true;
-      }
-    //}}}
-    //{{{
-    void winTabUnload() {
-
-      if (gWinTab->mContext)
-        gWinTab->mWTClose (gWinTab->mContext);
-
-      if (gWinTab->mDll)
-        FreeLibrary (gWinTab->mDll);
-
-      free (gWinTab);
-
-      gWinTab = nullptr;
-      }
-    //}}}
-    //}}}
-  #endif
-
   int16_t gKeycodes[512] = { 0 };
   #ifdef _WIN32
+    #ifdef USE_WINTAB
+      //{{{  wintab
+      //{{{
+      // Use this enum in conjunction with winTab->Buttons to check for tablet button presses.
+      //  e.g. To check for lower pen button press, use:
+      //    if (winTab->Buttons & eWinTabButtons_Pen_Lower) {
+      //      Lower button is pressed
+      enum eWinTabButtons_ {
+        eWinTabButtons_Pen_Touch = 1, // Pen touching tablet
+        eWinTabButtons_Pen_Lower = 2, // Lower pen button pressed
+        eWinTabButtons_Pen_Upper = 4, // Upper pen button pressed
+        };
+      //}}}
+      //{{{  WTfunction addresses
+      typedef UINT (WINAPI* WTINFOA) (UINT, UINT, LPVOID);
+      typedef HCTX (WINAPI* WTOPENA) (HWND, LPLOGCONTEXTA, BOOL);
+
+      typedef bool (WINAPI* WTGETA) (HCTX, LPLOGCONTEXTA);
+      typedef bool (WINAPI* WTSETA) (HCTX, LPLOGCONTEXTA);
+
+      typedef bool (WINAPI* WTCLOSE) (HCTX);
+      typedef bool (WINAPI* WTPACKET) (HCTX, UINT, LPVOID);
+      typedef bool (WINAPI* WTENABLE) (HCTX, BOOL);
+      typedef bool (WINAPI* WTOVERLAP) (HCTX, BOOL);
+
+      typedef bool (WINAPI* WTSAVE) (HCTX, LPVOID);
+      typedef bool (WINAPI* WTCONFIG) (HCTX, HWND);
+      typedef HCTX (WINAPI* WTRESTORE) (HWND, LPVOID, BOOL);
+
+      typedef bool (WINAPI* WTEXTSET) (HCTX, UINT, LPVOID);
+      typedef bool (WINAPI* WTEXTGET) (HCTX, UINT, LPVOID);
+
+      typedef bool (WINAPI* WTQUEUESIZESET) (HCTX, int);
+      typedef int  (WINAPI* WTDATAPEEK) (HCTX, UINT, UINT, int, LPVOID, LPINT);
+      typedef int  (WINAPI* WTPACKETSGET) (HCTX, int, LPVOID);
+
+      typedef HMGR (WINAPI* WTMGROPEN) (HWND, UINT);
+      typedef bool (WINAPI* WTMGRCLOSE) (HMGR);
+      typedef HCTX (WINAPI* WTMGRDEFCONTEXT) (HMGR, BOOL);
+      typedef HCTX (WINAPI* WTMGRDEFCONTEXTEX) (HMGR, UINT, BOOL);
+      //}}}
+      //{{{
+      struct sWinTabInfo {
+        int32_t mPosX;
+        int32_t mPosY;
+        float mPressure; // Range: 0.0f to 1.0f
+        int32_t mButtons;  // Bit field. Use with the eWinTabButtons_ enum.
+
+        DWORD mTime;
+
+        int32_t mRangeX;
+        int32_t mRangeY;
+        int32_t mMaxPressure;
+
+        HINSTANCE mDll;
+        HCTX mContext;
+
+        WTINFOA           mWTInfoA;
+        WTOPENA           mWTOpenA;
+
+        WTGETA            mWTGetA;
+        WTSETA            mWTSetA;
+
+        WTCLOSE           mWTClose;
+        WTPACKET          mWTPacket;
+        WTENABLE          mWTEnable;
+
+        WTOVERLAP         mWTOverlap;
+        WTSAVE            mWTSave;
+        WTCONFIG          mWTConfig;
+        WTRESTORE         mWTRestore;
+
+        WTEXTSET          mWTExtSet;
+        WTEXTGET          mWTExtGet;
+
+        WTQUEUESIZESET    mWTQueueSizeSet;
+        WTDATAPEEK        mWTDataPeek;
+        WTPACKETSGET      mWTPacketsGet;
+
+        WTMGROPEN         mWTMgrOpen;
+        WTMGRCLOSE        mWTMgrClose;
+        WTMGRDEFCONTEXT   mWTMgrDefContext;
+        WTMGRDEFCONTEXTEX mWTMgrDefContextEx;
+        };
+      //}}}
+
+      sWinTabInfo* gWinTab = nullptr;
+
+      //{{{
+      bool winTabLoad (HWND window) {
+
+        gWinTab = (sWinTabInfo*)calloc (1, sizeof(sWinTabInfo));
+        if (!gWinTab)
+          return false;
+
+        // load wintab32.dll, get function addresses
+        gWinTab->mDll = LoadLibraryA ("Wintab32.dll");
+        if (!gWinTab->mDll) {
+          //{{{  error, return
+          cLog::log (LOGERROR, fmt::format ("Wintab32.dll not found"));
+          return false;
+          }
+          //}}}
+
+        //{{{  get WT function addresses
+        gWinTab->mWTInfoA = (WTINFOA)GetProcAddress (gWinTab->mDll, "WTInfoA");
+        gWinTab->mWTOpenA = (WTOPENA)GetProcAddress (gWinTab->mDll, "WTOpenA");
+
+        gWinTab->mWTGetA = (WTGETA)GetProcAddress (gWinTab->mDll, "WTGetA");
+        gWinTab->mWTSetA = (WTSETA)GetProcAddress (gWinTab->mDll, "WTSetA");
+
+        gWinTab->mWTClose = (WTCLOSE)GetProcAddress (gWinTab->mDll, "WTClose");
+        gWinTab->mWTPacket = (WTPACKET)GetProcAddress (gWinTab->mDll, "WTPacket");
+        gWinTab->mWTEnable = (WTENABLE)GetProcAddress (gWinTab->mDll, "WTEnable");
+        gWinTab->mWTOverlap = (WTOVERLAP)GetProcAddress (gWinTab->mDll, "WTOverlap");
+
+        gWinTab->mWTSave = (WTSAVE)GetProcAddress (gWinTab->mDll, "WTSave");
+        gWinTab->mWTConfig = (WTCONFIG)GetProcAddress (gWinTab->mDll, "WTConfig");
+        gWinTab->mWTRestore = (WTRESTORE)GetProcAddress (gWinTab->mDll, "WTRestore");
+
+        gWinTab->mWTExtSet = (WTEXTSET)GetProcAddress (gWinTab->mDll, "WTExtSet");
+        gWinTab->mWTExtGet = (WTEXTGET)GetProcAddress (gWinTab->mDll, "WTExtGet");
+
+        gWinTab->mWTQueueSizeSet = (WTQUEUESIZESET)GetProcAddress (gWinTab->mDll, "WTQueueSizeSet");
+        gWinTab->mWTDataPeek = (WTDATAPEEK)GetProcAddress (gWinTab->mDll, "WTDataPeek");
+        gWinTab->mWTPacketsGet = (WTPACKETSGET)GetProcAddress (gWinTab->mDll, "WTPacketsGet");
+
+        gWinTab->mWTMgrOpen = (WTMGROPEN)GetProcAddress (gWinTab->mDll, "WTMgrOpen");
+        gWinTab->mWTMgrClose = (WTMGRCLOSE)GetProcAddress (gWinTab->mDll, "WTMgrClose");
+
+        gWinTab->mWTMgrDefContext = (WTMGRDEFCONTEXT)GetProcAddress (gWinTab->mDll, "WTMgrDefContext");
+        gWinTab->mWTMgrDefContextEx = (WTMGRDEFCONTEXTEX)GetProcAddress (gWinTab->mDll, "WTMgrDefContextEx");                \
+        //}}}
+
+        if (!gWinTab->mWTInfoA (0, 0, NULL)) {
+          //{{{  error, return
+          cLog::log (LOGERROR, fmt::format ("winTab services not available"));
+          return false;
+          }
+          //}}}
+
+        LOGCONTEXTA logContext = {0};
+        gWinTab->mWTInfoA (WTI_DEFSYSCTX, 0, &logContext);
+        logContext.lcPktData = PACKETDATA;
+        logContext.lcOptions |= CXO_MESSAGES | CXO_SYSTEM; // | CXO_PEN;
+        logContext.lcPktMode = 0;   // absolute mode
+        logContext.lcMoveMask = PACKETDATA;
+        logContext.lcBtnUpMask = logContext.lcBtnDnMask;
+
+        logContext.lcOutOrgX = 0;
+        logContext.lcOutOrgY = 0;
+        logContext.lcOutExtX = GetSystemMetrics (SM_CXSCREEN);
+        logContext.lcOutExtY = -GetSystemMetrics (SM_CYSCREEN);
+
+        logContext.lcSysOrgX = 0;
+        logContext.lcSysOrgY = 0;
+        logContext.lcSysExtX = GetSystemMetrics (SM_CXSCREEN);
+        logContext.lcSysExtY = GetSystemMetrics (SM_CYSCREEN);
+
+        gWinTab->mContext = gWinTab->mWTOpenA (window, &logContext, TRUE);
+        if (!gWinTab->mContext) {
+          //{{{  error, return
+          cLog::log (LOGERROR, fmt::format ("winTab failed to open"));
+          return false;
+          }
+          //}}}
+
+        AXIS rangeX = {0};
+        gWinTab->mWTInfoA (WTI_DEVICES, DVC_X, &rangeX);
+        gWinTab->mRangeX = rangeX.axMax;
+
+        AXIS rangeY = {0};
+        gWinTab->mWTInfoA (WTI_DEVICES, DVC_Y, &rangeY);
+        gWinTab->mRangeY = rangeY.axMax;
+
+        AXIS pressure = {0};
+        gWinTab->mWTInfoA (WTI_DEVICES, DVC_NPRESSURE, &pressure);
+        gWinTab->mMaxPressure = pressure.axMax;
+
+        return true;
+        }
+      //}}}
+      //{{{
+      void winTabUnload() {
+
+        if (gWinTab->mContext)
+          gWinTab->mWTClose (gWinTab->mContext);
+
+        if (gWinTab->mDll)
+          FreeLibrary (gWinTab->mDll);
+
+        free (gWinTab);
+
+        gWinTab = nullptr;
+        }
+      //}}}
+      //}}}
+    #endif
     //{{{  windows
     typedef BOOL(WINAPI* tGlSwapIntervalProc)(int);
     //{{{  dpi
@@ -760,7 +759,6 @@ namespace {
     return true;
     }
   //}}}
-
   //{{{
   class cMiniCallbackStub {
   public:
@@ -864,7 +862,7 @@ namespace {
 
 // cMiniFB statics
 //{{{
-cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, uint32_t flags) {
+cMiniFB* cMiniFB::create (const string& title, uint32_t width, uint32_t height, uint32_t flags) {
 
   cMiniFB* miniFB = new cMiniFB();
   if (!miniFB) {
@@ -876,7 +874,7 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
   }
 //}}}
 //{{{
-const char* cMiniFB::getKeyName (eMiniKey key) {
+string cMiniFB::getKeyName (eMiniKey key) {
 
   switch (key) {
     case KB_KEY_SPACE: return "Space";
@@ -1597,13 +1595,13 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       //{{{
       case KeyRelease:
         keyCode = (eMiniKey)translateKey (event->xkey.keycode);
-        isDown = (event->type == KeyPress);
-        modifierKeys = translateModEx (keyCode, event->xkey.state, isDown);
-        keyStatus[keyCode] = isDown;
+        isPointerDown = (event->type == KeyPress);
+        modifierKeys = translateModEx (keyCode, event->xkey.state, isPointerDown);
+        keyStatus[keyCode] = isPointerDown;
         if (keyFunc)
           keyFunc (this);
 
-        if (isDown) {
+        if (isPointerDown) {
           KeySym keysym;
           XLookupString (&event->xkey, NULL, 0, &keysym, NULL);
           if ((keysym >= 0x0020 && keysym <= 0x007e) ||
@@ -1631,7 +1629,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       //{{{
       case ButtonRelease:
         {
-        isDown = (event->type == ButtonPress);
+        isPointerDown = (event->type == ButtonPress);
         modifierKeys = translateMod (event->xkey.state);
 
         // swap 2 & 3 ?
@@ -1639,7 +1637,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
         switch (button) {
           case Button1:
           case Button3:
-            pointerButtonStatus[button & 0x07] = isDown;
+            pointerButtonStatus[button & 0x07] = isPointerDown;
             if (buttonFunc)
               buttonFunc (this);
             break;
@@ -1710,7 +1708,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
 
       //{{{
       case EnterNotify:
-        pointerInside = true;
+        isPointerInside = true;
         if (activeFunc)
           activeFunc (this);
 
@@ -1718,7 +1716,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       //}}}
       //{{{
       case LeaveNotify:
-        pointerInside = false;
+        isPointerInside = false;
         if (activeFunc)
           activeFunc (this);
 
@@ -1783,14 +1781,14 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
 
 // private
 //{{{
-bool cMiniFB::init (const char* title, uint32_t width, uint32_t height, uint32_t flags) {
+bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32_t flags) {
+
+  bufferWidth  = width;
+  bufferHeight = height;
+  bufferStride = width * 4;
 
   #ifdef _WIN32
     //{{{  windows
-    bufferWidth  = width;
-    bufferHeight = height;
-    bufferStride = width * 4;
-
     loadFunctions();
     dpiAware();
     initKeycodes();
@@ -1863,13 +1861,13 @@ bool cMiniFB::init (const char* title, uint32_t width, uint32_t height, uint32_t
     wc.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
     wc.lpfnWndProc = WndProc;
     wc.hCursor = LoadCursor(0, IDC_ARROW);
-    wc.lpszClassName = title;
+    wc.lpszClassName = title.c_str();
     RegisterClass (&wc);
 
     calcDstFactor (width, height);
     windowWidth  = rect.right;
     windowHeight = rect.bottom;
-    window = CreateWindowEx (0, title, title, windowStyle, x, y, windowWidth, windowHeight, 0, 0, 0, 0);
+    window = CreateWindowEx (0, title.c_str(), title.c_str(), windowStyle, x, y, windowWidth, windowHeight, 0, 0, 0, 0);
     if (!window) {
       //{{{  error, return
       cLog::log (LOGERROR, fmt::format ("failed to create X11 window"));
@@ -1945,26 +1943,24 @@ bool cMiniFB::init (const char* title, uint32_t width, uint32_t height, uint32_t
     windowHeight = height;
     calcDstFactor (width, height);
 
-    int posX, posY;
-    int windowWidth, windowHeight;
+    int posX;
+    int posY;
+    int windowWidth;
+    int windowHeight;
     if (flags & WF_FULLSCREEN_DESKTOP) {
-      //{{{  full screen desktop
+      // full screen desktop
       posX = 0;
       posY = 0;
-
       windowWidth  = screenWidth;
       windowHeight = screenHeight;
       }
-      //}}}
     else {
-      //{{{  window
+      // window
       posX = (screenWidth  - width)  / 2;
       posY = (screenHeight - height) / 2;
-
       windowWidth  = width;
       windowHeight = height;
       }
-      //}}}
     //}}}
 
     window = XCreateWindow (display, defaultRootWindow,
@@ -1985,7 +1981,7 @@ bool cMiniFB::init (const char* title, uint32_t width, uint32_t height, uint32_t
                   KeyPressMask | KeyReleaseMask |
                   ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
                   EnterWindowMask | LeaveWindowMask);
-    XStoreName (display, window, title);
+    XStoreName (display, window, title.c_str());
 
     if (flags & WF_BORDERLESS) {
       //{{{  borderless
@@ -2338,12 +2334,6 @@ bool cMiniFB::createGLcontext() {
     //}}}
     hGLRC = wglCreateContext (hdc);
     wglMakeCurrent (hdc, hGLRC);
-
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
-
-    // get extensions
     gSwapInterval = (tGlSwapIntervalProc)wglGetProcAddress ("wglSwapIntervalEXT");
   #else
     // check openGL version
@@ -2361,7 +2351,7 @@ bool cMiniFB::createGLcontext() {
     else
       cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
 
-    //{{{  setup pixel format for X11 openGL
+    //{{{  setup X11 pixel format for openGL
     GLint glxAttribs[] = {
       GLX_RGBA,
       GLX_DOUBLEBUFFER,
@@ -2386,13 +2376,15 @@ bool cMiniFB::createGLcontext() {
     context = glXCreateContext (display, visualInfo, NULL, GL_TRUE);
     glXMakeCurrent (display, window, context);
 
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
-
     if (checkGLExtension ("GLX_EXT_swap_control"))
       gSwapInterval = (tGlSwapIntervalProc)glXGetProcAddress ((const GLubyte*)"glXSwapIntervalEXT");
+  #endif
+
+  cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
+  cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
+  cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
+  #ifndef _WIN32
+    cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
   #endif
 
   initGL();
