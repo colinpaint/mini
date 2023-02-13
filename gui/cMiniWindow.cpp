@@ -68,8 +68,8 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     });
   //}}}
   //{{{
-  mMiniFB->setCloseFunc ([&](cMiniFB* info) {
-    (void)info;
+  mMiniFB->setCloseFunc ([&](cMiniFB* miniFB) {
+    (void)miniFB;
     cLog::log (LOGINFO, fmt::format ("close"));
     return true; // false for don't close
     });
@@ -77,30 +77,30 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // keyboard funcs
   //{{{
-  mMiniFB->setKeyFunc ([&](cMiniFB* info) {
-    if (info->keyCode == KB_KEY_ESCAPE)
-      info->close();
+  mMiniFB->setKeyFunc ([&](cMiniFB* miniFB) {
+    if (miniFB->keyCode == KB_KEY_ESCAPE)
+    miniFB->close();
 
-    if (info->isPressed)
-      if (!keyDown (info->keyCode))
+    if (miniFB->isPressed)
+      if (!keyDown (miniFB->keyCode))
         cLog::log (LOGINFO, fmt::format ("keyboard key:{} pressed:{} mod:{}",
-                                         cMiniFB::getKeyName (info->keyCode), info->isPressed, (int)info->modifierKeys));
+                                         cMiniFB::getKeyName (miniFB->keyCode), miniFB->isPressed, (int)miniFB->modifierKeys));
     });
   //}}}
   //{{{
-  mMiniFB->setCharFunc ([&](cMiniFB* info) {
-    cLog::log (LOGINFO, fmt::format ("char code:{} unused", info->codepoint));
+  mMiniFB->setCharFunc ([&](cMiniFB* miniFB) {
+    cLog::log (LOGINFO, fmt::format ("char code:{} unused", miniFB->codepoint));
     });
   //}}}
 
   // pointer funcs
   //{{{
-  mMiniFB->setButtonFunc ([&](cMiniFB* info) {
-    if (info->isDown) {
+  mMiniFB->setButtonFunc ([&](cMiniFB* miniFB) {
+    if (miniFB->isDown) {
       mMousePress = true;
       mMouseMoved = false;
-      mMousePressPos = cPoint ((float)info->getPointerX(), (float)info->getPointerY());
-      mMousePressRight = info->pointerButtonStatus[MOUSE_BTN_3];
+      mMousePressPos = cPoint ((float)miniFB->getPointerX(), (float)miniFB->getPointerY());
+      mMousePressRight = miniFB->pointerButtonStatus[MOUSE_BTN_3];
       mMouseLastPos = mMousePressPos;
       mMousePressUsed = mouseDown (mMousePressRight, mMousePressPos);
       if (mMousePressUsed)
@@ -108,7 +108,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
       cursorChanged();
       }
     else {
-      mMouseLastPos = cPoint (info->getPointerX(), info->getPointerY());
+      mMouseLastPos = cPoint (miniFB->getPointerX(), miniFB->getPointerY());
       if (mouseUp (mMousePressRight, mMouseMoved, mMouseLastPos))
         changed();
       mMousePress = false;
@@ -118,13 +118,13 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     });
   //}}}
   //{{{
-  mMiniFB->setMoveFunc ([&](cMiniFB* info) {
+  mMiniFB->setMoveFunc ([&](cMiniFB* miniFB) {
     //cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}", x, y, pressure, timestamp));
-    mMousePos.x = (float)info->pointerPosX;
-    mMousePos.y = (float)info->pointerPosY;
+    mMousePos.x = (float)miniFB->pointerPosX;
+    mMousePos.y = (float)miniFB->pointerPosY;
     if (mMousePress) {
       mMouseMoved = true;
-      if (mouseMove (mMousePressRight, mMousePos, mMousePos - mMouseLastPos, info->pointerPressure, info->pointerTimestamp))
+      if (mouseMove (mMousePressRight, mMousePos, mMousePos - mMouseLastPos, miniFB->pointerPressure, miniFB->pointerTimestamp))
         changed();
       mMouseLastPos = mMousePos;
       }
@@ -134,19 +134,19 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     });
   //}}}
   //{{{
-  mMiniFB->setWheelFunc ([&](cMiniFB* info) {
-    mScale *= (info->pointerWheelY > 0.f) ? 1.05f : 1.f / 1.05f;
+  mMiniFB->setWheelFunc ([&](cMiniFB* miniFB) {
+    mScale *= (miniFB->pointerWheelY > 0.f) ? 1.05f : 1.f / 1.05f;
     cLog::log (LOGINFO, fmt::format ("mouseWheel problem - deltaY:{} int(deltaY):{}",
-                                     info->pointerWheelY, int(info->pointerWheelY)));
-    if (mouseWheel ((int)info->pointerWheelY, mMousePos))
+                                     miniFB->pointerWheelY, int(miniFB->pointerWheelY)));
+    if (mouseWheel ((int)miniFB->pointerWheelY, mMousePos))
       changed();
 
     cursorChanged();
     });
   //}}}
   //{{{
-  mMiniFB->setEnterFunc ([&](cMiniFB* info) {
-    cLog::log (LOGINFO, fmt::format ("pointerEnter {} unused", info->pointerInside));
+  mMiniFB->setEnterFunc ([&](cMiniFB* miniFB) {
+    cLog::log (LOGINFO, fmt::format ("pointerEnter {} unused", miniFB->pointerInside));
     });
   //}}}
 

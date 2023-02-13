@@ -841,7 +841,7 @@ void cMiniCallbackStub::enterStub  (cMiniFB* miniFB) {
 //}}}
 //}}}
 
-// cMiniFB static create
+// cMiniFB statics
 //{{{
 cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, uint32_t flags) {
 
@@ -855,58 +855,6 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
   return miniFB->init (title, width, height, flags) ? miniFB : nullptr;
   }
 //}}}
-
-// cMiniFB
-//{{{
-eMiniState cMiniFB::update (void* buffer) {
-
-  if (closed) {
-    freeResources();
-    return STATE_EXIT;
-    }
-
-  if (!buffer)
-    return STATE_INVALID_BUFFER;
-
-  drawBuffer = buffer;
-  redrawGL (buffer);
-
-  return STATE_OK;
-  }
-//}}}
-//{{{
-eMiniState cMiniFB::updateEvents() {
-
-  if (closed) {
-    freeResources();
-    return STATE_EXIT;
-    }
-
-  #ifdef _WIN32
-    MSG msg;
-    while (!closed && PeekMessage (&msg, window, 0, 0, PM_REMOVE)) {
-      TranslateMessage (&msg);
-      DispatchMessage (&msg);
-      }
-  #else
-    XFlush (display);
-    while (!closed && XPending (display)) {
-      XEvent event;
-      XNextEvent (display, &event);
-      processEvent (&event);
-      }
-  #endif
-
-  return STATE_OK;
-  }
-//}}}
-//{{{
-void cMiniFB::close() {
-  closed = true;
-  }
-//}}}
-
-// static get
 //{{{
 const char* cMiniFB::getKeyName (eMiniKey key) {
 
@@ -1052,6 +1000,51 @@ const char* cMiniFB::getKeyName (eMiniKey key) {
     }
 
   return "Unknown";
+  }
+//}}}
+
+// cMiniFB
+//{{{
+eMiniState cMiniFB::update (void* buffer) {
+
+  if (closed) {
+    freeResources();
+    return STATE_EXIT;
+    }
+
+  if (!buffer)
+    return STATE_INVALID_BUFFER;
+
+  drawBuffer = buffer;
+  redrawGL (buffer);
+
+  return STATE_OK;
+  }
+//}}}
+//{{{
+eMiniState cMiniFB::updateEvents() {
+
+  if (closed) {
+    freeResources();
+    return STATE_EXIT;
+    }
+
+  #ifdef _WIN32
+    MSG msg;
+    while (!closed && PeekMessage (&msg, window, 0, 0, PM_REMOVE)) {
+      TranslateMessage (&msg);
+      DispatchMessage (&msg);
+      }
+  #else
+    XFlush (display);
+    while (!closed && XPending (display)) {
+      XEvent event;
+      XNextEvent (display, &event);
+      processEvent (&event);
+      }
+  #endif
+
+  return STATE_OK;
   }
 //}}}
 
@@ -2417,13 +2410,13 @@ void cMiniFB::initGL() {
   glBindTexture (GL_TEXTURE_2D, 0);
 
   if (!gSwapInterval) {
-    //{{{  error, return
+    // error, return
     cLog::log (LOGERROR, "no swapInterval extension");
     return;
     }
-    //}}}
+
   #ifdef _WIN32
-    gSwapInterval (1);
+    gSwapInterval (0);
   #else
     gSwapInterval (glXGetCurrentDisplay(), glXGetCurrentDrawable(), 1);
   #endif

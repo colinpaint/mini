@@ -195,7 +195,7 @@ public:
 
   eMiniState update (void* buffer);
   eMiniState updateEvents();
-  void close();
+  void close() { closed = true; }
 
   // gets
   bool isWindowActive() const { return isActive; }
