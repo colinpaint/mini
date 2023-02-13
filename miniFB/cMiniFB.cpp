@@ -37,7 +37,7 @@ using namespace std;
 
 namespace {
   #ifdef USE_WINTAB
-    //{{{  use wintab
+    //{{{  wintab
     //{{{
     // Use this enum in conjunction with winTab->Buttons to check for tablet button presses.
     //  e.g. To check for lower pen button press, use:
@@ -868,7 +868,6 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
 
   cMiniFB* miniFB = new cMiniFB();
   if (!miniFB) {
-    // error, return
     cLog::log (LOGERROR, fmt::format ("failed to create miniFB"));
     return nullptr;
     }
@@ -1153,8 +1152,10 @@ bool cMiniFB::setViewport (uint32_t offset_x, uint32_t offset_y, uint32_t width,
 void cMiniFB::setActiveCallback (void(*callback)(cMiniFB* miniFB)) { activeFunc = callback; }
 void cMiniFB::setResizeCallback (void(*callback)(cMiniFB* miniFB)) { resizeFunc = callback; }
 void cMiniFB::setCloseCallback  (bool(*callback)(cMiniFB* miniFB)) { closeFunc = callback; }
+
 void cMiniFB::setKeyCallback    (void(*callback)(cMiniFB* miniFB)) { keyFunc = callback; }
 void cMiniFB::setCharCallback   (void(*callback)(cMiniFB* miniFB)) { charFunc = callback; }
+
 void cMiniFB::setButtonCallback (void(*callback)(cMiniFB* miniFB)) { buttonFunc = callback; }
 void cMiniFB::setMoveCallback   (void(*callback)(cMiniFB* miniFB)) { moveFunc = callback; }
 void cMiniFB::setWheelCallback  (void(*callback)(cMiniFB* miniFB)) { wheelFunc = callback; }
@@ -1179,6 +1180,7 @@ void cMiniFB::setCloseFunc  (function <bool (cMiniFB*)> func) {
   setCloseCallback (cMiniCallbackStub::closeStub);
   }
 //}}}
+
 //{{{
 void cMiniFB::setKeyFunc    (function <void (cMiniFB*)> func) {
   cMiniCallbackStub::getInstance (this)->mKeyFunc = bind (func, placeholders::_1);
@@ -1191,6 +1193,7 @@ void cMiniFB::setCharFunc   (function <void (cMiniFB*)> func) {
   setCharCallback (cMiniCallbackStub::charStub);
   }
 //}}}
+
 //{{{
 void cMiniFB::setButtonFunc (function <void (cMiniFB*)> func) {
   cMiniCallbackStub::getInstance (this)->mButtonFunc = bind (func, placeholders::_1);
@@ -1784,13 +1787,13 @@ bool cMiniFB::init (const char* title, uint32_t width, uint32_t height, uint32_t
 
   #ifdef _WIN32
     //{{{  windows
-    loadFunctions();
-    dpiAware();
-    initKeycodes();
-
     bufferWidth  = width;
     bufferHeight = height;
     bufferStride = width * 4;
+
+    loadFunctions();
+    dpiAware();
+    initKeycodes();
 
     int x = 0;
     int y = 0;
@@ -1938,11 +1941,8 @@ bool cMiniFB::init (const char* title, uint32_t width, uint32_t height, uint32_t
     windowAttributes.background_pixel = BlackPixel (display, screen);
     windowAttributes.backing_store = NotUseful;
 
-    windowWidth  = width;
+    windowWidth = width;
     windowHeight = height;
-    bufferWidth  = width;
-    bufferHeight = height;
-    bufferStride = width * 4;
     calcDstFactor (width, height);
 
     int posX, posY;
