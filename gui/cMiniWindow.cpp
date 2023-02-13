@@ -175,7 +175,7 @@ void cWindow::uiLoop (bool useChanged, bool drawPerf,
   changed();
 
   int64_t frameUs = 0;
-  while (!mExit && (mMiniFB->updateEvents() == STATE_OK)) {
+  while (!mExit) {
     if (!useChanged || mChanged) {
       system_clock::time_point time = system_clock::now();
 
@@ -191,7 +191,6 @@ void cWindow::uiLoop (bool useChanged, bool drawPerf,
                   fmt::format ("{:05d}:{:05d}us {} chars", renderUs, frameUs, getNumFontChars()));
         }
 
-      // update window with our texture
       mMiniFB->update (getPixels());
       frameUs = duration_cast<microseconds>(system_clock::now() - time).count();
       }
@@ -199,6 +198,9 @@ void cWindow::uiLoop (bool useChanged, bool drawPerf,
       this_thread::sleep_for (1ms);
       drawCallback (false);
       }
+
+    if (mMiniFB->updateEvents() != STATE_OK)
+      break;
     }
   }
 //}}}
