@@ -760,86 +760,107 @@ namespace {
     return true;
     }
   //}}}
-  }
-//{{{
-//{{{
-cMiniCallbackStub* cMiniCallbackStub::getInstance (cMiniFB* miniFB) {
 
   //{{{
-  struct stub_vector {
-    vector<cMiniCallbackStub*> instances;
+  class cMiniCallbackStub {
+  public:
+    cMiniCallbackStub() {}
 
-    stub_vector() = default;
+    // statics
     //{{{
-    ~stub_vector() {
-      for (cMiniCallbackStub* instance : instances)
-        delete instance;
+    static cMiniCallbackStub* getInstance (cMiniFB* miniFB) {
+
+      //{{{
+      struct stub_vector {
+        vector<cMiniCallbackStub*> instances;
+
+        stub_vector() = default;
+        //{{{
+        ~stub_vector() {
+          for (cMiniCallbackStub* instance : instances)
+            delete instance;
+          }
+        //}}}
+
+        cMiniCallbackStub* Get (cMiniFB *miniFB) {
+          for (cMiniCallbackStub *instance : instances) {
+            if( instance->mMiniFB == miniFB) {
+              return instance;
+              }
+            }
+          instances.push_back (new cMiniCallbackStub);
+          instances.back()->mMiniFB = miniFB;
+          return instances.back();
+          }
+        };
+      //}}}
+      static stub_vector gInstances;
+
+      return gInstances.Get (miniFB);
       }
     //}}}
 
-    cMiniCallbackStub* Get (cMiniFB *miniFB) {
-      for (cMiniCallbackStub *instance : instances) {
-        if( instance->mMiniFB == miniFB) {
-          return instance;
-          }
-        }
-      instances.push_back (new cMiniCallbackStub);
-      instances.back()->mMiniFB = miniFB;
-      return instances.back();
+    //{{{
+    static void activeStub (cMiniFB* miniFB) {
+      cMiniCallbackStub::getInstance (miniFB)->mActiveFunc (miniFB);
       }
+    //}}}
+    //{{{
+    static void resizeStub (cMiniFB* miniFB) {
+      cMiniCallbackStub::getInstance (miniFB)->mResizeFunc (miniFB);
+      }
+    //}}}
+    //{{{
+    static bool closeStub  (cMiniFB* miniFB) {
+      return cMiniCallbackStub::getInstance (miniFB)->mCloseFunc (miniFB);
+      }
+    //}}}
+    //{{{
+    static void keyStub    (cMiniFB* miniFB) {
+      cMiniCallbackStub::getInstance (miniFB)->mKeyFunc(miniFB);
+      }
+    //}}}
+    //{{{
+    static void charStub   (cMiniFB* miniFB) {
+      cMiniCallbackStub::getInstance (miniFB)->mCharFunc(miniFB);
+      }
+    //}}}
+    //{{{
+    static void buttonStub (cMiniFB* miniFB) {
+      cMiniCallbackStub::getInstance (miniFB)->mButtonFunc(miniFB);
+      }
+    //}}}
+    //{{{
+    static void moveStub   (cMiniFB* miniFB) {
+      cMiniCallbackStub::getInstance (miniFB)->mMoveFunc(miniFB);
+      }
+    //}}}
+    //{{{
+    static void wheelStub  (cMiniFB* miniFB) {
+      cMiniCallbackStub::getInstance (miniFB)->mWheelFunc(miniFB);
+      }
+    //}}}
+    //{{{
+    static void enterStub  (cMiniFB* miniFB) {
+      cMiniCallbackStub::getInstance (miniFB)->mEnterFunc(miniFB);
+      }
+    //}}}
+
+    // vars
+    cMiniFB* mMiniFB = nullptr;
+
+    function <void (cMiniFB* miniFB)> mActiveFunc;
+    function <void (cMiniFB* miniFB)> mResizeFunc;
+    function <bool (cMiniFB* miniFB)> mCloseFunc;
+    function <void (cMiniFB* miniFB)> mKeyFunc;
+    function <void (cMiniFB* miniFB)> mCharFunc;
+    function <void (cMiniFB* miniFB)> mButtonFunc;
+    function <void (cMiniFB* miniFB)> mMoveFunc;
+    function <void (cMiniFB* miniFB)> mWheelFunc;
+    function <void (cMiniFB* miniFB)> mEnterFunc;
     };
   //}}}
-  static stub_vector gInstances;
-
-  return gInstances.Get (miniFB);
   }
-//}}}
-//{{{
-void cMiniCallbackStub::activeStub (cMiniFB* miniFB) {
-  cMiniCallbackStub::getInstance (miniFB)->mActiveFunc (miniFB);
-  }
-//}}}
-//{{{
-void cMiniCallbackStub::resizeStub (cMiniFB* miniFB) {
-  cMiniCallbackStub::getInstance (miniFB)->mResizeFunc (miniFB);
-  }
-//}}}
-//{{{
-bool cMiniCallbackStub::closeStub  (cMiniFB* miniFB) {
-  return cMiniCallbackStub::getInstance (miniFB)->mCloseFunc (miniFB);
-  }
-//}}}
-//{{{
-void cMiniCallbackStub::keyStub    (cMiniFB* miniFB) {
-  cMiniCallbackStub::getInstance (miniFB)->mKeyFunc(miniFB);
-  }
-//}}}
-//{{{
-void cMiniCallbackStub::charStub   (cMiniFB* miniFB) {
-  cMiniCallbackStub::getInstance (miniFB)->mCharFunc(miniFB);
-  }
-//}}}
-//{{{
-void cMiniCallbackStub::buttonStub (cMiniFB* miniFB) {
-  cMiniCallbackStub::getInstance (miniFB)->mButtonFunc(miniFB);
-  }
-//}}}
-//{{{
-void cMiniCallbackStub::moveStub   (cMiniFB* miniFB) {
-  cMiniCallbackStub::getInstance (miniFB)->mMoveFunc(miniFB);
-  }
-//}}}
-//{{{
-void cMiniCallbackStub::wheelStub  (cMiniFB* miniFB) {
-  cMiniCallbackStub::getInstance (miniFB)->mWheelFunc(miniFB);
-  }
-//}}}
-//{{{
-void cMiniCallbackStub::enterStub  (cMiniFB* miniFB) {
-  cMiniCallbackStub::getInstance (miniFB)->mEnterFunc(miniFB);
-  }
-//}}}
-//}}}
 
 // cMiniFB statics
 //{{{

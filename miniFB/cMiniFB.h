@@ -12,7 +12,6 @@
   #include <GL/glx.h>
 #endif
 //}}}
-
 //{{{
 enum eMiniFlags {
               WF_RESIZABLE          = 0x01,
@@ -40,11 +39,11 @@ enum eMiniPointerButton {
   MOUSE_BTN_6,
   MOUSE_BTN_7
   };
-//}}}
+
 #define MOUSE_LEFT   MOUSE_BTN_1
 #define MOUSE_RIGHT  MOUSE_BTN_2
 #define MOUSE_MIDDLE MOUSE_BTN_3
-
+//}}}
 //{{{
 enum eMiniKeyModifier {
   KB_MOD_SHIFT     = 0x0001,
@@ -181,13 +180,13 @@ enum eMiniKey {
   KB_KEY_RIGHT_SUPER   = 347,
   KB_KEY_MENU          = 348
   };
-//}}}
-#define KB_KEY_LAST KB_KEY_MENU
 
-//{{{
+#define KB_KEY_LAST KB_KEY_MENU
+//}}}
+
 class cMiniFB {
 public:
-  // static
+  // statics
   static cMiniFB* create (const char* title, uint32_t width, uint32_t height, uint32_t flags);
   static const char* getKeyName (eMiniKey key);
 
@@ -342,36 +341,3 @@ private:
   #endif
   //}}}
   };
-//}}}
-//{{{
-class cMiniCallbackStub {
-public:
-  cMiniCallbackStub() {}
-
-  // statics
-  static cMiniCallbackStub* getInstance (cMiniFB* miniFB);
-
-  static void activeStub (cMiniFB* miniFB);
-  static void resizeStub (cMiniFB* miniFB);
-  static bool closeStub  (cMiniFB* miniFB);
-  static void keyStub    (cMiniFB* miniFB);
-  static void charStub   (cMiniFB* miniFB);
-  static void buttonStub (cMiniFB* miniFB);
-  static void moveStub   (cMiniFB* miniFB);
-  static void wheelStub  (cMiniFB* miniFB);
-  static void enterStub  (cMiniFB* miniFB);
-
-  // vars
-  cMiniFB* mMiniFB = nullptr;
-
-  std::function <void (cMiniFB* miniFB)> mActiveFunc;
-  std::function <void (cMiniFB* miniFB)> mResizeFunc;
-  std::function <bool (cMiniFB* miniFB)> mCloseFunc;
-  std::function <void (cMiniFB* miniFB)> mKeyFunc;
-  std::function <void (cMiniFB* miniFB)> mCharFunc;
-  std::function <void (cMiniFB* miniFB)> mButtonFunc;
-  std::function <void (cMiniFB* miniFB)> mMoveFunc;
-  std::function <void (cMiniFB* miniFB)> mWheelFunc;
-  std::function <void (cMiniFB* miniFB)> mEnterFunc;
-  };
-//}}}
