@@ -1282,16 +1282,16 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
         if (wParam >= 0xd800 && wParam <= 0xdbff)
           highSurrogate = (WCHAR) wParam;
         else {
-          codepoint = 0;
+          codePoint = 0;
           if (wParam >= 0xdc00 && wParam <= 0xdfff) {
             if (highSurrogate != 0) {
-              codepoint += (highSurrogate - 0xd800) << 10;
-              codepoint += (WCHAR) wParam - 0xdc00;
-              codepoint += 0x10000;
+              codePoint += (highSurrogate - 0xd800) << 10;
+              codePoint += (WCHAR) wParam - 0xdc00;
+              codePoint += 0x10000;
               }
             }
           else
-            codepoint = (WCHAR) wParam;
+            codePoint = (WCHAR) wParam;
 
           highSurrogate = 0;
           if (charFunc)
@@ -1408,14 +1408,14 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       //}}}
       //{{{
       case WM_POINTERENTER:
-        pointerInside = true;
+        isPointerInside = true;
         if (enterFunc)
           enterFunc (this);
         break;
       //}}}
       //{{{
       case WM_POINTERLEAVE:
-        pointerInside = false;
+        isPointerInside = false;
         if (enterFunc)
           enterFunc (this);
         break;
@@ -1435,7 +1435,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
 
           pointerButtonStatus[MOUSE_BTN_1] = 1;
           modifierKeys = translateMod();
-          isDown = 1;
+          isPointerDown = 1;
           if (buttonFunc)
             buttonFunc (this);
           }
@@ -1459,7 +1459,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
 
           modifierKeys = translateMod();
           pointerButtonStatus[MOUSE_BTN_1] = 0;
-          isDown = 0;
+          isPointerDown = 0;
           if (buttonFunc)
             buttonFunc (this);
           }
@@ -1476,7 +1476,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
             #ifdef USE_WINTAB
               cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE mouse @{} flag:{:x}", pointerInfo.dwTime, pointerInfo.pointerFlags));
             #endif
-            pointerInside = true;
+            isPointerInside = true;
             pointerTimestamp = pointerInfo.dwTime;
             POINT clientPos = pointerInfo.ptPixelLocation;
             ScreenToClient (hWnd, &clientPos);
@@ -1490,7 +1490,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
             POINTER_PEN_INFO pointerPenInfos[10];
             uint32_t entriesCount = 10;
             if (GetPointerPenInfoHistory (GET_POINTERID_WPARAM (wParam), &entriesCount, pointerPenInfos)) {
-              pointerInside = true;
+              isPointerInside = true;
               for (uint32_t i = entriesCount; i > 0; i--) {
                 cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE pen i:{} @{}", i, pointerPenInfos[i-1].pointerInfo.dwTime));
                 pointerTimestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
@@ -1584,20 +1584,20 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
           XLookupString (&event->xkey, NULL, 0, &keysym, NULL);
           if ((keysym >= 0x0020 && keysym <= 0x007e) ||
               (keysym >= 0x00a0 && keysym <= 0x00ff)) {
-            codepoint = keysym;
+            codePoint = keysym;
             if (charFunc)
               charFunc (this);
             }
           else if ((keysym & 0xff000000) == 0x01000000)
             keysym = keysym & 0x00ffffff;
 
-          codepoint = keysym;
+          codePoint = keysym;
           if (charFunc)
             charFunc (this);
           // This does not seem to be working properly
-          // unsigned int codepoint = xkb_state_key_get_utf32(state, keysym);
-          // if (codepoint != 0)
-          //    kCall(char_inputFunc, codepoint);
+          // unsigned int codePoint = xkb_state_key_get_utf32(state, keysym);
+          // if (codePoint != 0)
+          //    kCall(char_inputFunc, codePoint);
           }
 
         break;

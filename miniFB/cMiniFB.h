@@ -13,7 +13,6 @@
 #endif
 //}}}
 
-// enums
 //{{{
 enum eMiniFlags {
               WF_RESIZABLE          = 0x01,
@@ -30,7 +29,6 @@ enum eMiniState {
                     STATE_INVALID_BUFFER = -3,
                     STATE_INTERNAL_ERROR = -4 };
 //}}}
-
 //{{{
 enum eMiniPointerButton {
   MOUSE_BTN_0,
@@ -201,16 +199,25 @@ public:
   bool isWindowActive() const { return isActive; }
   unsigned getWindowWidth() const { return windowWidth; }
   unsigned getWindowHeight() const { return windowHeight; }
+  unsigned getWindowScaledWidth() const { return windowScaledWidth; }
+  unsigned getWindowScaledHeight() const { return windowScaledHeight; }
 
-  int64_t getPointerTimestamp() const { return pointerTimestamp; }
-  const uint8_t* getPointerButtonBuffer() const { return pointerButtonStatus; }
-  int getPointerX() const { return pointerPosX; }
-  int getPointerY() const { return pointerPosY; }
+  int32_t getPointerTimestamp() const { return pointerTimestamp; }
+  bool getPointerDown() const { return isPointerDown; }
+  bool getPointerInside() const { return isPointerInside; }
+  const uint8_t* getPointerButtonStatus() const { return pointerButtonStatus; }
+  int getPointerPosX() const { return pointerPosX; }
+  int getPointerPosY() const { return pointerPosY; }
   int getPointerPressure() const { return pointerPressure; }
-  float getPointerWheelX() { return pointerWheelX; }
-  float getPointerWheelY() { return pointerWheelY; }
+  float getPointerWheelX() const { return pointerWheelX; }
+  float getPointerWheelY() const { return pointerWheelY; }
+
+  bool getPressed() const { return isPressed; }
+  eMiniKey getKeyCode() const { return keyCode; }
+  uint32_t getModifierKeys() const { return modifierKeys; }
 
   const uint8_t* getKeyBuffer() { return keyStatus; }
+  uint32_t getCodePoint()const  { return codePoint; }
 
   void* getUserData() { return userData; }
   void getMonitorScale (float* scale_x, float* scale_y);
@@ -246,7 +253,27 @@ public:
     LRESULT CALLBACK processMessage (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
   #endif
 
+private:
+  #ifndef _WIN32
+    void processEvent (XEvent* event);
+  #endif
+
+  bool init (const char* title, uint32_t width, uint32_t height, uint32_t flags);
+  void initKeycodes();
+  void freeResources();
+
+  bool createGLcontext();
+  void initGL();
+  void resizeGL();
+  void redrawGL (const void* pixels);
+  void destroyGLcontext();
+
+  void resizeDst (uint32_t width, uint32_t height);
+  void calcDstFactor (uint32_t width, uint32_t height);
+
   //{{{  vars
+  void* userData = nullptr;
+
   void(*activeFunc)(cMiniFB* miniFB) = nullptr;
   void(*resizeFunc)(cMiniFB* miniFB) = nullptr;
   bool(*closeFunc)(cMiniFB* miniFB) = nullptr;
@@ -280,11 +307,11 @@ public:
   uint32_t isPressed = 0;
   bool     isActive = false;
   bool     isInitialized = false;
-  bool     isDown = false;
-  bool     pointerInside = false;
+  bool     isPointerDown = false;
+  bool     isPointerInside = false;
   bool     closed = false;
 
-  uint32_t codepoint = 0;
+  uint32_t codePoint = 0;
   eMiniKey keyCode = eMiniKey(0);
   uint8_t  keyStatus[512] = {0};
   uint32_t modifierKeys = 0;
@@ -314,26 +341,6 @@ public:
     GLXContext context = 0;
   #endif
   //}}}
-
-private:
-  #ifndef _WIN32
-    void processEvent (XEvent* event);
-  #endif
-
-  bool init (const char* title, uint32_t width, uint32_t height, uint32_t flags);
-  void initKeycodes();
-  void freeResources();
-
-  bool createGLcontext();
-  void initGL();
-  void resizeGL();
-  void redrawGL (const void* pixels);
-  void destroyGLcontext();
-
-  void resizeDst (uint32_t width, uint32_t height);
-  void calcDstFactor (uint32_t width, uint32_t height);
-
-  void* userData = nullptr;
   };
 //}}}
 //{{{
