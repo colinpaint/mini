@@ -238,48 +238,10 @@ namespace {
   int16_t gKeycodes[512] = { 0 };
   #ifdef _WIN32
     //{{{  windows
-    //{{{
-    bool setup_pixel_format (HDC hDC) {
-
-      PIXELFORMATDESCRIPTOR pfd = {sizeof(PIXELFORMATDESCRIPTOR), // size
-                                   1,                             // version
-                                   PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER, // support double-buffering
-                                   PFD_TYPE_RGBA,                 // color type
-                                   24,                            // preferred color depth
-                                   0, 0, 0, 0, 0, 0,              // color and shift bits (ignored)
-                                   0,                             // no alpha buffer
-                                   0,                             // alpha bits (ignored)
-                                   0,                             // no accumulation buffer
-                                   0, 0, 0, 0,                    // accum bits (ignored)
-                                   24,                            // depth buffer
-                                   8,                             // no stencil buffer
-                                   0,                             // no auxiliary buffers
-                                   PFD_MAIN_PLANE,                // main layer
-                                   0,                             // reserved
-                                   0, 0, 0,                       // no layer, visible, damage masks
-                                   };
-
-      int pixelFormat = ChoosePixelFormat (hDC, &pfd);
-      if (!pixelFormat) {
-        cLog::log (LOGERROR, fmt::format ("ChoosePixelFormat failed {}", MB_ICONERROR | MB_OK));
-        return false;
-        }
-
-      if (!SetPixelFormat (hDC, pixelFormat, &pfd)) {
-        cLog::log (LOGERROR, fmt::format ("SetPixelFormat failed {}", MB_ICONERROR | MB_OK));
-        return false;
-        }
-
-      return true;
-      }
-    //}}}
-
     typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC)(int);
-    PFNWGLSWAPINTERVALEXTPROC SwapIntervalEXT = 0;
-
     typedef int (WINAPI* PFNWGLGETSWAPINTERVALEXTPROC)(void);
+    PFNWGLSWAPINTERVALEXTPROC SwapIntervalEXT = 0;
     PFNWGLGETSWAPINTERVALEXTPROC GetSwapIntervalEXT = 0;
-
     //{{{
     bool CheckGLExtension (const char* name) {
 
@@ -2113,9 +2075,36 @@ void cMiniFB::redrawGL (const void* pixels) {
 bool cMiniFB::createGLcontext() {
 
   #ifdef _WIN32
-    if (!setup_pixel_format (hdc))
-      return false;
+    //{{{  setup windows pixel format for openGL
+    PIXELFORMATDESCRIPTOR pfd = {sizeof(PIXELFORMATDESCRIPTOR), // size
+                                 1,                             // version
+                                 PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER, // support double-buffering
+                                 PFD_TYPE_RGBA,                 // color type
+                                 24,                            // preferred color depth
+                                 0, 0, 0, 0, 0, 0,              // color and shift bits (ignored)
+                                 0,                             // no alpha buffer
+                                 0,                             // alpha bits (ignored)
+                                 0,                             // no accumulation buffer
+                                 0, 0, 0, 0,                    // accum bits (ignored)
+                                 24,                            // depth buffer
+                                 8,                             // no stencil buffer
+                                 0,                             // no auxiliary buffers
+                                 PFD_MAIN_PLANE,                // main layer
+                                 0,                             // reserved
+                                 0, 0, 0,                       // no layer, visible, damage masks
+                                 };
 
+    int pixelFormat = ChoosePixelFormat (hdc, &pfd);
+    if (!pixelFormat) {
+      cLog::log (LOGERROR, fmt::format ("ChoosePixelFormat failed {}", MB_ICONERROR | MB_OK));
+      return false;
+      }
+
+    if (!SetPixelFormat (hdc, pixelFormat, &pfd)) {
+      cLog::log (LOGERROR, fmt::format ("SetPixelFormat failed {}", MB_ICONERROR | MB_OK));
+      return false;
+      }
+    //}}}
     hGLRC = wglCreateContext (hdc);
     wglMakeCurrent (hdc, hGLRC);
 
@@ -2127,20 +2116,22 @@ bool cMiniFB::createGLcontext() {
     // get extensions
     SwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress ("wglSwapIntervalEXT");
     GetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress ("wglGetSwapIntervalEXT");
-
   #else
+    // check openGL version
     GLint majorGLX = 0;
     GLint minorGLX = 0;
     glXQueryVersion (display, &majorGLX, &minorGLX);
     if ((majorGLX <= 1) && (minorGLX < 2)) {
+      //{{{  error, return
       cLog::log (LOGERROR, "GLX 1.2 or greater is required");
       XCloseDisplay (display);
       return false;
       }
+      //}}}
     else
       cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
 
-    //{{{
+    //{{{  setup pixel format for X11 openGL
     GLint glxAttribs[] = {
       GLX_RGBA,
       GLX_DOUBLEBUFFER,
@@ -2154,14 +2145,14 @@ bool cMiniFB::createGLcontext() {
       GLX_SAMPLE_BUFFERS, 0,
       GLX_SAMPLES,        0,
       None };
-    //}}}
+
     XVisualInfo* visualInfo = glXChooseVisual (display, screen, glxAttribs);
     if (!visualInfo) {
       cLog::log (LOGERROR, "Could not create correct visual window");
       XCloseDisplay (display);
       return false;
       }
-
+    //}}}
     context = glXCreateContext (display, visualInfo, NULL, GL_TRUE);
     glXMakeCurrent (display, window, context);
 
