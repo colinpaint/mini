@@ -1,5 +1,5 @@
 // cMiniFB.cpp
-#define USE_WINTAB // enables wintab WT_PACKET, WT_PROXIMITY, but pen WM_POINTER* messages id as mouse not pen
+//#define USE_WINTAB // enables wintab WT_PACKET, WT_PROXIMITY, but pen WM_POINTER* messages id as mouse not pen
 //{{{  includes
 #include "cMiniFB.h"
 #include <vector>
@@ -238,47 +238,7 @@ namespace {
   int16_t gKeycodes[512] = { 0 };
   #ifdef _WIN32
     //{{{  windows
-    typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC)(int);
-    typedef int (WINAPI* PFNWGLGETSWAPINTERVALEXTPROC)(void);
-    PFNWGLSWAPINTERVALEXTPROC SwapIntervalEXT = 0;
-    PFNWGLGETSWAPINTERVALEXTPROC GetSwapIntervalEXT = 0;
-    //{{{
-    bool CheckGLExtension (const char* name) {
-
-      static const char* extensions = 0x0;
-
-      if (extensions == 0x0) {
-        #ifdef _WIN32
-          // TODO: This is deprecated on OpenGL 3+.
-          // Use glGetIntegerv (GL_NUM_EXTENSIONS, &n) and glGetStringi (GL_EXTENSIONS, index)
-          extensions = (const char*)glGetString (GL_EXTENSIONS);
-        #else
-          Display* display = glXGetCurrentDisplay();
-          extensions = glXQueryExtensionsString (display, DefaultScreen(display));
-        #endif
-        }
-
-      if (extensions != 0x0) {
-        const char* start = extensions;
-        const char* end, *where;
-        while(1) {
-          where = strstr (start, name);
-          if (where == 0x0)
-            return false;
-
-          end = where + strlen(name);
-          if (where == start || *(where - 1) == ' ')
-            if (*end == ' ' || *end == 0)
-              break;
-
-          start = end;
-          }
-        }
-
-      return true;
-      }
-    //}}}
-
+    typedef BOOL(WINAPI* tGlSwapIntervalProc)(int);
     //{{{  dpi
     // Copied (and modified) from Windows Kit 10 to avoid setting _WIN32_WINNT to a higher version
     enum mfb_PROCESS_DPI_AWARENESS {
@@ -851,8 +811,8 @@ namespace {
     //}}}
   #else
     //{{{  X11
-    //typedef void (*PFNGLXSWAPINTERVALEXTPROC)(Display*,GLXDrawable,int);
-    //PFNGLXSWAPINTERVALEXTPROC SwapIntervalEXT = 0x0;
+    typedef void (*tGlSwapIntervalProc)(Display*,GLXDrawable,int);
+
     Atom gDeleteWindowAtom;
 
     XDevice* gDevice = nullptr;
@@ -1127,6 +1087,44 @@ namespace {
     //}}}
     //}}}
   #endif
+
+  tGlSwapIntervalProc gSwapInterval = 0;
+  //{{{
+  bool CheckGLExtension (const char* name) {
+
+    static const char* extensions = 0x0;
+
+    if (extensions == 0x0) {
+      #ifdef _WIN32
+        // TODO: This is deprecated on OpenGL 3+.
+        // Use glGetIntegerv (GL_NUM_EXTENSIONS, &n) and glGetStringi (GL_EXTENSIONS, index)
+        extensions = (const char*)glGetString (GL_EXTENSIONS);
+      #else
+        Display* display = glXGetCurrentDisplay();
+        extensions = glXQueryExtensionsString (display, DefaultScreen(display));
+      #endif
+      }
+
+    if (extensions != 0x0) {
+      const char* start = extensions;
+      const char* end, *where;
+      while(1) {
+        where = strstr (start, name);
+        if (where == 0x0)
+          return false;
+
+        end = where + strlen(name);
+        if (where == start || *(where - 1) == ' ')
+          if (*end == ' ' || *end == 0)
+            break;
+
+        start = end;
+        }
+      }
+
+    return true;
+    }
+  //}}}
   }
 //{{{  cCallbackStub
 //{{{
@@ -1594,6 +1592,11 @@ eUpdateState cMiniFB::updateEx (void* buffer, uint32_t width, uint32_t height) {
   }
 //}}}
 //{{{
+eUpdateState cMiniFB::update (void *buffer) {
+  return updateEx (buffer, bufferWidth, bufferHeight);
+  }
+//}}}
+//{{{
 eUpdateState cMiniFB::updateEvents() {
 
   if (closed) {
@@ -1617,11 +1620,6 @@ eUpdateState cMiniFB::updateEvents() {
   #endif
 
   return STATE_OK;
-  }
-//}}}
-//{{{
-eUpdateState cMiniFB::update (void *buffer) {
-  return updateEx (buffer, bufferWidth, bufferHeight);
   }
 //}}}
 //{{{
@@ -1956,76 +1954,6 @@ void cMiniFB::calcDstFactor (uint32_t width, uint32_t height) {
 
 // openGL
 //{{{
-void cMiniFB::resizeGL() {
-
-  if (isInitialized) {
-    #ifdef _WIN32
-      wglMakeCurrent (hdc, hGLRC);
-    #else
-      glXMakeCurrent (display, window, context);
-    #endif
-
-    glViewport (0,0, windowWidth,windowHeight);
-
-    glMatrixMode (GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho (0, windowWidth, windowHeight, 0, 2048, -2048);
-
-    glClear (GL_COLOR_BUFFER_BIT);
-    }
-  }
-//}}}
-//{{{
-void cMiniFB::redrawGL (const void* pixels) {
-
-  #ifdef _WIN32
-    wglMakeCurrent (hdc, hGLRC);
-  #else
-    glXMakeCurrent (display, window, context);
-  #endif
-
-  GLenum format = RGBA;
-
-  // clear
-  //glClear (GL_COLOR_BUFFER_BIT);
-  glBindTexture (GL_TEXTURE_2D, textureId);
-  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA,
-                bufferWidth, bufferHeight,
-                0, format, GL_UNSIGNED_BYTE, pixels);
-  //glTexSubImage2D (GL_TEXTURE_2D, 0,
-  //                 0, 0, buffer_width, buffer_height,
-  //                 format, GL_UNSIGNED_BYTE, pixels);
-
-  // draw single texture
-  glEnableClientState (GL_VERTEX_ARRAY);
-  glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-
-  // vertices
-  float x = (float)dstOffsetX;
-  float y = (float)dstOffsetY;
-  float w = (float)dstOffsetX + dstWidth;
-  float h = (float)dstOffsetY + dstHeight;
-  float vertices[] = { x, y, 0, 0,
-                       w, y, 1, 0,
-                       x, h, 0, 1,
-                       w, h, 1, 1 };
-  glVertexPointer (2, GL_FLOAT, 4 * sizeof(float), vertices);
-  glTexCoordPointer (2, GL_FLOAT, 4 * sizeof(float), vertices + 2);
-  glDrawArrays (GL_TRIANGLE_STRIP, 0, 4);
-
-  glDisableClientState (GL_TEXTURE_COORD_ARRAY);
-  glDisableClientState (GL_VERTEX_ARRAY);
-  glBindTexture (GL_TEXTURE_2D, 0);
-
-  // swap buffer
-  #ifdef _WIN32
-    SwapBuffers (hdc);
-  #else
-    glXSwapBuffers (display, window);
-  #endif
-  }
-//}}}
-//{{{
 bool cMiniFB::createGLcontext() {
 
   #ifdef _WIN32
@@ -2065,11 +1993,9 @@ bool cMiniFB::createGLcontext() {
     cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
     cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
     cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
-    initGL();
 
     // get extensions
-    SwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress ("wglSwapIntervalEXT");
-    GetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress ("wglGetSwapIntervalEXT");
+    gSwapInterval = (tGlSwapIntervalProc)wglGetProcAddress ("wglSwapIntervalEXT");
   #else
     // check openGL version
     GLint majorGLX = 0;
@@ -2114,10 +2040,81 @@ bool cMiniFB::createGLcontext() {
     cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
     cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
     cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
-    initGL();
+
+    if (CheckGLExtension ("GLX_EXT_swap_control"))
+      gSwapInterval = (tGlSwapIntervalProc)glXGetProcAddress ((const GLubyte*)"glXSwapIntervalEXT");
   #endif
 
+  initGL();
   return true;
+  }
+//}}}
+//{{{
+void cMiniFB::resizeGL() {
+
+  if (isInitialized) {
+    #ifdef _WIN32
+      wglMakeCurrent (hdc, hGLRC);
+    #else
+      glXMakeCurrent (display, window, context);
+    #endif
+
+    glViewport (0,0, windowWidth,windowHeight);
+
+    glMatrixMode (GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho (0, windowWidth, windowHeight, 0, 2048, -2048);
+
+    glClear (GL_COLOR_BUFFER_BIT);
+    }
+  }
+//}}}
+//{{{
+void cMiniFB::redrawGL (const void* pixels) {
+
+  #ifdef _WIN32
+    wglMakeCurrent (hdc, hGLRC);
+  #else
+    glXMakeCurrent (display, window, context);
+  #endif
+
+  GLenum format = RGBA;
+
+  // clear
+  //glClear (GL_COLOR_BUFFER_BIT);
+  glBindTexture (GL_TEXTURE_2D, textureId);
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, bufferWidth, bufferHeight, 0, format, GL_UNSIGNED_BYTE, pixels);
+  //glTexSubImage2D (GL_TEXTURE_2D, 0,
+  //                 0, 0, buffer_width, buffer_height,
+  //                 format, GL_UNSIGNED_BYTE, pixels);
+
+  // draw single texture
+  glEnableClientState (GL_VERTEX_ARRAY);
+  glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+
+  // vertices
+  float x = (float)dstOffsetX;
+  float y = (float)dstOffsetY;
+  float w = (float)dstOffsetX + dstWidth;
+  float h = (float)dstOffsetY + dstHeight;
+  float vertices[] = { x, y, 0, 0,
+                       w, y, 1, 0,
+                       x, h, 0, 1,
+                       w, h, 1, 1 };
+  glVertexPointer (2, GL_FLOAT, 4 * sizeof(float), vertices);
+  glTexCoordPointer (2, GL_FLOAT, 4 * sizeof(float), vertices + 2);
+  glDrawArrays (GL_TRIANGLE_STRIP, 0, 4);
+
+  glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+  glDisableClientState (GL_VERTEX_ARRAY);
+  glBindTexture (GL_TEXTURE_2D, 0);
+
+  // swap buffer
+  #ifdef _WIN32
+    SwapBuffers (hdc);
+  #else
+    glXSwapBuffers (display, window);
+  #endif
   }
 //}}}
 //{{{
@@ -2166,6 +2163,12 @@ void cMiniFB::initGL() {
   glDisableClientState (GL_TEXTURE_COORD_ARRAY);
   glDisableClientState (GL_VERTEX_ARRAY);
   glBindTexture (GL_TEXTURE_2D, 0);
+
+  #ifdef _WIN32
+    gSwapInterval (1);
+  #else
+    gSwapInterval (glXGetCurrentDisplay(), glXGetCurrentDrawable(), 1);
+  #endif
   }
 //}}}
 //{{{

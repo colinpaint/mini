@@ -248,9 +248,9 @@ public:
   void calcDstFactor (uint32_t width, uint32_t height);
 
   bool createGLcontext();
-  void destroyGLcontext();
-  void redrawGL (const void* pixels);
   void resizeGL();
+  void redrawGL (const void* pixels);
+  void destroyGLcontext();
 
   //{{{  vars
   void(*activeFunc)(cMiniFB* miniFB) = nullptr;
