@@ -193,9 +193,7 @@ public:
   static cMiniFB* create (const char* title, uint32_t width, uint32_t height, uint32_t flags);
   static const char* getKeyName (eMiniKey key);
 
-  //
   eMiniState update (void* buffer);
-  eMiniState updateEx (void* buffer, uint32_t width, uint32_t height);
   eMiniState updateEvents();
   void close();
 
@@ -205,6 +203,7 @@ public:
   unsigned getWindowHeight() const { return windowHeight; }
 
   int64_t getPointerTimestamp() const { return pointerTimestamp; }
+  const uint8_t* getPointerButtonBuffer() const { return pointerButtonStatus; }
   int getPointerX() const { return pointerPosX; }
   int getPointerY() const { return pointerPosY; }
   int getPointerPressure() const { return pointerPressure; }
@@ -212,9 +211,8 @@ public:
   float getPointerWheelY() { return pointerWheelY; }
 
   const uint8_t* getKeyBuffer() { return keyStatus; }
-  const uint8_t* getPointerButtonBuffer() const { return pointerButtonStatus; }
 
-  void* getUserData () { return userData; }
+  void* getUserData() { return userData; }
   void getMonitorScale (float* scale_x, float* scale_y);
 
   // sets
@@ -323,15 +321,14 @@ private:
   #endif
 
   bool init (const char* title, uint32_t width, uint32_t height, uint32_t flags);
+  void initKeycodes();
+  void freeResources();
+
   bool createGLcontext();
   void initGL();
-  void initKeycodes();
-
   void resizeGL();
   void redrawGL (const void* pixels);
-
   void destroyGLcontext();
-  void freeResources();
 
   void resizeDst (uint32_t width, uint32_t height);
   void calcDstFactor (uint32_t width, uint32_t height);

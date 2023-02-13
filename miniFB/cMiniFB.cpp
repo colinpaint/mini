@@ -858,7 +858,7 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
 
 // cMiniFB
 //{{{
-eMiniState cMiniFB::updateEx (void* buffer, uint32_t width, uint32_t height) {
+eMiniState cMiniFB::update (void* buffer) {
 
   if (closed) {
     freeResources();
@@ -869,25 +869,9 @@ eMiniState cMiniFB::updateEx (void* buffer, uint32_t width, uint32_t height) {
     return STATE_INVALID_BUFFER;
 
   drawBuffer = buffer;
-  bufferWidth = width;
-  bufferStride = width * 4;
-  bufferHeight = height;
   redrawGL (buffer);
 
-  #ifndef _WIN32
-    while (!closed && XPending (display)) {
-      XEvent event;
-      XNextEvent (display, &event);
-      processEvent (&event);
-      }
-  #endif
-
   return STATE_OK;
-  }
-//}}}
-//{{{
-eMiniState cMiniFB::update (void *buffer) {
-  return updateEx (buffer, bufferWidth, bufferHeight);
   }
 //}}}
 //{{{
@@ -1788,8 +1772,8 @@ bool cMiniFB::init (const char* title, uint32_t width, uint32_t height, uint32_t
     //{{{  windows
     loadFunctions();
     dpiAware();
-
     initKeycodes();
+
     bufferWidth  = width;
     bufferHeight = height;
     bufferStride = width * 4;
@@ -1903,7 +1887,6 @@ bool cMiniFB::init (const char* title, uint32_t width, uint32_t height, uint32_t
       return false;
       }
       //}}}
-
     initKeycodes();
     XAutoRepeatOff (display);
 
@@ -2129,147 +2112,6 @@ bool cMiniFB::init (const char* title, uint32_t width, uint32_t height, uint32_t
   }
 //}}}
 //{{{
-bool cMiniFB::createGLcontext() {
-
-  #ifdef _WIN32
-    //{{{  setup windows pixel format for openGL
-    PIXELFORMATDESCRIPTOR pfd = {sizeof(PIXELFORMATDESCRIPTOR), // size
-                                 1,                             // version
-                                 PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER, // support double-buffering
-                                 PFD_TYPE_RGBA,                 // color type
-                                 24,                            // preferred color depth
-                                 0, 0, 0, 0, 0, 0,              // color and shift bits (ignored)
-                                 0,                             // no alpha buffer
-                                 0,                             // alpha bits (ignored)
-                                 0,                             // no accumulation buffer
-                                 0, 0, 0, 0,                    // accum bits (ignored)
-                                 24,                            // depth buffer
-                                 8,                             // no stencil buffer
-                                 0,                             // no auxiliary buffers
-                                 PFD_MAIN_PLANE,                // main layer
-                                 0,                             // reserved
-                                 0, 0, 0,                       // no layer, visible, damage masks
-                                 };
-
-    int pixelFormat = ChoosePixelFormat (hdc, &pfd);
-    if (!pixelFormat) {
-      cLog::log (LOGERROR, fmt::format ("ChoosePixelFormat failed {}", MB_ICONERROR | MB_OK));
-      return false;
-      }
-
-    if (!SetPixelFormat (hdc, pixelFormat, &pfd)) {
-      cLog::log (LOGERROR, fmt::format ("SetPixelFormat failed {}", MB_ICONERROR | MB_OK));
-      return false;
-      }
-    //}}}
-    hGLRC = wglCreateContext (hdc);
-    wglMakeCurrent (hdc, hGLRC);
-
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
-
-    // get extensions
-    gSwapInterval = (tGlSwapIntervalProc)wglGetProcAddress ("wglSwapIntervalEXT");
-  #else
-    // check openGL version
-    GLint majorGLX = 0;
-    GLint minorGLX = 0;
-    glXQueryVersion (display, &majorGLX, &minorGLX);
-    if ((majorGLX <= 1) && (minorGLX < 2)) {
-      //{{{  error, return
-      cLog::log (LOGERROR, "GLX 1.2 or greater is required");
-      XCloseDisplay (display);
-
-      return false;
-      }
-      //}}}
-    else
-      cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
-
-    //{{{  setup pixel format for X11 openGL
-    GLint glxAttribs[] = {
-      GLX_RGBA,
-      GLX_DOUBLEBUFFER,
-      GLX_DEPTH_SIZE,     24,
-      GLX_STENCIL_SIZE,   8,
-      GLX_RED_SIZE,       8,
-      GLX_GREEN_SIZE,     8,
-      GLX_BLUE_SIZE,      8,
-      GLX_DEPTH_SIZE,     24,
-      GLX_STENCIL_SIZE,   8,
-      GLX_SAMPLE_BUFFERS, 0,
-      GLX_SAMPLES,        0,
-      None };
-
-    XVisualInfo* visualInfo = glXChooseVisual (display, screen, glxAttribs);
-    if (!visualInfo) {
-      cLog::log (LOGERROR, "Could not create correct visual window");
-      XCloseDisplay (display);
-      return false;
-      }
-    //}}}
-    context = glXCreateContext (display, visualInfo, NULL, GL_TRUE);
-    glXMakeCurrent (display, window, context);
-
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
-    cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
-
-    if (checkGLExtension ("GLX_EXT_swap_control"))
-      gSwapInterval = (tGlSwapIntervalProc)glXGetProcAddress ((const GLubyte*)"glXSwapIntervalEXT");
-  #endif
-
-  initGL();
-  return true;
-  }
-//}}}
-//{{{
-void cMiniFB::initGL() {
-
-  glViewport (0, 0, windowWidth, windowHeight);
-
-  glMatrixMode (GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho (0, windowWidth, windowHeight, 0, 2048, -2048);
-
-  glMatrixMode (GL_MODELVIEW);
-  glLoadIdentity();
-
-  glDisable (GL_DEPTH_TEST);
-  glDisable (GL_STENCIL_TEST);
-
-  glEnable (GL_TEXTURE_2D);
-
-  glGenTextures (1, &textureId);
-  glBindTexture (GL_TEXTURE_2D, textureId);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  glEnableClientState (GL_VERTEX_ARRAY);
-  glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-
-  glDisableClientState (GL_TEXTURE_COORD_ARRAY);
-  glDisableClientState (GL_VERTEX_ARRAY);
-  glBindTexture (GL_TEXTURE_2D, 0);
-
-  if (!gSwapInterval) {
-    //{{{  error, return
-    cLog::log (LOGERROR, "no swapInterval extension");
-    return;
-    }
-    //}}}
-  #ifdef _WIN32
-    gSwapInterval (1);
-  #else
-    gSwapInterval (glXGetCurrentDisplay(), glXGetCurrentDrawable(), 1);
-  #endif
-  }
-//}}}
-//{{{
 void cMiniFB::initKeycodes() {
 
   #ifdef _WIN32
@@ -2419,7 +2261,174 @@ void cMiniFB::initKeycodes() {
   #endif
   }
 //}}}
+//{{{
+void cMiniFB::freeResources() {
 
+  #ifdef _WIN32
+    destroyGLcontext();
+    if (window && hdc) {
+      ReleaseDC (window, hdc);
+      DestroyWindow (window);
+      }
+    window = 0;
+    hdc = 0;
+
+    #ifdef USE_WINTAB
+      winTabUnload();
+    #endif
+  #else
+    if (gDevice)
+      XCloseDevice (display, gDevice);
+    destroyGLcontext();
+  #endif
+
+  // not sure why ?
+  drawBuffer = nullptr;
+  closed = true;
+  }
+//}}}
+
+//{{{
+bool cMiniFB::createGLcontext() {
+
+  #ifdef _WIN32
+    //{{{  setup windows pixel format for openGL
+    PIXELFORMATDESCRIPTOR pfd = {sizeof(PIXELFORMATDESCRIPTOR), // size
+                                 1,                             // version
+                                 PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER, // support double-buffering
+                                 PFD_TYPE_RGBA,                 // color type
+                                 24,                            // preferred color depth
+                                 0, 0, 0, 0, 0, 0,              // color and shift bits (ignored)
+                                 0,                             // no alpha buffer
+                                 0,                             // alpha bits (ignored)
+                                 0,                             // no accumulation buffer
+                                 0, 0, 0, 0,                    // accum bits (ignored)
+                                 24,                            // depth buffer
+                                 8,                             // no stencil buffer
+                                 0,                             // no auxiliary buffers
+                                 PFD_MAIN_PLANE,                // main layer
+                                 0,                             // reserved
+                                 0, 0, 0,                       // no layer, visible, damage masks
+                                 };
+
+    int pixelFormat = ChoosePixelFormat (hdc, &pfd);
+    if (!pixelFormat) {
+      cLog::log (LOGERROR, fmt::format ("ChoosePixelFormat failed {}", MB_ICONERROR | MB_OK));
+      return false;
+      }
+
+    if (!SetPixelFormat (hdc, pixelFormat, &pfd)) {
+      cLog::log (LOGERROR, fmt::format ("SetPixelFormat failed {}", MB_ICONERROR | MB_OK));
+      return false;
+      }
+    //}}}
+    hGLRC = wglCreateContext (hdc);
+    wglMakeCurrent (hdc, hGLRC);
+
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
+
+    // get extensions
+    gSwapInterval = (tGlSwapIntervalProc)wglGetProcAddress ("wglSwapIntervalEXT");
+  #else
+    // check openGL version
+    GLint majorGLX = 0;
+    GLint minorGLX = 0;
+    glXQueryVersion (display, &majorGLX, &minorGLX);
+    if ((majorGLX <= 1) && (minorGLX < 2)) {
+      //{{{  error, return
+      cLog::log (LOGERROR, "GLX 1.2 or greater is required");
+      XCloseDisplay (display);
+
+      return false;
+      }
+      //}}}
+    else
+      cLog::log (LOGINFO, fmt::format ("GLX version:{}.{}", majorGLX, minorGLX));
+
+    //{{{  setup pixel format for X11 openGL
+    GLint glxAttribs[] = {
+      GLX_RGBA,
+      GLX_DOUBLEBUFFER,
+      GLX_DEPTH_SIZE,     24,
+      GLX_STENCIL_SIZE,   8,
+      GLX_RED_SIZE,       8,
+      GLX_GREEN_SIZE,     8,
+      GLX_BLUE_SIZE,      8,
+      GLX_DEPTH_SIZE,     24,
+      GLX_STENCIL_SIZE,   8,
+      GLX_SAMPLE_BUFFERS, 0,
+      GLX_SAMPLES,        0,
+      None };
+
+    XVisualInfo* visualInfo = glXChooseVisual (display, screen, glxAttribs);
+    if (!visualInfo) {
+      cLog::log (LOGERROR, "Could not create correct visual window");
+      XCloseDisplay (display);
+      return false;
+      }
+    //}}}
+    context = glXCreateContext (display, visualInfo, NULL, GL_TRUE);
+    glXMakeCurrent (display, window, context);
+
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
+
+    if (checkGLExtension ("GLX_EXT_swap_control"))
+      gSwapInterval = (tGlSwapIntervalProc)glXGetProcAddress ((const GLubyte*)"glXSwapIntervalEXT");
+  #endif
+
+  initGL();
+  return true;
+  }
+//}}}
+//{{{
+void cMiniFB::initGL() {
+
+  glViewport (0, 0, windowWidth, windowHeight);
+
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho (0, windowWidth, windowHeight, 0, 2048, -2048);
+
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity();
+
+  glDisable (GL_DEPTH_TEST);
+  glDisable (GL_STENCIL_TEST);
+
+  glEnable (GL_TEXTURE_2D);
+
+  glGenTextures (1, &textureId);
+  glBindTexture (GL_TEXTURE_2D, textureId);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  glEnableClientState (GL_VERTEX_ARRAY);
+  glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+
+  glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+  glDisableClientState (GL_VERTEX_ARRAY);
+  glBindTexture (GL_TEXTURE_2D, 0);
+
+  if (!gSwapInterval) {
+    //{{{  error, return
+    cLog::log (LOGERROR, "no swapInterval extension");
+    return;
+    }
+    //}}}
+  #ifdef _WIN32
+    gSwapInterval (1);
+  #else
+    gSwapInterval (glXGetCurrentDisplay(), glXGetCurrentDrawable(), 1);
+  #endif
+  }
+//}}}
 //{{{
 void cMiniFB::resizeGL() {
 
@@ -2489,7 +2498,6 @@ void cMiniFB::redrawGL (const void* pixels) {
   #endif
   }
 //}}}
-
 //{{{
 void cMiniFB::destroyGLcontext() {
 
@@ -2501,31 +2509,6 @@ void cMiniFB::destroyGLcontext() {
       }
   #else
     glXDestroyContext (display, context);
-  #endif
-  }
-//}}}
-//{{{
-void cMiniFB::freeResources() {
-
-  #ifdef _WIN32
-    destroyGLcontext();
-    if (window && hdc) {
-      ReleaseDC (window, hdc);
-      DestroyWindow (window);
-      }
-    window = 0;
-    hdc = 0;
-
-    drawBuffer = 0x0;
-    closed = true;
-
-    #ifdef USE_WINTAB
-      winTabUnload();
-    #endif
-  #else
-    if (gDevice)
-      XCloseDevice (display, gDevice);
-    destroyGLcontext();
   #endif
   }
 //}}}
