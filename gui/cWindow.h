@@ -1,4 +1,4 @@
-// cWindow.h 
+// cWindow.h
 #pragma once
 //{{{  includes
 #include "cDrawTexture.h"
@@ -597,7 +597,7 @@ private:
   inline static int mDayLightSeconds = 0;
   //}}}
 
-  cMiniFB* mWindow = nullptr;
+  cMiniFB* mMiniFB = nullptr;
 
   cPoint mMousePos = {0.f};
   bool mMousePress = false;

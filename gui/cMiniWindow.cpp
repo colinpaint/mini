@@ -32,8 +32,8 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     cLog::log (LOGERROR, fmt::format ("No timezone correction for Linux yet"));
   #endif
 
-  mWindow = cMiniFB::create (title.c_str(), width, height, WF_RESIZABLE);
-  if (!mWindow)
+  mMiniFB = cMiniFB::create (title.c_str(), width, height, WF_RESIZABLE);
+  if (!mMiniFB)
     return false;
 
   // create texture static resources after window, may use its openGL resources in future
@@ -44,12 +44,12 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // state funcs
   //{{{
-  mWindow->setActiveFunc ([&](cMiniFB* info) { 
-    cLog::log (LOGINFO, fmt::format ("active {} unused", info->isActive)); 
+  mMiniFB->setActiveFunc ([&](cMiniFB* info) {
+    cLog::log (LOGINFO, fmt::format ("active {} unused", info->isActive));
     });
   //}}}
   //{{{
-  mWindow->setResizeFunc ([&](struct cMiniFB* info) {
+  mMiniFB->setResizeFunc ([&](struct cMiniFB* info) {
     int width = info->windowScaledWidth;
     int height = info->windowScaledHeight;
 
@@ -68,7 +68,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     });
   //}}}
   //{{{
-  mWindow->setCloseFunc ([&](cMiniFB* info) {
+  mMiniFB->setCloseFunc ([&](cMiniFB* info) {
     (void)info;
     cLog::log (LOGINFO, fmt::format ("close"));
     return true; // false for don't close
@@ -77,7 +77,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
 
   // keyboard funcs
   //{{{
-  mWindow->setKeyFunc ([&](cMiniFB* info) {
+  mMiniFB->setKeyFunc ([&](cMiniFB* info) {
     if (info->keyCode == KB_KEY_ESCAPE)
       info->close();
 
@@ -88,14 +88,14 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     });
   //}}}
   //{{{
-  mWindow->setCharFunc ([&](cMiniFB* info) {
-    cLog::log (LOGINFO, fmt::format ("char code:{} unused", info->codepoint)); 
+  mMiniFB->setCharFunc ([&](cMiniFB* info) {
+    cLog::log (LOGINFO, fmt::format ("char code:{} unused", info->codepoint));
     });
   //}}}
 
   // pointer funcs
   //{{{
-  mWindow->setButtonFunc ([&](cMiniFB* info) {
+  mMiniFB->setButtonFunc ([&](cMiniFB* info) {
     if (info->isDown) {
       mMousePress = true;
       mMouseMoved = false;
@@ -118,7 +118,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     });
   //}}}
   //{{{
-  mWindow->setMoveFunc ([&](cMiniFB* info) {
+  mMiniFB->setMoveFunc ([&](cMiniFB* info) {
     //cLog::log (LOGINFO, fmt::format ("mouseMove x:{} y:{} press:{} time:{}", x, y, pressure, timestamp));
     mMousePos.x = (float)info->pointerPosX;
     mMousePos.y = (float)info->pointerPosY;
@@ -134,9 +134,9 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     });
   //}}}
   //{{{
-  mWindow->setWheelFunc ([&](cMiniFB* info) {
+  mMiniFB->setWheelFunc ([&](cMiniFB* info) {
     mScale *= (info->pointerWheelY > 0.f) ? 1.05f : 1.f / 1.05f;
-    cLog::log (LOGINFO, fmt::format ("mouseWheel problem - deltaY:{} int(deltaY):{}", 
+    cLog::log (LOGINFO, fmt::format ("mouseWheel problem - deltaY:{} int(deltaY):{}",
                                      info->pointerWheelY, int(info->pointerWheelY)));
     if (mouseWheel ((int)info->pointerWheelY, mMousePos))
       changed();
@@ -145,8 +145,8 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     });
   //}}}
   //{{{
-  mWindow->setEnterFunc ([&](cMiniFB* info) { 
-    cLog::log (LOGINFO, fmt::format ("pointerEnter {} unused", info->pointerInside)); 
+  mMiniFB->setEnterFunc ([&](cMiniFB* info) {
+    cLog::log (LOGINFO, fmt::format ("pointerEnter {} unused", info->pointerInside));
     });
   //}}}
 
@@ -175,7 +175,7 @@ void cWindow::uiLoop (bool useChanged, bool drawPerf,
   changed();
 
   int64_t frameUs = 0;
-  while (!mExit && (mWindow->updateEvents() == STATE_OK)) {
+  while (!mExit && (mMiniFB->updateEvents() == STATE_OK)) {
     if (!useChanged || mChanged) {
       system_clock::time_point time = system_clock::now();
 
@@ -192,7 +192,7 @@ void cWindow::uiLoop (bool useChanged, bool drawPerf,
         }
 
       // update window with our texture
-      mWindow->update (getPixels());
+      mMiniFB->update (getPixels());
       frameUs = duration_cast<microseconds>(system_clock::now() - time).count();
       }
     else {
