@@ -407,7 +407,7 @@ namespace {
       }
     //}}}
     //{{{
-    eKey translateKey (WPARAM wParam, LPARAM lParam) {
+    eMiniKey translateKey (WPARAM wParam, LPARAM lParam) {
 
       if (wParam == VK_CONTROL) {
         if (lParam & 0x01000000)
@@ -428,10 +428,10 @@ namespace {
       if (wParam == VK_PROCESSKEY)
         return KB_KEY_UNKNOWN;
 
-      return (eKey)gKeycodes[HIWORD(lParam) & 0x1FF];
+      return (eMiniKey)gKeycodes[HIWORD(lParam) & 0x1FF];
       }
     //}}}
-    //}}}
+
     //{{{
     LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
@@ -447,6 +447,7 @@ namespace {
 
       return miniFB->processMessage (hWnd, message, wParam, lParam);
       }
+    //}}}
     //}}}
   #else
     //{{{  X11
@@ -760,29 +761,29 @@ namespace {
     }
   //}}}
   }
-//{{{  cCallbackStub
 //{{{
-cCallbackStub* cCallbackStub::getInstance (cMiniFB* miniFB) {
+//{{{
+cMiniCallbackStub* cMiniCallbackStub::getInstance (cMiniFB* miniFB) {
 
   //{{{
   struct stub_vector {
-    vector<cCallbackStub*> instances;
+    vector<cMiniCallbackStub*> instances;
 
     stub_vector() = default;
     //{{{
     ~stub_vector() {
-      for (cCallbackStub* instance : instances)
+      for (cMiniCallbackStub* instance : instances)
         delete instance;
       }
     //}}}
 
-    cCallbackStub* Get (cMiniFB *miniFB) {
-      for (cCallbackStub *instance : instances) {
+    cMiniCallbackStub* Get (cMiniFB *miniFB) {
+      for (cMiniCallbackStub *instance : instances) {
         if( instance->mMiniFB == miniFB) {
           return instance;
           }
         }
-      instances.push_back (new cCallbackStub);
+      instances.push_back (new cMiniCallbackStub);
       instances.back()->mMiniFB = miniFB;
       return instances.back();
       }
@@ -794,48 +795,48 @@ cCallbackStub* cCallbackStub::getInstance (cMiniFB* miniFB) {
   }
 //}}}
 //{{{
-void cCallbackStub::activeStub (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mActiveFunc (miniFB);
+void cMiniCallbackStub::activeStub (cMiniFB* miniFB) {
+  cMiniCallbackStub::getInstance (miniFB)->mActiveFunc (miniFB);
   }
 //}}}
 //{{{
-void cCallbackStub::resizeStub (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mResizeFunc (miniFB);
+void cMiniCallbackStub::resizeStub (cMiniFB* miniFB) {
+  cMiniCallbackStub::getInstance (miniFB)->mResizeFunc (miniFB);
   }
 //}}}
 //{{{
-bool cCallbackStub::closeStub  (cMiniFB* miniFB) {
-  return cCallbackStub::getInstance (miniFB)->mCloseFunc (miniFB);
+bool cMiniCallbackStub::closeStub  (cMiniFB* miniFB) {
+  return cMiniCallbackStub::getInstance (miniFB)->mCloseFunc (miniFB);
   }
 //}}}
 //{{{
-void cCallbackStub::keyStub    (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mKeyFunc(miniFB);
+void cMiniCallbackStub::keyStub    (cMiniFB* miniFB) {
+  cMiniCallbackStub::getInstance (miniFB)->mKeyFunc(miniFB);
   }
 //}}}
 //{{{
-void cCallbackStub::charStub   (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mCharFunc(miniFB);
+void cMiniCallbackStub::charStub   (cMiniFB* miniFB) {
+  cMiniCallbackStub::getInstance (miniFB)->mCharFunc(miniFB);
   }
 //}}}
 //{{{
-void cCallbackStub::buttonStub (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mButtonFunc(miniFB);
+void cMiniCallbackStub::buttonStub (cMiniFB* miniFB) {
+  cMiniCallbackStub::getInstance (miniFB)->mButtonFunc(miniFB);
   }
 //}}}
 //{{{
-void cCallbackStub::moveStub   (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mMoveFunc(miniFB);
+void cMiniCallbackStub::moveStub   (cMiniFB* miniFB) {
+  cMiniCallbackStub::getInstance (miniFB)->mMoveFunc(miniFB);
   }
 //}}}
 //{{{
-void cCallbackStub::wheelStub  (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mWheelFunc(miniFB);
+void cMiniCallbackStub::wheelStub  (cMiniFB* miniFB) {
+  cMiniCallbackStub::getInstance (miniFB)->mWheelFunc(miniFB);
   }
 //}}}
 //{{{
-void cCallbackStub::enterStub  (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mEnterFunc(miniFB);
+void cMiniCallbackStub::enterStub  (cMiniFB* miniFB) {
+  cMiniCallbackStub::getInstance (miniFB)->mEnterFunc(miniFB);
   }
 //}}}
 //}}}
@@ -846,11 +847,10 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
 
   cMiniFB* miniFB = new cMiniFB();
   if (!miniFB) {
-    //{{{  error, return
+    // error, return
     cLog::log (LOGERROR, fmt::format ("failed to create miniFB"));
-    return 0;
+    return nullptr;
     }
-    //}}}
 
   return miniFB->init (title, width, height, flags) ? miniFB : nullptr;
   }
@@ -858,354 +858,7 @@ cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, ui
 
 // cMiniFB
 //{{{
-bool cMiniFB::init (const char* title, uint32_t width, uint32_t height, uint32_t flags) {
-
-  #ifdef _WIN32
-    //{{{  windows
-    loadFunctions();
-    dpiAware();
-
-    initKeycodes();
-    bufferWidth  = width;
-    bufferHeight = height;
-    bufferStride = width * 4;
-
-    int x = 0;
-    int y = 0;
-    RECT rect = { 0 };
-    long windowStyle = WS_POPUP | WS_SYSMENU | WS_CAPTION;
-    windowStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME;
-    if (flags & WF_FULLSCREEN) {
-      //{{{  fullscreen
-      flags = WF_FULLSCREEN;  // Remove all other flags
-      rect.right  = GetSystemMetrics (SM_CXSCREEN);
-      rect.bottom = GetSystemMetrics (SM_CYSCREEN);
-      windowStyle = WS_POPUP & ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
-
-      DEVMODE settings = { 0 };
-      EnumDisplaySettings (0, 0, &settings);
-      settings.dmPelsWidth  = GetSystemMetrics(SM_CXSCREEN);
-      settings.dmPelsHeight = GetSystemMetrics(SM_CYSCREEN);
-      settings.dmBitsPerPel = 32;
-      settings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-
-      if (ChangeDisplaySettings (&settings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
-        flags = WF_FULLSCREEN_DESKTOP;
-      }
-      //}}}
-    if (flags & WF_BORDERLESS)
-      windowStyle = WS_POPUP;
-    if (flags & WF_RESIZABLE)
-      windowStyle |= WS_MAXIMIZEBOX | WS_SIZEBOX;
-    if (flags & WF_FULLSCREEN_DESKTOP) {
-      //{{{  desktop
-      windowStyle = WS_OVERLAPPEDWINDOW;
-
-      width  = GetSystemMetrics (SM_CXFULLSCREEN);
-      height = GetSystemMetrics (SM_CYFULLSCREEN);
-
-      rect.right  = width;
-      rect.bottom = height;
-      AdjustWindowRect (&rect, windowStyle, 0);
-      if (rect.left < 0) {
-        width += rect.left * 2;
-        rect.right += rect.left;
-        rect.left = 0;
-        }
-      if (rect.bottom > (LONG) height) {
-        height -= (rect.bottom - height);
-        rect.bottom += (rect.bottom - height);
-        rect.top = 0;
-        }
-      }
-      //}}}
-    else if (!(flags & WF_FULLSCREEN)) {
-      //{{{  desktop fullscreen
-      float scale_x, scale_y;
-      getMonitorScale (&scale_x, &scale_y);
-
-      rect.right  = (LONG) (width  * scale_x);
-      rect.bottom = (LONG) (height * scale_y);
-      AdjustWindowRect(&rect, windowStyle, 0);
-
-      rect.right  -= rect.left;
-      rect.bottom -= rect.top;
-      x = (GetSystemMetrics(SM_CXSCREEN) - rect.right) / 2;
-      y = (GetSystemMetrics(SM_CYSCREEN) - rect.bottom + rect.top) / 2;
-      }
-      //}}}
-
-    wc.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
-    wc.lpfnWndProc = WndProc;
-    wc.hCursor = LoadCursor(0, IDC_ARROW);
-    wc.lpszClassName = title;
-    RegisterClass (&wc);
-
-    calcDstFactor (width, height);
-    windowWidth  = rect.right;
-    windowHeight = rect.bottom;
-    window = CreateWindowEx (0, title, title, windowStyle, x, y, windowWidth, windowHeight, 0, 0, 0, 0);
-    if (!window) {
-      //{{{  error, return
-      cLog::log (LOGERROR, fmt::format ("failed to create X11 window"));
-      return false;
-      }
-      //}}}
-
-    SetWindowLongPtr (window, GWLP_USERDATA, (LONG_PTR)this);
-    if (flags & WF_ALWAYS_ON_TOP)
-      SetWindowPos (window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-    ShowWindow (window, SW_NORMAL);
-
-    hdc = GetDC (window);
-    createGLcontext();
-    cLog::log (LOGINFO, "using windows OpenGL");
-
-    #ifdef USE_WINTAB
-      // enable winTab, mainly for WT_PROXIMITY, get WT_PACKET
-      if (!winTabLoad (window))
-        cLog::log (LOGERROR, fmt::format ("winTab load failed"));
-    #endif
-
-    // enable WM_POINTER wndProc messaging, to tell mouse from pen
-    EnableMouseInPointer (true);
-    //}}}
-  #else
-    //{{{  X11
-    display = XOpenDisplay (0);
-    if (!display) {
-      //{{{  error, return
-      cLog::log (LOGERROR, fmt::format ("failed to create X11 display"));
-      return false;
-      }
-      //}}}
-
-    initKeycodes();
-    XAutoRepeatOff (display);
-
-    screen = DefaultScreen (display);
-    Visual* visual = DefaultVisual (display, screen);
-    //{{{  set format
-    int formatCount;
-    int convDepth = -1;
-    XPixmapFormatValues* formats = XListPixmapFormats (display, &formatCount);
-    int depth = DefaultDepth (display, screen);
-    Window defaultRootWindow = DefaultRootWindow (display);
-    for (int i = 0; i < formatCount; ++i) {
-      if (depth == formats[i].depth) {
-        convDepth = formats[i].bits_per_pixel;
-        break;
-        }
-      }
-    XFree (formats);
-
-    // We only support 32-bit right now
-    if (convDepth != 32) {
-      //{{{  error, return
-      cLog::log (LOGERROR, fmt::format ("failed to create 32 bir depth"));
-      XCloseDisplay (display);
-      return false;
-      }
-      //}}}
-    //}}}
-    //{{{  set width, height
-    int screenWidth = DisplayWidth (display, screen);
-    int screenHeight = DisplayHeight (display, screen);
-
-    XSetWindowAttributes windowAttributes;
-    windowAttributes.border_pixel = BlackPixel (display, screen);
-    windowAttributes.background_pixel = BlackPixel (display, screen);
-    windowAttributes.backing_store = NotUseful;
-
-    windowWidth  = width;
-    windowHeight = height;
-    bufferWidth  = width;
-    bufferHeight = height;
-    bufferStride = width * 4;
-    calcDstFactor (width, height);
-
-    int posX, posY;
-    int windowWidth, windowHeight;
-    if (flags & WF_FULLSCREEN_DESKTOP) {
-      //{{{  full screen desktop
-      posX = 0;
-      posY = 0;
-
-      windowWidth  = screenWidth;
-      windowHeight = screenHeight;
-      }
-      //}}}
-    else {
-      //{{{  window
-      posX = (screenWidth  - width)  / 2;
-      posY = (screenHeight - height) / 2;
-
-      windowWidth  = width;
-      windowHeight = height;
-      }
-      //}}}
-    //}}}
-
-    window = XCreateWindow (display, defaultRootWindow,
-                            posX, posY, windowWidth, windowHeight,
-                            0, depth, InputOutput, visual,
-                            CWBackPixel | CWBorderPixel | CWBackingStore,
-                            &windowAttributes);
-    if (!window) {
-      //{{{  error, return
-      cLog::log (LOGERROR, fmt::format ("failed to create X11 window"));
-      return false;
-      }
-      //}}}
-
-    XSelectInput (display, window,
-                  StructureNotifyMask | ExposureMask |
-                  FocusChangeMask |
-                  KeyPressMask | KeyReleaseMask |
-                  ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
-                  EnterWindowMask | LeaveWindowMask);
-    XStoreName (display, window, title);
-
-    if (flags & WF_BORDERLESS) {
-      //{{{  borderless
-      struct StyleHints {
-        unsigned long flags;
-        unsigned long functions;
-        unsigned long decorations;
-        long          inputMode;
-        unsigned long status;
-        } sh = {2, 0, 0, 0, 0};
-
-      Atom sh_p = XInternAtom (display, "_MOTIF_WM_HINTS", True);
-      XChangeProperty (display, window, sh_p, sh_p, 32,
-                       PropModeReplace, (unsigned char*)&sh, 5);
-      }
-      //}}}
-    if (flags & WF_ALWAYS_ON_TOP) {
-      //{{{  always on top
-      Atom sa_p = XInternAtom (display, "_NET_WM_STATE_ABOVE", False);
-      XChangeProperty (display, window,
-                       XInternAtom (display, "_NET_WM_STATE", False), XA_ATOM, 32,
-                       PropModeReplace, (unsigned char*)&sa_p, 1);
-      }
-      //}}}
-    if (flags & WF_FULLSCREEN) {
-      //{{{  full screen
-      Atom sf_p = XInternAtom (display, "_NET_WM_STATE_FULLSCREEN", True);
-      XChangeProperty (display, window,
-                       XInternAtom (display, "_NET_WM_STATE", True), XA_ATOM, 32,
-                       PropModeReplace, (unsigned char*)&sf_p, 1);
-      }
-      //}}}
-
-    gDeleteWindowAtom = XInternAtom (display, "WM_DELETE_WINDOW", False);
-    XSetWMProtocols (display, window, &gDeleteWindowAtom, 1);
-
-    if (!createGLcontext()) {
-      //{{{  error, return
-      cLog::log (LOGERROR, fmt::format ("failed to create X11 GL context"));
-      return false;
-      }
-      //}}}
-
-    //{{{  set sizeHints
-    XSizeHints sizeHints;
-    sizeHints.flags = PPosition | PMinSize | PMaxSize;
-    sizeHints.x = 0;
-    sizeHints.y = 0;
-    sizeHints.min_width  = width;
-    sizeHints.min_height = height;
-    if (flags & WF_RESIZABLE) {
-      //{{{  resizable
-      sizeHints.max_width  = screenWidth;
-      sizeHints.max_height = screenHeight;
-      }
-      //}}}
-    else {
-      //{{{  not resizable
-      sizeHints.max_width  = width;
-      sizeHints.max_height = height;
-      }
-      //}}}
-    XSetWMNormalHints (display, window, &sizeHints);
-    //}}}
-    XClearWindow (display, window);
-    XMapRaised (display, window);
-    XFlush (display);
-
-    gc = DefaultGC (display, screen);
-    cLog::log (LOGINFO, "using X11 API");
-
-    int32_t count;
-    XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (display, &count);
-    if (!devices) {
-      //{{{  error, return
-      cLog::log (LOGERROR, fmt::format ("failed to find X11 input device list"));
-      return false;
-      }
-      //}}}
-    //{{{  search device list for "stylus"
-    cLog::log (LOGINFO, fmt::format ("X11 input devices"));
-
-    for (int32_t i = 0; i < count; i++) {
-      cLog::log (LOGINFO, fmt::format ("- device:{} name:{} id:{}", i, devices[i].name, devices[i].id));
-      if (strstr (devices[i].name, "stylus")) { // "eraser"
-        gDevice = XOpenDevice (display, devices[i].id);
-        XAnyClassPtr classPtr = devices[i].inputclassinfo;
-        for (int32_t j = 0; j < devices[i].num_classes; j++) {
-          switch (classPtr->c_class) {
-            case ValuatorClass: {
-              XValuatorInfo* valuatorInfo = (XValuatorInfo*)classPtr;
-              if (valuatorInfo->num_axes > 0) {
-                // x
-                int32_t minX = valuatorInfo->axes[0].min_value;
-                gRangeX = valuatorInfo->axes[0].max_value;
-                cLog::log (LOGINFO, fmt::format ("- stylus xRange {}:{}", minX, gRangeX));
-                }
-
-              if (valuatorInfo->num_axes > 1) {
-                // y
-                int32_t minY = valuatorInfo->axes[1].min_value;
-                gRangeY = valuatorInfo->axes[1].max_value;
-                cLog::log (LOGINFO, fmt::format ("- stylus yRange {}:{}", minY, gRangeY));
-                }
-
-              if (valuatorInfo->num_axes > 2) {
-                // pressure
-                int32_t minPressure = valuatorInfo->axes[2].min_value;
-                gMaxPressure = valuatorInfo->axes[2].max_value;
-                cLog::log (LOGINFO, fmt::format ("- stylus pressureRange {}:{}", minPressure, gMaxPressure));
-                }
-
-              XEventClass eventClass;
-              DeviceMotionNotify (gDevice, gMotionType, eventClass);
-              if (eventClass) {
-                gEventClasses[gNumEventClasses] = eventClass;
-                gNumEventClasses++;
-                }
-              }
-              break;
-
-            default:
-              cLog::log (LOGINFO, fmt::format ("- unused class:{}", classPtr->c_class));
-              break;
-            }
-          classPtr = (XAnyClassPtr)((uint8_t*)classPtr + classPtr->length);
-          }
-        }
-      XSelectExtensionEvent (display, window, gEventClasses, gNumEventClasses);
-      }
-    XFreeDeviceList (devices);
-    //}}}
-    //}}}
-  #endif
-
-  isInitialized = true;
-  return true;
-  }
-//}}}
-//{{{
-eUpdateState cMiniFB::updateEx (void* buffer, uint32_t width, uint32_t height) {
+eMiniState cMiniFB::updateEx (void* buffer, uint32_t width, uint32_t height) {
 
   if (closed) {
     freeResources();
@@ -1233,12 +886,12 @@ eUpdateState cMiniFB::updateEx (void* buffer, uint32_t width, uint32_t height) {
   }
 //}}}
 //{{{
-eUpdateState cMiniFB::update (void *buffer) {
+eMiniState cMiniFB::update (void *buffer) {
   return updateEx (buffer, bufferWidth, bufferHeight);
   }
 //}}}
 //{{{
-eUpdateState cMiniFB::updateEvents() {
+eMiniState cMiniFB::updateEvents() {
 
   if (closed) {
     freeResources();
@@ -1271,7 +924,7 @@ void cMiniFB::close() {
 
 // static get
 //{{{
-const char* cMiniFB::getKeyName (eKey key) {
+const char* cMiniFB::getKeyName (eMiniKey key) {
 
   switch (key) {
     case KB_KEY_SPACE: return "Space";
@@ -1512,56 +1165,56 @@ void cMiniFB::setEnterCallback  (void(*callback)(cMiniFB* miniFB)) { enterFunc =
 //{{{  set function style callbacks
 //{{{
 void cMiniFB::setActiveFunc (function <void (cMiniFB*)> func) {
-  cCallbackStub::getInstance (this)->mActiveFunc = bind (func, placeholders::_1);
-  setActiveCallback (cCallbackStub::activeStub);
+  cMiniCallbackStub::getInstance (this)->mActiveFunc = bind (func, placeholders::_1);
+  setActiveCallback (cMiniCallbackStub::activeStub);
   }
 //}}}
 //{{{
 void cMiniFB::setResizeFunc (function <void (cMiniFB*)> func) {
-  cCallbackStub::getInstance (this)->mResizeFunc = bind(func, placeholders::_1);
-  setResizeCallback (cCallbackStub::resizeStub);
+  cMiniCallbackStub::getInstance (this)->mResizeFunc = bind(func, placeholders::_1);
+  setResizeCallback (cMiniCallbackStub::resizeStub);
   }
 //}}}
 //{{{
 void cMiniFB::setCloseFunc  (function <bool (cMiniFB*)> func) {
-  cCallbackStub::getInstance (this)->mCloseFunc = bind(func, placeholders::_1);
-  setCloseCallback (cCallbackStub::closeStub);
+  cMiniCallbackStub::getInstance (this)->mCloseFunc = bind(func, placeholders::_1);
+  setCloseCallback (cMiniCallbackStub::closeStub);
   }
 //}}}
 //{{{
 void cMiniFB::setKeyFunc    (function <void (cMiniFB*)> func) {
-  cCallbackStub::getInstance (this)->mKeyFunc = bind (func, placeholders::_1);
-  setKeyCallback (cCallbackStub::keyStub);
+  cMiniCallbackStub::getInstance (this)->mKeyFunc = bind (func, placeholders::_1);
+  setKeyCallback (cMiniCallbackStub::keyStub);
   }
 //}}}
 //{{{
 void cMiniFB::setCharFunc   (function <void (cMiniFB*)> func) {
-  cCallbackStub::getInstance (this)->mCharFunc = bind (func, placeholders::_1);
-  setCharCallback (cCallbackStub::charStub);
+  cMiniCallbackStub::getInstance (this)->mCharFunc = bind (func, placeholders::_1);
+  setCharCallback (cMiniCallbackStub::charStub);
   }
 //}}}
 //{{{
 void cMiniFB::setButtonFunc (function <void (cMiniFB*)> func) {
-  cCallbackStub::getInstance (this)->mButtonFunc = bind (func, placeholders::_1);
-  setButtonCallback (cCallbackStub::buttonStub);
+  cMiniCallbackStub::getInstance (this)->mButtonFunc = bind (func, placeholders::_1);
+  setButtonCallback (cMiniCallbackStub::buttonStub);
   }
 //}}}
 //{{{
 void cMiniFB::setMoveFunc   (function <void (cMiniFB*)> func) {
-  cCallbackStub::getInstance (this)->mMoveFunc = bind (func, placeholders::_1);
-  setMoveCallback (cCallbackStub::moveStub);
+  cMiniCallbackStub::getInstance (this)->mMoveFunc = bind (func, placeholders::_1);
+  setMoveCallback (cMiniCallbackStub::moveStub);
   }
 //}}}
 //{{{
 void cMiniFB::setWheelFunc  (function <void (cMiniFB*)> func) {
-  cCallbackStub::getInstance (this)->mWheelFunc = bind (func, placeholders::_1);
-  setWheelCallback (cCallbackStub::wheelStub);
+  cMiniCallbackStub::getInstance (this)->mWheelFunc = bind (func, placeholders::_1);
+  setWheelCallback (cMiniCallbackStub::wheelStub);
   }
 //}}}
 //{{{
 void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
-  cCallbackStub::getInstance (this)->mEnterFunc = bind (func, placeholders::_1);
-  setEnterCallback (cCallbackStub::enterStub);
+  cMiniCallbackStub::getInstance (this)->mEnterFunc = bind (func, placeholders::_1);
+  setEnterCallback (cMiniCallbackStub::enterStub);
   }
 //}}}
 //}}}
@@ -1942,7 +1595,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       case KeyPress:
       //{{{
       case KeyRelease:
-        keyCode = (eKey)translateKey (event->xkey.keycode);
+        keyCode = (eMiniKey)translateKey (event->xkey.keycode);
         isDown = (event->type == KeyPress);
         modifierKeys = translateModEx (keyCode, event->xkey.state, isDown);
         keyStatus[keyCode] = isDown;
@@ -1981,7 +1634,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
         modifierKeys = translateMod (event->xkey.state);
 
         // swap 2 & 3 ?
-        ePointerButton button = (ePointerButton)event->xbutton.button;
+        eMiniPointerButton button = (eMiniPointerButton)event->xbutton.button;
         switch (button) {
           case Button1:
           case Button3:
@@ -2128,6 +1781,353 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
 #endif
 
 // private
+//{{{
+bool cMiniFB::init (const char* title, uint32_t width, uint32_t height, uint32_t flags) {
+
+  #ifdef _WIN32
+    //{{{  windows
+    loadFunctions();
+    dpiAware();
+
+    initKeycodes();
+    bufferWidth  = width;
+    bufferHeight = height;
+    bufferStride = width * 4;
+
+    int x = 0;
+    int y = 0;
+    RECT rect = { 0 };
+    long windowStyle = WS_POPUP | WS_SYSMENU | WS_CAPTION;
+    windowStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME;
+    if (flags & WF_FULLSCREEN) {
+      //{{{  fullscreen
+      flags = WF_FULLSCREEN;  // Remove all other flags
+      rect.right  = GetSystemMetrics (SM_CXSCREEN);
+      rect.bottom = GetSystemMetrics (SM_CYSCREEN);
+      windowStyle = WS_POPUP & ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
+
+      DEVMODE settings = { 0 };
+      EnumDisplaySettings (0, 0, &settings);
+      settings.dmPelsWidth  = GetSystemMetrics(SM_CXSCREEN);
+      settings.dmPelsHeight = GetSystemMetrics(SM_CYSCREEN);
+      settings.dmBitsPerPel = 32;
+      settings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+
+      if (ChangeDisplaySettings (&settings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
+        flags = WF_FULLSCREEN_DESKTOP;
+      }
+      //}}}
+    if (flags & WF_BORDERLESS)
+      windowStyle = WS_POPUP;
+    if (flags & WF_RESIZABLE)
+      windowStyle |= WS_MAXIMIZEBOX | WS_SIZEBOX;
+    if (flags & WF_FULLSCREEN_DESKTOP) {
+      //{{{  desktop
+      windowStyle = WS_OVERLAPPEDWINDOW;
+
+      width  = GetSystemMetrics (SM_CXFULLSCREEN);
+      height = GetSystemMetrics (SM_CYFULLSCREEN);
+
+      rect.right  = width;
+      rect.bottom = height;
+      AdjustWindowRect (&rect, windowStyle, 0);
+      if (rect.left < 0) {
+        width += rect.left * 2;
+        rect.right += rect.left;
+        rect.left = 0;
+        }
+      if (rect.bottom > (LONG) height) {
+        height -= (rect.bottom - height);
+        rect.bottom += (rect.bottom - height);
+        rect.top = 0;
+        }
+      }
+      //}}}
+    else if (!(flags & WF_FULLSCREEN)) {
+      //{{{  desktop fullscreen
+      float scale_x, scale_y;
+      getMonitorScale (&scale_x, &scale_y);
+
+      rect.right  = (LONG) (width  * scale_x);
+      rect.bottom = (LONG) (height * scale_y);
+      AdjustWindowRect(&rect, windowStyle, 0);
+
+      rect.right  -= rect.left;
+      rect.bottom -= rect.top;
+      x = (GetSystemMetrics(SM_CXSCREEN) - rect.right) / 2;
+      y = (GetSystemMetrics(SM_CYSCREEN) - rect.bottom + rect.top) / 2;
+      }
+      //}}}
+
+    wc.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
+    wc.lpfnWndProc = WndProc;
+    wc.hCursor = LoadCursor(0, IDC_ARROW);
+    wc.lpszClassName = title;
+    RegisterClass (&wc);
+
+    calcDstFactor (width, height);
+    windowWidth  = rect.right;
+    windowHeight = rect.bottom;
+    window = CreateWindowEx (0, title, title, windowStyle, x, y, windowWidth, windowHeight, 0, 0, 0, 0);
+    if (!window) {
+      //{{{  error, return
+      cLog::log (LOGERROR, fmt::format ("failed to create X11 window"));
+      return false;
+      }
+      //}}}
+
+    SetWindowLongPtr (window, GWLP_USERDATA, (LONG_PTR)this);
+    if (flags & WF_ALWAYS_ON_TOP)
+      SetWindowPos (window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    ShowWindow (window, SW_NORMAL);
+
+    hdc = GetDC (window);
+    createGLcontext();
+    cLog::log (LOGINFO, "using windows OpenGL");
+
+    #ifdef USE_WINTAB
+      // enable winTab, mainly for WT_PROXIMITY, get WT_PACKET
+      if (!winTabLoad (window))
+        cLog::log (LOGERROR, fmt::format ("winTab load failed"));
+    #endif
+
+    // enable WM_POINTER wndProc messaging, to tell mouse from pen
+    EnableMouseInPointer (true);
+    //}}}
+  #else
+    //{{{  X11
+    display = XOpenDisplay (0);
+    if (!display) {
+      //{{{  error, return
+      cLog::log (LOGERROR, fmt::format ("failed to create X11 display"));
+      return false;
+      }
+      //}}}
+
+    initKeycodes();
+    XAutoRepeatOff (display);
+
+    screen = DefaultScreen (display);
+    Visual* visual = DefaultVisual (display, screen);
+    //{{{  set format
+    int formatCount;
+    int convDepth = -1;
+    XPixmapFormatValues* formats = XListPixmapFormats (display, &formatCount);
+    int depth = DefaultDepth (display, screen);
+    Window defaultRootWindow = DefaultRootWindow (display);
+    for (int i = 0; i < formatCount; ++i) {
+      if (depth == formats[i].depth) {
+        convDepth = formats[i].bits_per_pixel;
+        break;
+        }
+      }
+    XFree (formats);
+
+    // We only support 32-bit right now
+    if (convDepth != 32) {
+      //{{{  error, return
+      cLog::log (LOGERROR, fmt::format ("failed to create 32 bir depth"));
+      XCloseDisplay (display);
+      return false;
+      }
+      //}}}
+    //}}}
+    //{{{  set width, height
+    int screenWidth = DisplayWidth (display, screen);
+    int screenHeight = DisplayHeight (display, screen);
+
+    XSetWindowAttributes windowAttributes;
+    windowAttributes.border_pixel = BlackPixel (display, screen);
+    windowAttributes.background_pixel = BlackPixel (display, screen);
+    windowAttributes.backing_store = NotUseful;
+
+    windowWidth  = width;
+    windowHeight = height;
+    bufferWidth  = width;
+    bufferHeight = height;
+    bufferStride = width * 4;
+    calcDstFactor (width, height);
+
+    int posX, posY;
+    int windowWidth, windowHeight;
+    if (flags & WF_FULLSCREEN_DESKTOP) {
+      //{{{  full screen desktop
+      posX = 0;
+      posY = 0;
+
+      windowWidth  = screenWidth;
+      windowHeight = screenHeight;
+      }
+      //}}}
+    else {
+      //{{{  window
+      posX = (screenWidth  - width)  / 2;
+      posY = (screenHeight - height) / 2;
+
+      windowWidth  = width;
+      windowHeight = height;
+      }
+      //}}}
+    //}}}
+
+    window = XCreateWindow (display, defaultRootWindow,
+                            posX, posY, windowWidth, windowHeight,
+                            0, depth, InputOutput, visual,
+                            CWBackPixel | CWBorderPixel | CWBackingStore,
+                            &windowAttributes);
+    if (!window) {
+      //{{{  error, return
+      cLog::log (LOGERROR, fmt::format ("failed to create X11 window"));
+      return false;
+      }
+      //}}}
+
+    XSelectInput (display, window,
+                  StructureNotifyMask | ExposureMask |
+                  FocusChangeMask |
+                  KeyPressMask | KeyReleaseMask |
+                  ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
+                  EnterWindowMask | LeaveWindowMask);
+    XStoreName (display, window, title);
+
+    if (flags & WF_BORDERLESS) {
+      //{{{  borderless
+      struct StyleHints {
+        unsigned long flags;
+        unsigned long functions;
+        unsigned long decorations;
+        long          inputMode;
+        unsigned long status;
+        } sh = {2, 0, 0, 0, 0};
+
+      Atom sh_p = XInternAtom (display, "_MOTIF_WM_HINTS", True);
+      XChangeProperty (display, window, sh_p, sh_p, 32,
+                       PropModeReplace, (unsigned char*)&sh, 5);
+      }
+      //}}}
+    if (flags & WF_ALWAYS_ON_TOP) {
+      //{{{  always on top
+      Atom sa_p = XInternAtom (display, "_NET_WM_STATE_ABOVE", False);
+      XChangeProperty (display, window,
+                       XInternAtom (display, "_NET_WM_STATE", False), XA_ATOM, 32,
+                       PropModeReplace, (unsigned char*)&sa_p, 1);
+      }
+      //}}}
+    if (flags & WF_FULLSCREEN) {
+      //{{{  full screen
+      Atom sf_p = XInternAtom (display, "_NET_WM_STATE_FULLSCREEN", True);
+      XChangeProperty (display, window,
+                       XInternAtom (display, "_NET_WM_STATE", True), XA_ATOM, 32,
+                       PropModeReplace, (unsigned char*)&sf_p, 1);
+      }
+      //}}}
+
+    gDeleteWindowAtom = XInternAtom (display, "WM_DELETE_WINDOW", False);
+    XSetWMProtocols (display, window, &gDeleteWindowAtom, 1);
+
+    if (!createGLcontext()) {
+      //{{{  error, return
+      cLog::log (LOGERROR, fmt::format ("failed to create X11 GL context"));
+      return false;
+      }
+      //}}}
+
+    //{{{  set sizeHints
+    XSizeHints sizeHints;
+    sizeHints.flags = PPosition | PMinSize | PMaxSize;
+    sizeHints.x = 0;
+    sizeHints.y = 0;
+    sizeHints.min_width  = width;
+    sizeHints.min_height = height;
+    if (flags & WF_RESIZABLE) {
+      //{{{  resizable
+      sizeHints.max_width  = screenWidth;
+      sizeHints.max_height = screenHeight;
+      }
+      //}}}
+    else {
+      //{{{  not resizable
+      sizeHints.max_width  = width;
+      sizeHints.max_height = height;
+      }
+      //}}}
+    XSetWMNormalHints (display, window, &sizeHints);
+    //}}}
+    XClearWindow (display, window);
+    XMapRaised (display, window);
+    XFlush (display);
+
+    gc = DefaultGC (display, screen);
+    cLog::log (LOGINFO, "using X11 API");
+
+    int32_t count;
+    XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (display, &count);
+    if (!devices) {
+      //{{{  error, return
+      cLog::log (LOGERROR, fmt::format ("failed to find X11 input device list"));
+      return false;
+      }
+      //}}}
+    //{{{  search device list for "stylus"
+    cLog::log (LOGINFO, fmt::format ("X11 input devices"));
+
+    for (int32_t i = 0; i < count; i++) {
+      cLog::log (LOGINFO, fmt::format ("- device:{} name:{} id:{}", i, devices[i].name, devices[i].id));
+      if (strstr (devices[i].name, "stylus")) { // "eraser"
+        gDevice = XOpenDevice (display, devices[i].id);
+        XAnyClassPtr classPtr = devices[i].inputclassinfo;
+        for (int32_t j = 0; j < devices[i].num_classes; j++) {
+          switch (classPtr->c_class) {
+            case ValuatorClass: {
+              XValuatorInfo* valuatorInfo = (XValuatorInfo*)classPtr;
+              if (valuatorInfo->num_axes > 0) {
+                // x
+                int32_t minX = valuatorInfo->axes[0].min_value;
+                gRangeX = valuatorInfo->axes[0].max_value;
+                cLog::log (LOGINFO, fmt::format ("- stylus xRange {}:{}", minX, gRangeX));
+                }
+
+              if (valuatorInfo->num_axes > 1) {
+                // y
+                int32_t minY = valuatorInfo->axes[1].min_value;
+                gRangeY = valuatorInfo->axes[1].max_value;
+                cLog::log (LOGINFO, fmt::format ("- stylus yRange {}:{}", minY, gRangeY));
+                }
+
+              if (valuatorInfo->num_axes > 2) {
+                // pressure
+                int32_t minPressure = valuatorInfo->axes[2].min_value;
+                gMaxPressure = valuatorInfo->axes[2].max_value;
+                cLog::log (LOGINFO, fmt::format ("- stylus pressureRange {}:{}", minPressure, gMaxPressure));
+                }
+
+              XEventClass eventClass;
+              DeviceMotionNotify (gDevice, gMotionType, eventClass);
+              if (eventClass) {
+                gEventClasses[gNumEventClasses] = eventClass;
+                gNumEventClasses++;
+                }
+              }
+              break;
+
+            default:
+              cLog::log (LOGINFO, fmt::format ("- unused class:{}", classPtr->c_class));
+              break;
+            }
+          classPtr = (XAnyClassPtr)((uint8_t*)classPtr + classPtr->length);
+          }
+        }
+      XSelectExtensionEvent (display, window, gEventClasses, gNumEventClasses);
+      }
+    XFreeDeviceList (devices);
+    //}}}
+    //}}}
+  #endif
+
+  isInitialized = true;
+  return true;
+  }
+//}}}
 //{{{
 bool cMiniFB::createGLcontext() {
 

@@ -1,4 +1,4 @@
-// cMiniFB.h - mini frameBuffer, based on https://github.com/emoon/minifb but hacked to death
+// cMiniFB.h - mini frameBuffer, based on https://github.com/emoon/minifb, but hacked to death
 #pragma once
 //{{{  includes
 #include <cstdint>
@@ -15,7 +15,7 @@
 
 // enums
 //{{{
-enum eFlags {
+enum eMiniFlags {
               WF_RESIZABLE          = 0x01,
               WF_FULLSCREEN         = 0x02,
               WF_FULLSCREEN_DESKTOP = 0x04,
@@ -23,7 +23,7 @@ enum eFlags {
               WF_ALWAYS_ON_TOP      = 0x10 };
 //}}}
 //{{{
-enum eUpdateState {
+enum eMiniState {
                     STATE_OK             =  0,
                     STATE_EXIT           = -1,
                     STATE_INVALID_WINDOW = -2,
@@ -32,7 +32,7 @@ enum eUpdateState {
 //}}}
 
 //{{{
-enum ePointerButton {
+enum eMiniPointerButton {
   MOUSE_BTN_0,
   MOUSE_BTN_1,
   MOUSE_BTN_2,
@@ -48,7 +48,7 @@ enum ePointerButton {
 #define MOUSE_MIDDLE MOUSE_BTN_3
 
 //{{{
-enum eKeyModifier {
+enum eMiniKeyModifier {
   KB_MOD_SHIFT     = 0x0001,
   KB_MOD_CONTROL   = 0x0002,
   KB_MOD_ALT       = 0x0004,
@@ -58,7 +58,7 @@ enum eKeyModifier {
   };
 //}}}
 //{{{
-enum eKey {
+enum eMiniKey {
   KB_KEY_UNKNOWN       = -1,
 
   KB_KEY_SPACE         = 32,
@@ -191,13 +191,12 @@ class cMiniFB {
 public:
   // static
   static cMiniFB* create (const char* title, uint32_t width, uint32_t height, uint32_t flags);
-  static const char* getKeyName (eKey key);
+  static const char* getKeyName (eMiniKey key);
 
   //
-  bool init (const char* title, uint32_t width, uint32_t height, uint32_t flags);
-  eUpdateState update (void* buffer);
-  eUpdateState updateEx (void* buffer, uint32_t width, uint32_t height);
-  eUpdateState updateEvents();
+  eMiniState update (void* buffer);
+  eMiniState updateEx (void* buffer, uint32_t width, uint32_t height);
+  eMiniState updateEvents();
   void close();
 
   // gets
@@ -288,7 +287,7 @@ public:
   bool     closed = false;
 
   uint32_t codepoint = 0;
-  eKey     keyCode = eKey(0);
+  eMiniKey keyCode = eMiniKey(0);
   uint8_t  keyStatus[512] = {0};
   uint32_t modifierKeys = 0;
 
@@ -323,6 +322,7 @@ private:
     void processEvent (XEvent* event);
   #endif
 
+  bool init (const char* title, uint32_t width, uint32_t height, uint32_t flags);
   bool createGLcontext();
   void initGL();
   void initKeycodes();
@@ -340,12 +340,12 @@ private:
   };
 //}}}
 //{{{
-class cCallbackStub {
+class cMiniCallbackStub {
 public:
-  cCallbackStub() {}
+  cMiniCallbackStub() {}
 
   // statics
-  static cCallbackStub* getInstance (cMiniFB* miniFB);
+  static cMiniCallbackStub* getInstance (cMiniFB* miniFB);
 
   static void activeStub (cMiniFB* miniFB);
   static void resizeStub (cMiniFB* miniFB);
