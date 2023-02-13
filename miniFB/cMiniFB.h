@@ -190,12 +190,12 @@ enum eKey {
 class cMiniFB {
 public:
   // static
-  static cMiniFB* create (const char* title, unsigned width, unsigned height, unsigned flags);
+  static cMiniFB* create (const char* title, uint32_t width, uint32_t height, uint32_t flags);
   static const char* getKeyName (eKey key);
 
   //
   eUpdateState update (void* buffer);
-  eUpdateState updateEx (void* buffer, unsigned width, unsigned height);
+  eUpdateState updateEx (void* buffer, uint32_t width, uint32_t height);
   eUpdateState updateEvents();
   void close();
 
@@ -219,8 +219,8 @@ public:
 
   // sets
   void setUserData (void* user_data) { userData = user_data; }
-  bool setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height);
-  bool setViewportBestFit (unsigned old_width, unsigned old_height);
+  bool setViewport (uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height);
+  bool setViewportBestFit (uint32_t oldWidth, uint32_t oldHeight);
   //{{{  set C style callbacks
   void setActiveCallback (void(*callback)(cMiniFB* miniFB));
   void setResizeCallback (void(*callback)(cMiniFB* miniFB));

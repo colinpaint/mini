@@ -1,4 +1,5 @@
 // cMiniFB.cpp
+#define USE_WINTAB
 //{{{  includes
 #include "cMiniFB.h"
 #include <vector>
@@ -35,6 +36,205 @@ using namespace std;
 //}}}
 
 namespace {
+  #ifdef USE_WINTAB
+    //{{{  use wintab
+    //{{{
+    // Use this enum in conjunction with winTab->Buttons to check for tablet button presses.
+    //  e.g. To check for lower pen button press, use:
+    //    if (winTab->Buttons & eWinTabButtons_Pen_Lower) {
+    //      Lower button is pressed
+    enum eWinTabButtons_ {
+      eWinTabButtons_Pen_Touch = 1, // Pen touching tablet
+      eWinTabButtons_Pen_Lower = 2, // Lower pen button pressed
+      eWinTabButtons_Pen_Upper = 4, // Upper pen button pressed
+      };
+    //}}}
+    //{{{  WTfunction addresses
+    typedef UINT (WINAPI* WTINFOA) (UINT, UINT, LPVOID);
+    typedef HCTX (WINAPI* WTOPENA) (HWND, LPLOGCONTEXTA, BOOL);
+
+    typedef bool (WINAPI* WTGETA) (HCTX, LPLOGCONTEXTA);
+    typedef bool (WINAPI* WTSETA) (HCTX, LPLOGCONTEXTA);
+
+    typedef bool (WINAPI* WTCLOSE) (HCTX);
+    typedef bool (WINAPI* WTPACKET) (HCTX, UINT, LPVOID);
+    typedef bool (WINAPI* WTENABLE) (HCTX, BOOL);
+    typedef bool (WINAPI* WTOVERLAP) (HCTX, BOOL);
+
+    typedef bool (WINAPI* WTSAVE) (HCTX, LPVOID);
+    typedef bool (WINAPI* WTCONFIG) (HCTX, HWND);
+    typedef HCTX (WINAPI* WTRESTORE) (HWND, LPVOID, BOOL);
+
+    typedef bool (WINAPI* WTEXTSET) (HCTX, UINT, LPVOID);
+    typedef bool (WINAPI* WTEXTGET) (HCTX, UINT, LPVOID);
+
+    typedef bool (WINAPI* WTQUEUESIZESET) (HCTX, int);
+    typedef int  (WINAPI* WTDATAPEEK) (HCTX, UINT, UINT, int, LPVOID, LPINT);
+    typedef int  (WINAPI* WTPACKETSGET) (HCTX, int, LPVOID);
+
+    typedef HMGR (WINAPI* WTMGROPEN) (HWND, UINT);
+    typedef bool (WINAPI* WTMGRCLOSE) (HMGR);
+    typedef HCTX (WINAPI* WTMGRDEFCONTEXT) (HMGR, BOOL);
+    typedef HCTX (WINAPI* WTMGRDEFCONTEXTEX) (HMGR, UINT, BOOL);
+    //}}}
+    //{{{
+    struct sWinTabInfo {
+      int32_t mPosX;
+      int32_t mPosY;
+      float mPressure; // Range: 0.0f to 1.0f
+      int32_t mButtons;  // Bit field. Use with the eWinTabButtons_ enum.
+
+      DWORD mTime;
+
+      int32_t mRangeX;
+      int32_t mRangeY;
+      int32_t mMaxPressure;
+
+      HINSTANCE mDll;
+      HCTX mContext;
+
+      WTINFOA           mWTInfoA;
+      WTOPENA           mWTOpenA;
+
+      WTGETA            mWTGetA;
+      WTSETA            mWTSetA;
+
+      WTCLOSE           mWTClose;
+      WTPACKET          mWTPacket;
+      WTENABLE          mWTEnable;
+
+      WTOVERLAP         mWTOverlap;
+      WTSAVE            mWTSave;
+      WTCONFIG          mWTConfig;
+      WTRESTORE         mWTRestore;
+
+      WTEXTSET          mWTExtSet;
+      WTEXTGET          mWTExtGet;
+
+      WTQUEUESIZESET    mWTQueueSizeSet;
+      WTDATAPEEK        mWTDataPeek;
+      WTPACKETSGET      mWTPacketsGet;
+
+      WTMGROPEN         mWTMgrOpen;
+      WTMGRCLOSE        mWTMgrClose;
+      WTMGRDEFCONTEXT   mWTMgrDefContext;
+      WTMGRDEFCONTEXTEX mWTMgrDefContextEx;
+      };
+    //}}}
+
+    sWinTabInfo* gWinTab = nullptr;
+
+    //{{{
+    bool winTabLoad (HWND window) {
+
+      gWinTab = (sWinTabInfo*)calloc (1, sizeof(sWinTabInfo));
+      if (!gWinTab)
+        return false;
+
+      // load wintab32.dll, get function addresses
+      gWinTab->mDll = LoadLibraryA ("Wintab32.dll");
+      if (!gWinTab->mDll) {
+        //{{{  error, return
+        cLog::log (LOGERROR, fmt::format ("Wintab32.dll not found"));
+        return false;
+        }
+        //}}}
+
+      //{{{  get WT function addresses
+      gWinTab->mWTInfoA = (WTINFOA)GetProcAddress (gWinTab->mDll, "WTInfoA");
+      gWinTab->mWTOpenA = (WTOPENA)GetProcAddress (gWinTab->mDll, "WTOpenA");
+
+      gWinTab->mWTGetA = (WTGETA)GetProcAddress (gWinTab->mDll, "WTGetA");
+      gWinTab->mWTSetA = (WTSETA)GetProcAddress (gWinTab->mDll, "WTSetA");
+
+      gWinTab->mWTClose = (WTCLOSE)GetProcAddress (gWinTab->mDll, "WTClose");
+      gWinTab->mWTPacket = (WTPACKET)GetProcAddress (gWinTab->mDll, "WTPacket");
+      gWinTab->mWTEnable = (WTENABLE)GetProcAddress (gWinTab->mDll, "WTEnable");
+      gWinTab->mWTOverlap = (WTOVERLAP)GetProcAddress (gWinTab->mDll, "WTOverlap");
+
+      gWinTab->mWTSave = (WTSAVE)GetProcAddress (gWinTab->mDll, "WTSave");
+      gWinTab->mWTConfig = (WTCONFIG)GetProcAddress (gWinTab->mDll, "WTConfig");
+      gWinTab->mWTRestore = (WTRESTORE)GetProcAddress (gWinTab->mDll, "WTRestore");
+
+      gWinTab->mWTExtSet = (WTEXTSET)GetProcAddress (gWinTab->mDll, "WTExtSet");
+      gWinTab->mWTExtGet = (WTEXTGET)GetProcAddress (gWinTab->mDll, "WTExtGet");
+
+      gWinTab->mWTQueueSizeSet = (WTQUEUESIZESET)GetProcAddress (gWinTab->mDll, "WTQueueSizeSet");
+      gWinTab->mWTDataPeek = (WTDATAPEEK)GetProcAddress (gWinTab->mDll, "WTDataPeek");
+      gWinTab->mWTPacketsGet = (WTPACKETSGET)GetProcAddress (gWinTab->mDll, "WTPacketsGet");
+
+      gWinTab->mWTMgrOpen = (WTMGROPEN)GetProcAddress (gWinTab->mDll, "WTMgrOpen");
+      gWinTab->mWTMgrClose = (WTMGRCLOSE)GetProcAddress (gWinTab->mDll, "WTMgrClose");
+
+      gWinTab->mWTMgrDefContext = (WTMGRDEFCONTEXT)GetProcAddress (gWinTab->mDll, "WTMgrDefContext");
+      gWinTab->mWTMgrDefContextEx = (WTMGRDEFCONTEXTEX)GetProcAddress (gWinTab->mDll, "WTMgrDefContextEx");                \
+      //}}}
+
+      if (!gWinTab->mWTInfoA (0, 0, NULL)) {
+        //{{{  error, return
+        cLog::log (LOGERROR, fmt::format ("winTab services not available"));
+        return false;
+        }
+        //}}}
+
+      LOGCONTEXTA logContext = {0};
+      gWinTab->mWTInfoA (WTI_DEFSYSCTX, 0, &logContext);
+      logContext.lcPktData = PACKETDATA;
+      logContext.lcOptions |= CXO_MESSAGES | CXO_SYSTEM; // | CXO_PEN;
+      logContext.lcPktMode = 0;   // absolute mode
+      logContext.lcMoveMask = PACKETDATA;
+      logContext.lcBtnUpMask = logContext.lcBtnDnMask;
+
+      logContext.lcOutOrgX = 0;
+      logContext.lcOutOrgY = 0;
+      logContext.lcOutExtX = GetSystemMetrics (SM_CXSCREEN);
+      logContext.lcOutExtY = -GetSystemMetrics (SM_CYSCREEN);
+
+      logContext.lcSysOrgX = 0;
+      logContext.lcSysOrgY = 0;
+      logContext.lcSysExtX = GetSystemMetrics (SM_CXSCREEN);
+      logContext.lcSysExtY = GetSystemMetrics (SM_CYSCREEN);
+
+      gWinTab->mContext = gWinTab->mWTOpenA (window, &logContext, TRUE);
+      if (!gWinTab->mContext) {
+        //{{{  error, return
+        cLog::log (LOGERROR, fmt::format ("winTab failed to open"));
+        return false;
+        }
+        //}}}
+
+      AXIS rangeX = {0};
+      gWinTab->mWTInfoA (WTI_DEVICES, DVC_X, &rangeX);
+      gWinTab->mRangeX = rangeX.axMax;
+
+      AXIS rangeY = {0};
+      gWinTab->mWTInfoA (WTI_DEVICES, DVC_Y, &rangeY);
+      gWinTab->mRangeY = rangeY.axMax;
+
+      AXIS pressure = {0};
+      gWinTab->mWTInfoA (WTI_DEVICES, DVC_NPRESSURE, &pressure);
+      gWinTab->mMaxPressure = pressure.axMax;
+
+      return true;
+      }
+    //}}}
+    //{{{
+    void winTabUnload() {
+
+      if (gWinTab->mContext)
+        gWinTab->mWTClose (gWinTab->mContext);
+
+      if (gWinTab->mDll)
+        FreeLibrary (gWinTab->mDll);
+
+      free (gWinTab);
+
+      gWinTab = nullptr;
+      }
+    //}}}
+    //}}}
+  #endif
+
   int16_t gKeycodes[512] = { 0 };
   #ifdef _WIN32
     //{{{  windows
@@ -285,7 +485,7 @@ namespace {
       }
     //}}}
     //{{{
-    eKey translateKey (unsigned int wParam, unsigned long lParam) {
+    eKey translateKey (WPARAM wParam, LPARAM lParam) {
 
       if (wParam == VK_CONTROL) {
         if (lParam & 0x01000000)
@@ -399,7 +599,7 @@ namespace {
         //{{{
         case WM_KEYUP:
           if (miniFB) {
-            eKey keyCode = translateKey ((unsigned int)wParam, (unsigned long)lParam);
+            eKey keyCode = translateKey (wParam, lParam);
             miniFB->isPressed = !((lParam >> 31) & 1);
             miniFB->modifierKeys = translateMod();
 
@@ -462,7 +662,7 @@ namespace {
                 gWinTab->mButtons = packet.pkButtons;
                 gWinTab->mTime = packet.pkTime;
 
-                cLog::log (LOGminiFB, fmt::format ("WT_PACKET press:{} time:{}", gWinTab->mPressure, gWinTab->mTime));
+                cLog::log (LOGINFO, fmt::format ("WT_PACKET press:{} time:{}", gWinTab->mPressure, gWinTab->mTime));
                 }
               else
                 cLog::log (LOGERROR, fmt::format ("WT_PACKET no packet"));
@@ -732,10 +932,12 @@ namespace {
     //typedef void (*PFNGLXSWAPINTERVALEXTPROC)(Display*,GLXDrawable,int);
     //PFNGLXSWAPINTERVALEXTPROC SwapIntervalEXT = 0x0;
     Atom gDeleteWindowAtom;
+
     XDevice* gDevice = nullptr;
     uint32_t gMotionType = 0;
     uint32_t gNumEventClasses = 0;
     XEventClass gEventClasses[16];
+
     int32_t gRangeX = 0;
     int32_t gRangeY = 0;
     int32_t gMaxPressure = 0;
@@ -929,6 +1131,7 @@ namespace {
       return gKeycodes[scancode];
       }
     //}}}
+
     //{{{
     int translateMod (int state) {
 
@@ -1003,9 +1206,89 @@ namespace {
     //}}}
   #endif
   }
-
+//{{{  cCallbackStub
 //{{{
-cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, unsigned flags) {
+cCallbackStub* cCallbackStub::getInstance (cMiniFB* miniFB) {
+
+  //{{{
+  struct stub_vector {
+    vector<cCallbackStub*> instances;
+
+    stub_vector() = default;
+    //{{{
+    ~stub_vector() {
+      for (cCallbackStub* instance : instances)
+        delete instance;
+      }
+    //}}}
+
+    cCallbackStub* Get (cMiniFB *miniFB) {
+      for (cCallbackStub *instance : instances) {
+        if( instance->mMiniFB == miniFB) {
+          return instance;
+          }
+        }
+      instances.push_back (new cCallbackStub);
+      instances.back()->mMiniFB = miniFB;
+      return instances.back();
+      }
+    };
+  //}}}
+  static stub_vector gInstances;
+
+  return gInstances.Get (miniFB);
+  }
+//}}}
+//{{{
+void cCallbackStub::activeStub (cMiniFB* miniFB) {
+  cCallbackStub::getInstance (miniFB)->mActiveFunc (miniFB);
+  }
+//}}}
+//{{{
+void cCallbackStub::resizeStub (cMiniFB* miniFB) {
+  cCallbackStub::getInstance (miniFB)->mResizeFunc (miniFB);
+  }
+//}}}
+//{{{
+bool cCallbackStub::closeStub  (cMiniFB* miniFB) {
+  return cCallbackStub::getInstance (miniFB)->mCloseFunc (miniFB);
+  }
+//}}}
+//{{{
+void cCallbackStub::keyStub    (cMiniFB* miniFB) {
+  cCallbackStub::getInstance (miniFB)->mKeyFunc(miniFB);
+  }
+//}}}
+//{{{
+void cCallbackStub::charStub   (cMiniFB* miniFB) {
+  cCallbackStub::getInstance (miniFB)->mCharFunc(miniFB);
+  }
+//}}}
+//{{{
+void cCallbackStub::buttonStub (cMiniFB* miniFB) {
+  cCallbackStub::getInstance (miniFB)->mButtonFunc(miniFB);
+  }
+//}}}
+//{{{
+void cCallbackStub::moveStub   (cMiniFB* miniFB) {
+  cCallbackStub::getInstance (miniFB)->mMoveFunc(miniFB);
+  }
+//}}}
+//{{{
+void cCallbackStub::wheelStub  (cMiniFB* miniFB) {
+  cCallbackStub::getInstance (miniFB)->mWheelFunc(miniFB);
+  }
+//}}}
+//{{{
+void cCallbackStub::enterStub  (cMiniFB* miniFB) {
+  cCallbackStub::getInstance (miniFB)->mEnterFunc(miniFB);
+  }
+//}}}
+//}}}
+
+// cMiniFB
+//{{{
+cMiniFB* cMiniFB::create (const char* title, uint32_t width, uint32_t height, uint32_t flags) {
 
   cMiniFB* miniFB = new cMiniFB();
   if (!miniFB) {
@@ -1367,7 +1650,7 @@ cMiniFB* cMiniFB::create (const char* title, unsigned width, unsigned height, un
   }
 //}}}
 //{{{
-eUpdateState cMiniFB::updateEx (void* buffer, unsigned width, unsigned height) {
+eUpdateState cMiniFB::updateEx (void* buffer, uint32_t width, uint32_t height) {
 
   if (closed) {
     freeResources();
@@ -1607,31 +1890,31 @@ void cMiniFB::getMonitorScale (float* scale_x, float* scale_y) {
 
 // sets
 //{{{
-bool cMiniFB::setViewportBestFit (unsigned old_width, unsigned old_height) {
+bool cMiniFB::setViewportBestFit (uint32_t oldWidth, uint32_t oldHeight) {
 
-  unsigned newWidth  = windowWidth;
-  unsigned newHeight = windowHeight;
+  uint32_t newWidth  = windowWidth;
+  uint32_t newHeight = windowHeight;
 
-  float scale_x = newWidth  / (float) old_width;
-  float scale_y = newHeight / (float) old_height;
+  float scale_x = newWidth  / (float) oldWidth;
+  float scale_y = newHeight / (float) oldHeight;
   if (scale_x >= scale_y)
     scale_x = scale_y;
   else
     scale_y = scale_x;
 
-  unsigned finalWidth  = (unsigned)((old_width  * scale_x) + 0.5f);
-  unsigned finalHeight = (unsigned)((old_height * scale_y) + 0.5f);
+  uint32_t finalWidth  = (uint32_t)((oldWidth  * scale_x) + 0.5f);
+  uint32_t finalHeight = (uint32_t)((oldHeight * scale_y) + 0.5f);
 
-  unsigned offset_x = (newWidth  - finalWidth)  >> 1;
-  unsigned offset_y = (newHeight - finalHeight) >> 1;
+  uint32_t offset_x = (newWidth  - finalWidth)  >> 1;
+  uint32_t offset_y = (newHeight - finalHeight) >> 1;
 
   getMonitorScale (&scale_x, &scale_y);
-  return setViewport ((unsigned)(offset_x / scale_x), (unsigned)(offset_y / scale_y),
-                      (unsigned)(finalWidth / scale_x), (unsigned)(finalHeight / scale_y));
+  return setViewport ((uint32_t)(offset_x / scale_x), (uint32_t)(offset_y / scale_y),
+                      (uint32_t)(finalWidth / scale_x), (uint32_t)(finalHeight / scale_y));
   }
 //}}}
 //{{{
-bool cMiniFB::setViewport (unsigned offset_x, unsigned offset_y, unsigned width, unsigned height) {
+bool cMiniFB::setViewport (uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height) {
 
   if (offset_x + width > windowWidth)
     return false;
@@ -2308,82 +2591,3 @@ void cMiniFB::freeResources() {
     }
   //}}}
 #endif
-
-// cCallbackStub
-//{{{
-cCallbackStub* cCallbackStub::getInstance (cMiniFB* miniFB) {
-
-  //{{{
-  struct stub_vector {
-    vector<cCallbackStub*> instances;
-
-    stub_vector() = default;
-    //{{{
-    ~stub_vector() {
-      for (cCallbackStub* instance : instances)
-        delete instance;
-      }
-    //}}}
-
-    cCallbackStub* Get (cMiniFB *miniFB) {
-      for (cCallbackStub *instance : instances) {
-        if( instance->mMiniFB == miniFB) {
-          return instance;
-          }
-        }
-      instances.push_back (new cCallbackStub);
-      instances.back()->mMiniFB = miniFB;
-      return instances.back();
-      }
-    };
-  //}}}
-  static stub_vector gInstances;
-
-  return gInstances.Get (miniFB);
-  }
-//}}}
-//{{{
-void cCallbackStub::activeStub (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mActiveFunc (miniFB);
-  }
-//}}}
-//{{{
-void cCallbackStub::resizeStub (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mResizeFunc (miniFB);
-  }
-//}}}
-//{{{
-bool cCallbackStub::closeStub  (cMiniFB* miniFB) {
-  return cCallbackStub::getInstance (miniFB)->mCloseFunc (miniFB);
-  }
-//}}}
-//{{{
-void cCallbackStub::keyStub    (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mKeyFunc(miniFB);
-  }
-//}}}
-//{{{
-void cCallbackStub::charStub   (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mCharFunc(miniFB);
-  }
-//}}}
-//{{{
-void cCallbackStub::buttonStub (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mButtonFunc(miniFB);
-  }
-//}}}
-//{{{
-void cCallbackStub::moveStub   (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mMoveFunc(miniFB);
-  }
-//}}}
-//{{{
-void cCallbackStub::wheelStub  (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mWheelFunc(miniFB);
-  }
-//}}}
-//{{{
-void cCallbackStub::enterStub  (cMiniFB* miniFB) {
-  cCallbackStub::getInstance (miniFB)->mEnterFunc(miniFB);
-  }
-//}}}
