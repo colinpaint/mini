@@ -1025,7 +1025,7 @@ string cMiniFB::getKeyName (eMiniKey key) {
 //{{{
 eMiniState cMiniFB::update (void* buffer) {
 
-  if (closed) {
+  if (isClosed) {
     freeResources();
     return STATE_EXIT;
     }
@@ -1042,20 +1042,20 @@ eMiniState cMiniFB::update (void* buffer) {
 //{{{
 eMiniState cMiniFB::updateEvents() {
 
-  if (closed) {
+  if (isClosed) {
     freeResources();
     return STATE_EXIT;
     }
 
   #ifdef _WIN32
     MSG msg;
-    while (!closed && PeekMessage (&msg, window, 0, 0, PM_REMOVE)) {
+    while (!isClosed && PeekMessage (&msg, window, 0, 0, PM_REMOVE)) {
       TranslateMessage (&msg);
       DispatchMessage (&msg);
       }
   #else
     XFlush (display);
-    while (!closed && XPending (display)) {
+    while (!isClosed && XPending (display)) {
       XEvent event;
       XNextEvent (display, &event);
       processEvent (&event);
@@ -1250,27 +1250,27 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       case WM_CLOSE:
         // Obtain a confirmation of close
         if (!closeFunc || closeFunc (this)) {
-          closed = true;
+          isClosed = true;
           DestroyWindow (window);
           }
         break;
       //}}}
       //{{{
       case WM_DESTROY:
-        closed = true;
+        isClosed = true;
         break;
       //}}}
 
       //{{{
       case WM_SETFOCUS:
-         isActive = true;
+        isWindowActive = true;
         if (activeFunc)
           activeFunc (this);
         break;
       //}}}
       //{{{
       case WM_KILLFOCUS:
-        isActive = false;
+        isWindowActive = false;
         if (activeFunc)
           activeFunc (this);
         break;
@@ -1282,13 +1282,13 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       //{{{
       case WM_KEYUP: {
         keyCode = translateKey (wParam, lParam);
-        isPressed = !((lParam >> 31) & 1);
+        isKeyPressed = !((lParam >> 31) & 1);
         modifierKeys = translateMod();
 
         if (keyCode == KB_KEY_UNKNOWN)
           return 0;
 
-        keyStatus[keyCode] = (uint8_t)isPressed;
+        keyStatus[keyCode] = (uint8_t)isKeyPressed;
         if (keyFunc)
           keyFunc (this);
         break;
@@ -1725,7 +1725,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
 
       //{{{
       case FocusIn:
-        isActive = true;
+        isWindowActive = true;
         if (activeFunc)
           activeFunc (this);
 
@@ -1733,7 +1733,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       //}}}
       //{{{
       case FocusOut:
-        isActive = false;
+        isWindowActive = false;
         if (activeFunc)
           activeFunc (this);
 
@@ -1742,7 +1742,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
 
       //{{{
       case DestroyNotify:
-        closed = true;
+        isClosed = true;
         return;
       //}}}
       //{{{
@@ -1752,7 +1752,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
           if (!closeFunc || closeFunc (this))
             destroy = true;
           if (destroy) {
-            closed = true;
+            isClosed = true;
             return;
             }
           }
@@ -2294,7 +2294,7 @@ void cMiniFB::freeResources() {
 
   // not sure why ?
   drawBuffer = nullptr;
-  closed = true;
+  isClosed = true;
   }
 //}}}
 

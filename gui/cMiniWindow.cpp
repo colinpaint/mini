@@ -45,7 +45,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   // state funcs
   //{{{
   mMiniFB->setActiveFunc ([&](cMiniFB* miniFB) {
-    cLog::log (LOGINFO, fmt::format ("active {} unused", miniFB->isWindowActive()));
+    cLog::log (LOGINFO, fmt::format ("active {} unused", miniFB->getWindowActive()));
     });
   //}}}
   //{{{
@@ -79,12 +79,14 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   //{{{
   mMiniFB->setKeyFunc ([&](cMiniFB* miniFB) {
     if (miniFB->getKeyCode() == KB_KEY_ESCAPE)
-    miniFB->close();
+      miniFB->close();
 
-    if (miniFB->getPressed())
+    if (miniFB->getKeyPressed())
       if (!keyDown (miniFB->getKeyCode()))
         cLog::log (LOGINFO, fmt::format ("keyboard key:{} pressed:{} mod:{}",
-                                         cMiniFB::getKeyName (miniFB->getKeyCode()), miniFB->getPressed(), (int)miniFB->getModifierKeys()));
+                                         cMiniFB::getKeyName (miniFB->getKeyCode()), 
+                                         miniFB->getKeyPressed(), 
+                                         (int)miniFB->getModifierKeys()));
     });
   //}}}
   //{{{

@@ -193,10 +193,10 @@ public:
 
   eMiniState update (void* buffer);
   eMiniState updateEvents();
-  void close() { closed = true; }
+  void close() { isClosed = true; }
 
-  // gets
-  bool isWindowActive() const { return isActive; }
+  //{{{  gets
+  bool getWindowActive() const { return isWindowActive; }
   unsigned getWindowWidth() const { return windowWidth; }
   unsigned getWindowHeight() const { return windowHeight; }
   unsigned getWindowScaledWidth() const { return windowScaledWidth; }
@@ -212,7 +212,7 @@ public:
   float getPointerWheelX() const { return pointerWheelX; }
   float getPointerWheelY() const { return pointerWheelY; }
 
-  bool getPressed() const { return isPressed; }
+  bool getKeyPressed() const { return isKeyPressed; }
   eMiniKey getKeyCode() const { return keyCode; }
   uint32_t getModifierKeys() const { return modifierKeys; }
 
@@ -221,12 +221,13 @@ public:
 
   void* getUserData() { return userData; }
   void getMonitorScale (float* scale_x, float* scale_y);
-
-  // sets
+  //}}}
+  //{{{  sets
   void setUserData (void* user_data) { userData = user_data; }
   bool setViewport (uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height);
   bool setViewportBestFit (uint32_t oldWidth, uint32_t oldHeight);
-  //{{{  set C style callbacks
+
+  // C style callbacks
   void setActiveCallback (void(*callback)(cMiniFB* miniFB));
   void setResizeCallback (void(*callback)(cMiniFB* miniFB));
   void setCloseCallback  (bool(*callback)(cMiniFB* miniFB));
@@ -236,8 +237,8 @@ public:
   void setMoveCallback   (void(*callback)(cMiniFB* miniFB));
   void setWheelCallback  (void(*callback)(cMiniFB* miniFB));
   void setEnterCallback  (void(*callback)(cMiniFB* miniFB));
-  //}}}
-  //{{{  set function style callbacks
+
+  // function style callbacks
   void setActiveFunc (std::function <void (cMiniFB*)> func);
   void setResizeFunc (std::function <void (cMiniFB*)> func);
   void setCloseFunc  (std::function <bool (cMiniFB*)> func);
@@ -249,24 +250,25 @@ public:
   void setEnterFunc  (std::function <void (cMiniFB*)> func);
   //}}}
 
+  // event handler
   #ifdef _WIN32
     LRESULT CALLBACK processMessage (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-  #endif
-
-private:
-  #ifndef _WIN32
+  #else
     void processEvent (XEvent* event);
   #endif
 
+private:
   bool init (const std::string& title, uint32_t width, uint32_t height, uint32_t flags);
   void initKeycodes();
   void freeResources();
 
+  //{{{  openGL
   bool createGLcontext();
   void initGL();
   void resizeGL();
   void redrawGL (const void* pixels);
   void destroyGLcontext();
+  //}}}
 
   void resizeDst (uint32_t width, uint32_t height);
   void calcDstFactor (uint32_t width, uint32_t height);
@@ -304,18 +306,18 @@ private:
   uint32_t bufferHeight = 0;
   uint32_t bufferStride = 0;
 
-  uint32_t isPressed = 0;
-  bool     isActive = false;
   bool     isInitialized = false;
-  bool     isPointerDown = false;
-  bool     isPointerInside = false;
-  bool     closed = false;
+  bool     isWindowActive = false;
+  bool     isClosed = false;
 
-  uint32_t codePoint = 0;
+  uint32_t isKeyPressed = 0;
   eMiniKey keyCode = eMiniKey(0);
   uint8_t  keyStatus[512] = {0};
   uint32_t modifierKeys = 0;
+  uint32_t codePoint = 0;
 
+  bool     isPointerDown = false;
+  bool     isPointerInside = false;
   int32_t  pointerTimestamp = 0;
   uint8_t  pointerButtonStatus[8] = {0};
   int32_t  pointerPosX = 0;
