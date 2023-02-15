@@ -1,6 +1,6 @@
 // cMiniFB.cpp
 // enable wintab WT_PACKET, WT_PROXIMITY, but pen WM_POINTER* messages id as mouse not pen
-#define USE_WINTAB
+//#define USE_WINTAB
 //{{{  includes
 #include "cMiniFB.h"
 #include <vector>
@@ -1520,8 +1520,9 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
               mMoveFunc (this);
             }
           else if (pointerInfo.pointerType == PT_PEN) {
-            POINTER_PEN_INFO pointerPenInfos[10];
-            uint32_t entriesCount = 10;
+            constexpr uint32_t kMaxEntries = 10;
+            uint32_t entriesCount = kMaxEntries;
+            POINTER_PEN_INFO pointerPenInfos[kMaxEntries];
             if (GetPointerPenInfoHistory (GET_POINTERID_WPARAM (wParam), &entriesCount, pointerPenInfos)) {
               mPointerInside = true;
               for (uint32_t i = entriesCount; i > 0; i--) {
@@ -1531,8 +1532,8 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
                 mPointerPosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
                 mPointerPosY = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
                 mPointerPressure = pointerPenInfos[i-1].pressure;
-                mPointerTiltX = 0;
-                mPointerTiltY = 0;
+                mPointerTiltX = pointerPenInfos[i-1].tiltX;
+                mPointerTiltY = pointerPenInfos[i-1].tiltY;
                 if (mMoveFunc)
                   mMoveFunc (this);
                 }
