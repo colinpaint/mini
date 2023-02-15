@@ -213,11 +213,11 @@ public:
   float getPointerWheelY() const { return mPointerWheelY; }
 
   bool isKeyPressed() const { return mKeyPressed; }
-  eMiniKey getKeyCode() const { return keyCode; }
-  uint32_t getModifierKeys() const { return modifierKeys; }
+  eMiniKey getKeyCode() const { return mKeyCode; }
+  uint32_t getModifierKeys() const { return mModifierKeys; }
 
-  const uint8_t* getKeyBuffer() { return keyStatus; }
-  uint32_t getCodePoint()const  { return codePoint; }
+  const uint8_t* getKeyStatus() { return mKeyStatus; }
+  uint32_t getCodePoint()const  { return mCodePoint; }
 
   void* getUserData() { return userData; }
   void getMonitorScale (float* scale_x, float* scale_y);
@@ -261,7 +261,6 @@ private:
   bool init (const std::string& title, uint32_t width, uint32_t height, uint32_t flags);
   void initKeycodes();
   void freeResources();
-
   //{{{  openGL
   bool createGLcontext();
   void initGL();
@@ -269,7 +268,6 @@ private:
   void redrawGL (const void* pixels);
   void destroyGLcontext();
   //}}}
-
   void resizeDst (uint32_t width, uint32_t height);
   void calcDstFactor (uint32_t width, uint32_t height);
 
@@ -301,20 +299,20 @@ private:
   float    mFactorWidth = 0;
   float    mFactorHeight = 0;
 
-  void*    drawBuffer = nullptr;
-  uint32_t bufferWidth = 0;
-  uint32_t bufferHeight = 0;
-  uint32_t bufferStride = 0;
+  void*    mBuffer = nullptr;
+  uint32_t mBufferWidth = 0;
+  uint32_t mBufferHeight = 0;
+  uint32_t mBufferStride = 0;
 
   bool     mInitialized = false;
   bool     mWindowActive = false;
   bool     mClosed = false;
 
   uint32_t mKeyPressed = 0;
-  eMiniKey keyCode = eMiniKey(0);
-  uint8_t  keyStatus[512] = {0};
-  uint32_t modifierKeys = 0;
-  uint32_t codePoint = 0;
+  eMiniKey mKeyCode = eMiniKey(0);
+  uint8_t  mKeyStatus[512] = {0};
+  uint32_t mModifierKeys = 0;
+  uint32_t mCodePoint = 0;
 
   bool     mPointerDown = false;
   bool     mPointerInside = false;

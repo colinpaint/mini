@@ -1034,7 +1034,7 @@ eMiniState cMiniFB::update (void* buffer) {
   if (!buffer)
     return STATE_INVALID_BUFFER;
 
-  drawBuffer = buffer;
+  mBuffer = buffer;
   redrawGL (buffer);
 
   return STATE_OK;
@@ -1282,14 +1282,14 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       case WM_KEYDOWN:
       //{{{
       case WM_KEYUP: {
-        keyCode = translateKey (wParam, lParam);
+        mKeyCode = translateKey (wParam, lParam);
         mKeyPressed = !((lParam >> 31) & 1);
-        modifierKeys = translateMod();
+        mModifierKeys = translateMod();
 
-        if (keyCode == KB_KEY_UNKNOWN)
+        if (mKeyCode == KB_KEY_UNKNOWN)
           return 0;
 
-        keyStatus[keyCode] = (uint8_t)mKeyPressed;
+        mKeyStatus[mKeyCode] = (uint8_t)mKeyPressed;
         if (mKeyFunc)
           mKeyFunc (this);
         break;
@@ -1305,16 +1305,16 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
         if (wParam >= 0xd800 && wParam <= 0xdbff)
           highSurrogate = (WCHAR) wParam;
         else {
-          codePoint = 0;
+          mCodePoint = 0;
           if (wParam >= 0xdc00 && wParam <= 0xdfff) {
             if (highSurrogate != 0) {
-              codePoint += (highSurrogate - 0xd800) << 10;
-              codePoint += (WCHAR) wParam - 0xdc00;
-              codePoint += 0x10000;
+              mCodePoint += (highSurrogate - 0xd800) << 10;
+              mCodePoint += (WCHAR) wParam - 0xdc00;
+              mCodePoint += 0x10000;
               }
             }
           else
-            codePoint = (WCHAR) wParam;
+            mCodePoint = (WCHAR) wParam;
 
           highSurrogate = 0;
           if (mCharFunc)
@@ -1457,7 +1457,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
             cLog::log (LOGERROR, fmt::format ("WM_POINTERDOWN - unknown type:{}", pointerInfo.pointerType));
 
           mPointerButtonStatus[MOUSE_BTN_1] = 1;
-          modifierKeys = translateMod();
+          mModifierKeys = translateMod();
           mPointerDown = 1;
           if (mButtonFunc)
             mButtonFunc(this);
@@ -1480,7 +1480,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
           else // unused PT_TOUCH, PT_TOUCHPAD
             cLog::log (LOGERROR, fmt::format ("WM_POINTERUP - unknown type:{}", pointerInfo.pointerType));
 
-          modifierKeys = translateMod();
+          mModifierKeys = translateMod();
           mPointerButtonStatus[MOUSE_BTN_1] = 0;
           mPointerDown = 0;
           if (mButtonFunc)
@@ -1595,10 +1595,10 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       case KeyPress:
       //{{{
       case KeyRelease:
-        keyCode = (eMiniKey)translateKey (event->xkey.keycode);
+        mKeyCode = (eMiniKey)translateKey (event->xkey.keycode);
         mPointerDown = (event->type == KeyPress);
-        modifierKeys = translateModEx (keyCode, event->xkey.state, mPointerDown);
-        keyStatus[keyCode] = mPointerDown;
+        mModifierKeys = translateModEx (mKeyCode, event->xkey.state, mPointerDown);
+        mKeyStatus[mKeyCode] = mPointerDown;
         if (mKeyFunc)
           mKeyFunc (this);
 
@@ -1607,14 +1607,14 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
           XLookupString (&event->xkey, NULL, 0, &keysym, NULL);
           if ((keysym >= 0x0020 && keysym <= 0x007e) ||
               (keysym >= 0x00a0 && keysym <= 0x00ff)) {
-            codePoint = keysym;
+            mCodePoint = keysym;
             if (mCharFunc)
               mCharFunc (this);
             }
           else if ((keysym & 0xff000000) == 0x01000000)
             keysym = keysym & 0x00ffffff;
 
-          codePoint = keysym;
+          mCodePoint = keysym;
           if (mCharFunc)
             mCharFunc (this);
           // This does not seem to be working properly
@@ -1631,7 +1631,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       case ButtonRelease:
         {
         mPointerDown = (event->type == ButtonPress);
-        modifierKeys = translateMod (event->xkey.state);
+        mModifierKeys = translateMod (event->xkey.state);
 
         // swap 2 & 3 ?
         eMiniPointerButton button = (eMiniPointerButton)event->xbutton.button;
@@ -1779,9 +1779,9 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
 //{{{
 bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32_t flags) {
 
-  bufferWidth  = width;
-  bufferHeight = height;
-  bufferStride = width * 4;
+  mBufferWidth  = width;
+  mBufferHeight = height;
+  mBufferStride = width * 4;
 
   #ifdef _WIN32
     //{{{  windows
@@ -2287,7 +2287,7 @@ void cMiniFB::freeResources() {
   #endif
 
   // not sure why ?
-  drawBuffer = nullptr;
+  mBuffer = nullptr;
   mClosed = true;
   }
 //}}}
@@ -2464,7 +2464,7 @@ void cMiniFB::redrawGL (const void* pixels) {
   //glClear (GL_COLOR_BUFFER_BIT);
 
   glBindTexture (GL_TEXTURE_2D, mTextureId);
-  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, bufferWidth, bufferHeight, 0, format, GL_UNSIGNED_BYTE, pixels);
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, mBufferWidth, mBufferHeight, 0, format, GL_UNSIGNED_BYTE, pixels);
   //glTexSubImage2D (GL_TEXTURE_2D, 0,
   //                 0, 0, buffer_width, buffer_height,
   //                 format, GL_UNSIGNED_BYTE, pixels);

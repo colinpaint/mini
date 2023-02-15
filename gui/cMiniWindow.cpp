@@ -29,7 +29,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     if (GetTimeZoneInformation (&timeZoneInfo) == TIME_ZONE_ID_DAYLIGHT)
       mDayLightSeconds = -timeZoneInfo.DaylightBias * 60;
   #else
-    cLog::log (LOGERROR, fmt::format ("No timezone correction for Linux yet"));
+    cLog::log (LOGERROR, fmt::format ("linux timezone correction not implemented"));
   #endif
 
   mMiniFB = cMiniFB::create (title.c_str(), width, height, WF_RESIZABLE);
