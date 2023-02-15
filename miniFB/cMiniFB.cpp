@@ -1,6 +1,6 @@
 // cMiniFB.cpp
 // enable wintab WT_PACKET, WT_PROXIMITY, but pen WM_POINTER* messages id as mouse not pen
-//#define USE_WINTAB
+#define USE_WINTAB
 //{{{  includes
 #include "cMiniFB.h"
 #include <vector>
@@ -11,7 +11,7 @@
 
   #ifdef USE_WINTAB
     #include "winTab.h"
-    #define PACKETDATA PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE | PK_TIME
+    #define PACKETDATA PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE | PK_TIME | PK_ORIENTATION
     #include "pktDef.h"
   #endif
 #else
@@ -82,16 +82,18 @@ namespace {
       //}}}
       //{{{
       struct sWinTabInfo {
+        DWORD mTime;
+        int32_t mButtons; // Bit field. Use with the eWinTabButtons_ enum.
         int32_t mPosX;
         int32_t mPosY;
-        float mPressure; // Range: 0.0f to 1.0f
-        int32_t mButtons;  // Bit field. Use with the eWinTabButtons_ enum.
+        float mPressure;  // Range: 0.0f to 1.0f
+        float mTiltX;
+        float mTiltY;
 
-        DWORD mTime;
-
-        int32_t mRangeX;
-        int32_t mRangeY;
+        int32_t mMaxX;
+        int32_t mMaxY;
         int32_t mMaxPressure;
+        int32_t mMaxTilt;
 
         HINSTANCE mDll;
         HCTX mContext;
@@ -208,15 +210,19 @@ namespace {
 
         AXIS rangeX = {0};
         gWinTab->mWTInfoA (WTI_DEVICES, DVC_X, &rangeX);
-        gWinTab->mRangeX = rangeX.axMax;
+        gWinTab->mMaxX = rangeX.axMax;
 
         AXIS rangeY = {0};
         gWinTab->mWTInfoA (WTI_DEVICES, DVC_Y, &rangeY);
-        gWinTab->mRangeY = rangeY.axMax;
+        gWinTab->mMaxY = rangeY.axMax;
 
         AXIS pressure = {0};
         gWinTab->mWTInfoA (WTI_DEVICES, DVC_NPRESSURE, &pressure);
         gWinTab->mMaxPressure = pressure.axMax;
+
+        AXIS orientation = {0};
+        gWinTab->mWTInfoA (WTI_DEVICES, DVC_ORIENTATION, &orientation);
+        gWinTab->mMaxTilt = orientation.axMax;
 
         return true;
         }
@@ -730,7 +736,7 @@ namespace {
 
   tGlSwapIntervalProc gSwapInterval = 0;
   //{{{
-  bool checkGLExtension (const char* name) {
+  bool hasGLextension (const char* name) {
   // TODO: This is deprecated on OpenGL 3+.
   // Use glGetIntegerv (GL_NUM_EXTENSIONS, &n) and glGetStringi (GL_EXTENSIONS, index)
 
@@ -1330,17 +1336,21 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
           if ((HCTX)lParam == gWinTab->mContext) {
             PACKET packet = {0};
             if (gWinTab->mWTPacket (gWinTab->mContext, (UINT)wParam, &packet)) {
-              POINT point = { 0 };
-              point.x = packet.pkX;
-              point.y = packet.pkY;
-              ScreenToClient (hWnd, &point);
+              POINT clientPos = { 0 };
+              clientPos.x = packet.pkX;
+              clientPos.y = packet.pkY;
+              ScreenToClient (hWnd, &clientPos);
 
               gWinTab->mTime = packet.pkTime;
-              gWinTab->mPosX = point.x;
-              gWinTab->mPosY = point.y;
-              gWinTab->mPressure = (float)packet.pkNormalPressure / (float)gWinTab->mMaxPressure;
               gWinTab->mButtons = packet.pkButtons;
-              cLog::log (LOGINFO, fmt::format ("WT_PACKET press:{} time:{}", gWinTab->mPressure, gWinTab->mTime));
+              gWinTab->mPosX = clientPos.x;
+              gWinTab->mPosY = clientPos.y;
+              gWinTab->mPressure = (float)packet.pkNormalPressure / (float)gWinTab->mMaxPressure;
+              gWinTab->mTiltX = (float)packet.pkOrientation.orAzimuth / (float)gWinTab->mMaxTilt;
+              gWinTab->mTiltY = (float)packet.pkOrientation.orAltitude / (float)gWinTab->mMaxTilt;
+              cLog::log (LOGINFO, fmt::format ("WT_PACKET press:{} time:{} az:{} alt:{}",
+                                               gWinTab->mPressure, gWinTab->mTime,
+                                               gWinTab->mTiltX, gWinTab->mTiltY));
               }
             else
               cLog::log (LOGERROR, fmt::format ("WT_PACKET no packet"));
@@ -1882,7 +1892,7 @@ bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32
 
     #ifdef USE_WINTAB
       // enable winTab, mainly for WT_PROXIMITY, get WT_PACKET
-      if (!winTabLoad (window))
+      if (!winTabLoad (mWindow))
         cLog::log (LOGERROR, fmt::format ("winTab load failed"));
     #endif
 
@@ -2370,7 +2380,7 @@ bool cMiniFB::createGLcontext() {
     mContext = glXCreateContext (mDisplay, visualInfo, NULL, GL_TRUE);
     glXMakeCurrent (mDisplay, mWindow, mContext);
 
-    if (checkGLExtension ("GLX_EXT_swap_control"))
+    if (hasGLextension ("GLX_EXT_swap_control"))
       gSwapInterval = (tGlSwapIntervalProc)glXGetProcAddress ((const GLubyte*)"glXSwapIntervalEXT");
   #endif
 
