@@ -1,5 +1,6 @@
 // cMiniFB.cpp
-//#define USE_WINTAB // enables wintab WT_PACKET, WT_PROXIMITY, but pen WM_POINTER* messages id as mouse not pen
+// enable wintab WT_PACKET, WT_PROXIMITY, but pen WM_POINTER* messages id as mouse not pen
+//#define USE_WINTAB
 //{{{  includes
 #include "cMiniFB.h"
 #include <vector>
@@ -1025,7 +1026,7 @@ string cMiniFB::getKeyName (eMiniKey key) {
 //{{{
 eMiniState cMiniFB::update (void* buffer) {
 
-  if (isClosed) {
+  if (mClosed) {
     freeResources();
     return STATE_EXIT;
     }
@@ -1042,22 +1043,22 @@ eMiniState cMiniFB::update (void* buffer) {
 //{{{
 eMiniState cMiniFB::updateEvents() {
 
-  if (isClosed) {
+  if (mClosed) {
     freeResources();
     return STATE_EXIT;
     }
 
   #ifdef _WIN32
     MSG msg;
-    while (!isClosed && PeekMessage (&msg, window, 0, 0, PM_REMOVE)) {
+    while (!mClosed && PeekMessage (&msg, mWindow, 0, 0, PM_REMOVE)) {
       TranslateMessage (&msg);
       DispatchMessage (&msg);
       }
   #else
-    XFlush (display);
-    while (!isClosed && XPending (display)) {
+    XFlush (mDisplay);
+    while (!mClosed && XPending (mDisplay)) {
       XEvent event;
-      XNextEvent (display, &event);
+      XNextEvent (mDisplay, &event);
       processEvent (&event);
       }
   #endif
@@ -1071,7 +1072,7 @@ eMiniState cMiniFB::updateEvents() {
 void cMiniFB::getMonitorScale (float* scale_x, float* scale_y) {
 
   #ifdef _WIN32
-    getWindowsMonitorScale (window, scale_x, scale_y);
+    getWindowsMonitorScale (mWindow, scale_x, scale_y);
   #else
     float x = 96.0;
     float y = 96.0;
@@ -1095,8 +1096,8 @@ void cMiniFB::getMonitorScale (float* scale_x, float* scale_y) {
 //{{{
 bool cMiniFB::setViewportBestFit (uint32_t oldWidth, uint32_t oldHeight) {
 
-  uint32_t newWidth  = windowWidth;
-  uint32_t newHeight = windowHeight;
+  uint32_t newWidth  = mWindowWidth;
+  uint32_t newHeight = mWindowHeight;
 
   float scale_x = newWidth  / (float) oldWidth;
   float scale_y = newHeight / (float) oldHeight;
@@ -1119,45 +1120,45 @@ bool cMiniFB::setViewportBestFit (uint32_t oldWidth, uint32_t oldHeight) {
 //{{{
 bool cMiniFB::setViewport (uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height) {
 
-  if (offset_x + width > windowWidth)
+  if (offset_x + width > mWindowWidth)
     return false;
-  if (offset_y + height > windowHeight)
+  if (offset_y + height > mWindowHeight)
     return false;
 
   #ifdef _WIN32
     float scale_x, scale_y;
-    getWindowsMonitorScale (window, &scale_x, &scale_y);
-    dstOffsetX = (uint32_t)(offset_x * scale_x);
-    dstOffsetY = (uint32_t)(offset_y * scale_y);
-    dstWidth = (uint32_t)(width  * scale_x);
-    dstHeight = (uint32_t)(height * scale_y);
+    getWindowsMonitorScale (mWindow, &scale_x, &scale_y);
+    mDstOffsetX = (uint32_t)(offset_x * scale_x);
+    mDstOffsetY = (uint32_t)(offset_y * scale_y);
+    mDstWidth = (uint32_t)(width  * scale_x);
+    mDstHeight = (uint32_t)(height * scale_y);
   #else
-    if (offset_x + width > windowWidth)
+    if (offset_x + width > mWindowWidth)
       return false;
-    if (offset_y + height > windowHeight)
+    if (offset_y + height > mWindowHeight)
       return false;
-    dstOffsetX = offset_x;
-    dstOffsetY = offset_y;
-    dstWidth = width;
-    dstHeight = height;
+    mDstOffsetX = offset_x;
+    mDstOffsetY = offset_y;
+    mDstWidth = width;
+    mDstHeight = height;
   #endif
 
-  calcDstFactor (windowWidth, windowHeight);
+  calcDstFactor (mWindowWidth, mWindowHeight);
   return true;
   }
 //}}}
 //{{{  set C style callbacks
-void cMiniFB::setActiveCallback (void(*callback)(cMiniFB* miniFB)) { activeFunc = callback; }
-void cMiniFB::setResizeCallback (void(*callback)(cMiniFB* miniFB)) { resizeFunc = callback; }
-void cMiniFB::setCloseCallback  (bool(*callback)(cMiniFB* miniFB)) { closeFunc = callback; }
+void cMiniFB::setActiveCallback (void(*callback)(cMiniFB* miniFB)) { mActiveFunc = callback; }
+void cMiniFB::setResizeCallback (void(*callback)(cMiniFB* miniFB)) { mResizeFunc = callback; }
+void cMiniFB::setCloseCallback  (bool(*callback)(cMiniFB* miniFB)) { mCloseFunc = callback; }
 
-void cMiniFB::setKeyCallback    (void(*callback)(cMiniFB* miniFB)) { keyFunc = callback; }
-void cMiniFB::setCharCallback   (void(*callback)(cMiniFB* miniFB)) { charFunc = callback; }
+void cMiniFB::setKeyCallback    (void(*callback)(cMiniFB* miniFB)) { mKeyFunc = callback; }
+void cMiniFB::setCharCallback   (void(*callback)(cMiniFB* miniFB)) { mCharFunc = callback; }
 
-void cMiniFB::setButtonCallback (void(*callback)(cMiniFB* miniFB)) { buttonFunc = callback; }
-void cMiniFB::setMoveCallback   (void(*callback)(cMiniFB* miniFB)) { moveFunc = callback; }
-void cMiniFB::setWheelCallback  (void(*callback)(cMiniFB* miniFB)) { wheelFunc = callback; }
-void cMiniFB::setEnterCallback  (void(*callback)(cMiniFB* miniFB)) { enterFunc = callback; }
+void cMiniFB::setButtonCallback (void(*callback)(cMiniFB* miniFB)) { mButtonFunc = callback; }
+void cMiniFB::setMoveCallback   (void(*callback)(cMiniFB* miniFB)) { mMoveFunc = callback; }
+void cMiniFB::setWheelCallback  (void(*callback)(cMiniFB* miniFB)) { mWheelFunc = callback; }
+void cMiniFB::setEnterCallback  (void(*callback)(cMiniFB* miniFB)) { mEnterFunc = callback; }
 //}}}
 //{{{  set function style callbacks
 //{{{
@@ -1231,16 +1232,16 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
 
         float scale_x, scale_y;
         getWindowsMonitorScale (hWnd, &scale_x, &scale_y);
-        windowWidth = GET_X_LPARAM(lParam);
-        windowHeight =  GET_Y_LPARAM(lParam);
-        resizeDst (windowWidth, windowHeight);
+        mWindowWidth = GET_X_LPARAM(lParam);
+        mWindowHeight =  GET_Y_LPARAM(lParam);
+        resizeDst (mWindowWidth, mWindowHeight);
 
         resizeGL();
-        if (windowWidth && windowHeight) {
-          windowScaledWidth  = (uint32_t)(windowWidth  / scale_x);
-          windowScaledHeight = (uint32_t)(windowHeight / scale_y);
-          if (resizeFunc)
-            resizeFunc (this);
+        if (mWindowWidth && mWindowHeight) {
+          mWindowScaledWidth  = (uint32_t)(mWindowWidth  / scale_x);
+          mWindowScaledHeight = (uint32_t)(mWindowHeight / scale_y);
+          if (mResizeFunc)
+            mResizeFunc (this);
           }
         break;
         }
@@ -1249,30 +1250,30 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       //{{{
       case WM_CLOSE:
         // Obtain a confirmation of close
-        if (!closeFunc || closeFunc (this)) {
-          isClosed = true;
-          DestroyWindow (window);
+        if (!mCloseFunc || mCloseFunc (this)) {
+          mClosed = true;
+          DestroyWindow (mWindow);
           }
         break;
       //}}}
       //{{{
       case WM_DESTROY:
-        isClosed = true;
+        mClosed = true;
         break;
       //}}}
 
       //{{{
       case WM_SETFOCUS:
-        isWindowActive = true;
-        if (activeFunc)
-          activeFunc (this);
+        mWindowActive = true;
+        if (mActiveFunc)
+          mActiveFunc(this);
         break;
       //}}}
       //{{{
       case WM_KILLFOCUS:
-        isWindowActive = false;
-        if (activeFunc)
-          activeFunc (this);
+        mWindowActive = false;
+        if (mActiveFunc)
+          mActiveFunc(this);
         break;
       //}}}
 
@@ -1282,15 +1283,15 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       //{{{
       case WM_KEYUP: {
         keyCode = translateKey (wParam, lParam);
-        isKeyPressed = !((lParam >> 31) & 1);
+        mKeyPressed = !((lParam >> 31) & 1);
         modifierKeys = translateMod();
 
         if (keyCode == KB_KEY_UNKNOWN)
           return 0;
 
-        keyStatus[keyCode] = (uint8_t)isKeyPressed;
-        if (keyFunc)
-          keyFunc (this);
+        keyStatus[keyCode] = (uint8_t)mKeyPressed;
+        if (mKeyFunc)
+          mKeyFunc (this);
         break;
         }
       //}}}
@@ -1316,8 +1317,8 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
             codePoint = (WCHAR) wParam;
 
           highSurrogate = 0;
-          if (charFunc)
-            charFunc (this);
+          if (mCharFunc)
+            mCharFunc (this);
           }
         }
         break;
@@ -1430,16 +1431,16 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       //}}}
       //{{{
       case WM_POINTERENTER:
-        isPointerInside = true;
-        if (enterFunc)
-          enterFunc (this);
+        mPointerInside = true;
+        if (mEnterFunc)
+          mEnterFunc(this);
         break;
       //}}}
       //{{{
       case WM_POINTERLEAVE:
-        isPointerInside = false;
-        if (enterFunc)
-          enterFunc (this);
+        mPointerInside = false;
+        if (mEnterFunc)
+          mEnterFunc(this);
         break;
       //}}}
       //{{{
@@ -1455,11 +1456,11 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
           else // unused PT_TOUCH, PT_TOUCHPAD
             cLog::log (LOGERROR, fmt::format ("WM_POINTERDOWN - unknown type:{}", pointerInfo.pointerType));
 
-          pointerButtonStatus[MOUSE_BTN_1] = 1;
+          mPointerButtonStatus[MOUSE_BTN_1] = 1;
           modifierKeys = translateMod();
-          isPointerDown = 1;
-          if (buttonFunc)
-            buttonFunc (this);
+          mPointerDown = 1;
+          if (mButtonFunc)
+            mButtonFunc(this);
           }
         else
           cLog::log (LOGERROR, fmt::format ("WM_POINTERDOWN - no miniFB"));
@@ -1480,10 +1481,10 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
             cLog::log (LOGERROR, fmt::format ("WM_POINTERUP - unknown type:{}", pointerInfo.pointerType));
 
           modifierKeys = translateMod();
-          pointerButtonStatus[MOUSE_BTN_1] = 0;
-          isPointerDown = 0;
-          if (buttonFunc)
-            buttonFunc (this);
+          mPointerButtonStatus[MOUSE_BTN_1] = 0;
+          mPointerDown = 0;
+          if (mButtonFunc)
+            mButtonFunc(this);
           }
         else
           cLog::log (LOGERROR, fmt::format ("WM_POINTERUP - no info"));
@@ -1498,32 +1499,32 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
             #ifdef USE_WINTAB
               cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE mouse @{} flag:{:x}", pointerInfo.dwTime, pointerInfo.pointerFlags));
             #endif
-            isPointerInside = true;
-            pointerTimestamp = pointerInfo.dwTime;
+            mPointerInside = true;
+            mPointerTimestamp = pointerInfo.dwTime;
             POINT clientPos = pointerInfo.ptPixelLocation;
             ScreenToClient (hWnd, &clientPos);
-            pointerPosX = clientPos.x;
-            pointerPosY = clientPos.y;
-            pointerPressure = pointerButtonStatus[MOUSE_BTN_1] * 1024;
-            if (moveFunc)
-              moveFunc (this);
+            mPointerPosX = clientPos.x;
+            mPointerPosY = clientPos.y;
+            mPointerPressure = mPointerButtonStatus[MOUSE_BTN_1] * 1024;
+            if (mMoveFunc)
+              mMoveFunc (this);
             }
           else if (pointerInfo.pointerType == PT_PEN) {
             POINTER_PEN_INFO pointerPenInfos[10];
             uint32_t entriesCount = 10;
             if (GetPointerPenInfoHistory (GET_POINTERID_WPARAM (wParam), &entriesCount, pointerPenInfos)) {
-              isPointerInside = true;
+              mPointerInside = true;
               for (uint32_t i = entriesCount; i > 0; i--) {
                 cLog::log (LOGINFO, fmt::format ("WM_POINTERUPDATE pen i:{} @{}", i, pointerPenInfos[i-1].pointerInfo.dwTime));
-                pointerTimestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
+                mPointerTimestamp = pointerPenInfos[i-1].pointerInfo.dwTime;
                 ScreenToClient (hWnd, &pointerPenInfos[i-1].pointerInfo.ptPixelLocation);
-                pointerPosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
-                pointerPosY = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
-                pointerPressure = pointerPenInfos[i-1].pressure;
-                pointerTiltX = 0;
-                pointerTiltY = 0;
-                if (moveFunc)
-                  moveFunc (this);
+                mPointerPosX = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.x;
+                mPointerPosY = pointerPenInfos[i-1].pointerInfo.ptPixelLocation.y;
+                mPointerPressure = pointerPenInfos[i-1].pressure;
+                mPointerTiltX = 0;
+                mPointerTiltY = 0;
+                if (mMoveFunc)
+                  mMoveFunc (this);
                 }
               }
             }
@@ -1538,10 +1539,10 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       //{{{
       case WM_POINTERWHEEL:
         cLog::log (LOGINFO, fmt::format ("pointerWheel"));
-        pointerWheelX = 0;
-        pointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
-        if (wheelFunc)
-          wheelFunc (this);
+        mPointerWheelX = 0;
+        mPointerWheelY = (SHORT)HIWORD(wParam) / (float)WHEEL_DELTA;
+        if (mWheelFunc)
+          mWheelFunc (this);
         break;
       //}}}
 
@@ -1595,27 +1596,27 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       //{{{
       case KeyRelease:
         keyCode = (eMiniKey)translateKey (event->xkey.keycode);
-        isPointerDown = (event->type == KeyPress);
-        modifierKeys = translateModEx (keyCode, event->xkey.state, isPointerDown);
-        keyStatus[keyCode] = isPointerDown;
-        if (keyFunc)
-          keyFunc (this);
+        mPointerDown = (event->type == KeyPress);
+        modifierKeys = translateModEx (keyCode, event->xkey.state, mPointerDown);
+        keyStatus[keyCode] = mPointerDown;
+        if (mKeyFunc)
+          mKeyFunc (this);
 
-        if (isPointerDown) {
+        if (mPointerDown) {
           KeySym keysym;
           XLookupString (&event->xkey, NULL, 0, &keysym, NULL);
           if ((keysym >= 0x0020 && keysym <= 0x007e) ||
               (keysym >= 0x00a0 && keysym <= 0x00ff)) {
             codePoint = keysym;
-            if (charFunc)
-              charFunc (this);
+            if (mCharFunc)
+              mCharFunc (this);
             }
           else if ((keysym & 0xff000000) == 0x01000000)
             keysym = keysym & 0x00ffffff;
 
           codePoint = keysym;
-          if (charFunc)
-            charFunc (this);
+          if (mCharFunc)
+            mCharFunc (this);
           // This does not seem to be working properly
           // unsigned int codePoint = xkb_state_key_get_utf32(state, keysym);
           // if (codePoint != 0)
@@ -1629,7 +1630,7 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
       //{{{
       case ButtonRelease:
         {
-        isPointerDown = (event->type == ButtonPress);
+        mPointerDown = (event->type == ButtonPress);
         modifierKeys = translateMod (event->xkey.state);
 
         // swap 2 & 3 ?
@@ -1637,34 +1638,34 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
         switch (button) {
           case Button1:
           case Button3:
-            pointerButtonStatus[button & 0x07] = isPointerDown;
-            if (buttonFunc)
-              buttonFunc (this);
+            mPointerButtonStatus[button & 0x07] = mPointerDown;
+            if (mButtonFunc)
+              mButtonFunc (this);
             break;
 
           // wheel
           case Button4:
-            pointerWheelY = 1.0f;
-            if (wheelFunc)
-              wheelFunc (this);
+            mPointerWheelY = 1.0f;
+            if (mWheelFunc)
+              mWheelFunc (this);
             break;
 
           case Button5:
-            pointerWheelY = -1.0f;
-            if (wheelFunc)
-              wheelFunc (this);
+            mPointerWheelY = -1.0f;
+            if (mWheelFunc)
+              mWheelFunc (this);
             break;
 
           case 6:
-            pointerWheelX = 1.0f;
-            if (wheelFunc)
-              wheelFunc (this);
+            mPointerWheelX = 1.0f;
+            if (mWheelFunc)
+              mWheelFunc (this);
             break;
 
           case 7:
-            pointerWheelX = -1.0f;
-            if (wheelFunc)
-              wheelFunc (this);
+            mPointerWheelX = -1.0f;
+            if (mWheelFunc)
+              mWheelFunc (this);
             break;
 
           default:
@@ -1680,83 +1681,78 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
         XDeviceMotionEvent* motionEvent = (XDeviceMotionEvent*)(event);
         cLog::log (LOGINFO, fmt::format ("motionNotify {},{} {}",
                                          event->xmotion.x, event->xmotion.y, motionEvent->serial));
-        pointerTimestamp = 0;
-        pointerPosX = event->xmotion.x;
-        pointerPosY = event->xmotion.y;
-        pointerPressure = pointerButtonStatus[Button1] * 1024;
-        if (moveFunc)
-          moveFunc (this);
+        mPointerTimestamp = 0;
+        mPointerPosX = event->xmotion.x;
+        mPointerPosY = event->xmotion.y;
+        mPointerPressure = mPointerButtonStatus[Button1] * 1024;
+        if (mMoveFunc)
+          mMoveFunc (this);
         }
         break;
       //}}}
 
       //{{{
       case ConfigureNotify:
-        windowWidth  = event->xconfigure.width;
-        windowHeight = event->xconfigure.height;
-        windowScaledWidth  = windowWidth;
-        windowScaledHeight = windowHeight;
+        mWindowWidth  = event->xconfigure.width;
+        mWindowHeight = event->xconfigure.height;
+        mWindowScaledWidth  = mWindowWidth;
+        mWindowScaledHeight = mWindowHeight;
 
         resizeDst (event->xconfigure.width, event->xconfigure.height);
         resizeGL();
 
-        if (resizeFunc)
-          resizeFunc (this);
+        if (mResizeFunc)
+          mResizeFunc (this);
 
         break;
       //}}}
 
       //{{{
       case EnterNotify:
-        isPointerInside = true;
-        if (activeFunc)
-          activeFunc (this);
-
+        mPointerInside = true;
+        if (mActiveFunc)
+          mActiveFunc (this);
         break;
       //}}}
       //{{{
       case LeaveNotify:
-        isPointerInside = false;
-        if (activeFunc)
-          activeFunc (this);
-
+        mPointerInside = false;
+        if (mActiveFunc)
+          mActiveFunc (this);
         break;
       //}}}
 
       //{{{
       case FocusIn:
-        isWindowActive = true;
-        if (activeFunc)
-          activeFunc (this);
-
+        mWindowActive = true;
+        if (mActiveFunc)
+          mActiveFunc (this);
         break;
       //}}}
       //{{{
       case FocusOut:
-        isWindowActive = false;
-        if (activeFunc)
-          activeFunc (this);
-
+        mWindowActive = false;
+        if (mActiveFunc)
+          mActiveFunc (this);
         break;
       //}}}
 
       //{{{
       case DestroyNotify:
-        isClosed = true;
+        mClosed = true;
         return;
       //}}}
       //{{{
       case ClientMessage:
         if ((Atom)event->xclient.data.l[0] == gDeleteWindowAtom) {
           bool destroy = false;
-          if (!closeFunc || closeFunc (this))
+          if (!mCloseFunc || mCloseFunc (this))
             destroy = true;
           if (destroy) {
-            isClosed = true;
+            mClosed = true;
             return;
             }
           }
-
         break;
       //}}}
 
@@ -1858,29 +1854,29 @@ bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32
       }
       //}}}
 
-    wc.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
-    wc.lpfnWndProc = WndProc;
-    wc.hCursor = LoadCursor(0, IDC_ARROW);
-    wc.lpszClassName = title.c_str();
-    RegisterClass (&wc);
+    mWndClass.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
+    mWndClass.lpfnWndProc = WndProc;
+    mWndClass.hCursor = LoadCursor(0, IDC_ARROW);
+    mWndClass.lpszClassName = title.c_str();
+    RegisterClass (&mWndClass);
 
     calcDstFactor (width, height);
-    windowWidth  = rect.right;
-    windowHeight = rect.bottom;
-    window = CreateWindowEx (0, title.c_str(), title.c_str(), windowStyle, x, y, windowWidth, windowHeight, 0, 0, 0, 0);
-    if (!window) {
+    mWindowWidth  = rect.right;
+    mWindowHeight = rect.bottom;
+    mWindow = CreateWindowEx (0, title.c_str(), title.c_str(), windowStyle, x, y, mWindowWidth, mWindowHeight, 0, 0, 0, 0);
+    if (!mWindow) {
       //{{{  error, return
       cLog::log (LOGERROR, fmt::format ("failed to create X11 window"));
       return false;
       }
       //}}}
 
-    SetWindowLongPtr (window, GWLP_USERDATA, (LONG_PTR)this);
+    SetWindowLongPtr (mWindow, GWLP_USERDATA, (LONG_PTR)this);
     if (flags & WF_ALWAYS_ON_TOP)
-      SetWindowPos (window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-    ShowWindow (window, SW_NORMAL);
+      SetWindowPos (mWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    ShowWindow (mWindow, SW_NORMAL);
 
-    hdc = GetDC (window);
+    mHDC = GetDC (mWindow);
     createGLcontext();
     cLog::log (LOGINFO, "using windows OpenGL");
 
@@ -1895,24 +1891,24 @@ bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32
     //}}}
   #else
     //{{{  X11
-    display = XOpenDisplay (0);
-    if (!display) {
+    mDisplay = XOpenDisplay (0);
+    if (!mDisplay) {
       //{{{  error, return
       cLog::log (LOGERROR, fmt::format ("failed to create X11 display"));
       return false;
       }
       //}}}
     initKeycodes();
-    XAutoRepeatOff (display);
+    XAutoRepeatOff (mDisplay);
 
-    screen = DefaultScreen (display);
-    Visual* visual = DefaultVisual (display, screen);
+    mScreen = DefaultScreen (mDisplay);
+    Visual* visual = DefaultVisual (mDisplay, mScreen);
     //{{{  set format
     int formatCount;
     int convDepth = -1;
-    XPixmapFormatValues* formats = XListPixmapFormats (display, &formatCount);
-    int depth = DefaultDepth (display, screen);
-    Window defaultRootWindow = DefaultRootWindow (display);
+    XPixmapFormatValues* formats = XListPixmapFormats (mDisplay, &formatCount);
+    int depth = DefaultDepth (mDisplay, mScreen);
+    Window defaultRootWindow = DefaultRootWindow (mDisplay);
     for (int i = 0; i < formatCount; ++i) {
       if (depth == formats[i].depth) {
         convDepth = formats[i].bits_per_pixel;
@@ -1925,63 +1921,61 @@ bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32
     if (convDepth != 32) {
       //{{{  error, return
       cLog::log (LOGERROR, fmt::format ("failed to create 32 bir depth"));
-      XCloseDisplay (display);
+      XCloseDisplay (mDisplay);
       return false;
       }
       //}}}
     //}}}
     //{{{  set width, height
-    int screenWidth = DisplayWidth (display, screen);
-    int screenHeight = DisplayHeight (display, screen);
+    int screenWidth = DisplayWidth (mDisplay, mScreen);
+    int screenHeight = DisplayHeight (mDisplay, mScreen);
 
     XSetWindowAttributes windowAttributes;
-    windowAttributes.border_pixel = BlackPixel (display, screen);
-    windowAttributes.background_pixel = BlackPixel (display, screen);
+    windowAttributes.border_pixel = BlackPixel (mDisplay, mScreen);
+    windowAttributes.background_pixel = BlackPixel (mDisplay, mScreen);
     windowAttributes.backing_store = NotUseful;
 
-    windowWidth = width;
-    windowHeight = height;
+    mWindowWidth = width;
+    mWindowHeight = height;
     calcDstFactor (width, height);
 
     int posX;
     int posY;
-    int windowWidth;
-    int windowHeight;
     if (flags & WF_FULLSCREEN_DESKTOP) {
       // full screen desktop
       posX = 0;
       posY = 0;
-      windowWidth  = screenWidth;
-      windowHeight = screenHeight;
+      mWindowWidth  = screenWidth;
+      mWindowHeight = screenHeight;
       }
     else {
       // window
       posX = (screenWidth  - width)  / 2;
       posY = (screenHeight - height) / 2;
-      windowWidth  = width;
-      windowHeight = height;
+      mWindowWidth  = width;
+      mWindowHeight = height;
       }
     //}}}
 
-    window = XCreateWindow (display, defaultRootWindow,
-                            posX, posY, windowWidth, windowHeight,
-                            0, depth, InputOutput, visual,
-                            CWBackPixel | CWBorderPixel | CWBackingStore,
-                            &windowAttributes);
-    if (!window) {
+    mWindow = XCreateWindow (mDisplay, defaultRootWindow,
+                             posX, posY, mWindowWidth, mWindowHeight,
+                             0, depth, InputOutput, visual,
+                             CWBackPixel | CWBorderPixel | CWBackingStore,
+                             &windowAttributes);
+    if (!mWindow) {
       //{{{  error, return
       cLog::log (LOGERROR, fmt::format ("failed to create X11 window"));
       return false;
       }
       //}}}
 
-    XSelectInput (display, window,
+    XSelectInput (mDisplay, mWindow,
                   StructureNotifyMask | ExposureMask |
                   FocusChangeMask |
                   KeyPressMask | KeyReleaseMask |
                   ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
                   EnterWindowMask | LeaveWindowMask);
-    XStoreName (display, window, title.c_str());
+    XStoreName (mDisplay, mWindow, title.c_str());
 
     if (flags & WF_BORDERLESS) {
       //{{{  borderless
@@ -1993,30 +1987,30 @@ bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32
         unsigned long status;
         } sh = {2, 0, 0, 0, 0};
 
-      Atom sh_p = XInternAtom (display, "_MOTIF_WM_HINTS", True);
-      XChangeProperty (display, window, sh_p, sh_p, 32,
+      Atom sh_p = XInternAtom (mDisplay, "_MOTIF_WM_HINTS", True);
+      XChangeProperty (mDisplay, mWindow, sh_p, sh_p, 32,
                        PropModeReplace, (unsigned char*)&sh, 5);
       }
       //}}}
     if (flags & WF_ALWAYS_ON_TOP) {
       //{{{  always on top
-      Atom sa_p = XInternAtom (display, "_NET_WM_STATE_ABOVE", False);
-      XChangeProperty (display, window,
-                       XInternAtom (display, "_NET_WM_STATE", False), XA_ATOM, 32,
+      Atom sa_p = XInternAtom (mDisplay, "_NET_WM_STATE_ABOVE", False);
+      XChangeProperty (mDisplay, mWindow,
+                       XInternAtom (mDisplay, "_NET_WM_STATE", False), XA_ATOM, 32,
                        PropModeReplace, (unsigned char*)&sa_p, 1);
       }
       //}}}
     if (flags & WF_FULLSCREEN) {
       //{{{  full screen
-      Atom sf_p = XInternAtom (display, "_NET_WM_STATE_FULLSCREEN", True);
-      XChangeProperty (display, window,
-                       XInternAtom (display, "_NET_WM_STATE", True), XA_ATOM, 32,
+      Atom sf_p = XInternAtom (mDisplay, "_NET_WM_STATE_FULLSCREEN", True);
+      XChangeProperty (mDisplay, mWindow,
+                       XInternAtom (mDisplay, "_NET_WM_STATE", True), XA_ATOM, 32,
                        PropModeReplace, (unsigned char*)&sf_p, 1);
       }
       //}}}
 
-    gDeleteWindowAtom = XInternAtom (display, "WM_DELETE_WINDOW", False);
-    XSetWMProtocols (display, window, &gDeleteWindowAtom, 1);
+    gDeleteWindowAtom = XInternAtom (mDisplay, "WM_DELETE_WINDOW", False);
+    XSetWMProtocols (mDisplay, mWindow, &gDeleteWindowAtom, 1);
 
     if (!createGLcontext()) {
       //{{{  error, return
@@ -2044,17 +2038,17 @@ bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32
       sizeHints.max_height = height;
       }
       //}}}
-    XSetWMNormalHints (display, window, &sizeHints);
+    XSetWMNormalHints (mDisplay, mWindow, &sizeHints);
     //}}}
-    XClearWindow (display, window);
-    XMapRaised (display, window);
-    XFlush (display);
+    XClearWindow (mDisplay, mWindow);
+    XMapRaised (mDisplay, mWindow);
+    XFlush (mDisplay);
 
-    gc = DefaultGC (display, screen);
+    mGC = DefaultGC (mDisplay, mScreen);
     cLog::log (LOGINFO, "using X11 API");
 
     int32_t count;
-    XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (display, &count);
+    XDeviceInfoPtr devices = (XDeviceInfoPtr)XListInputDevices (mDisplay, &count);
     if (!devices) {
       //{{{  error, return
       cLog::log (LOGERROR, fmt::format ("failed to find X11 input device list"));
@@ -2067,7 +2061,7 @@ bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32
     for (int32_t i = 0; i < count; i++) {
       cLog::log (LOGINFO, fmt::format ("- device:{} name:{} id:{}", i, devices[i].name, devices[i].id));
       if (strstr (devices[i].name, "stylus")) { // "eraser"
-        gDevice = XOpenDevice (display, devices[i].id);
+        gDevice = XOpenDevice (mDisplay, devices[i].id);
         XAnyClassPtr classPtr = devices[i].inputclassinfo;
         for (int32_t j = 0; j < devices[i].num_classes; j++) {
           switch (classPtr->c_class) {
@@ -2110,14 +2104,14 @@ bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32
           classPtr = (XAnyClassPtr)((uint8_t*)classPtr + classPtr->length);
           }
         }
-      XSelectExtensionEvent (display, window, gEventClasses, gNumEventClasses);
+      XSelectExtensionEvent (mDisplay, mWindow, gEventClasses, gNumEventClasses);
       }
     XFreeDeviceList (devices);
     //}}}
     //}}}
   #endif
 
-  isInitialized = true;
+  mInitialized = true;
   return true;
   }
 //}}}
@@ -2261,10 +2255,10 @@ void cMiniFB::initKeycodes() {
     // valid key code range is  [8,255], according to the Xlib manual
     for (size_t i = 8; i <= 255; ++i) {
       // try secondary keysym, for numeric keypad keys
-      int keySym  = XkbKeycodeToKeysym (display, i, 0, 1);
+      int keySym  = XkbKeycodeToKeysym (mDisplay, i, 0, 1);
       gKeycodes[i] = translateKeyCodeB (keySym);
       if (gKeycodes[i] == KB_KEY_UNKNOWN) {
-        keySym = XkbKeycodeToKeysym (display, i, 0, 0);
+        keySym = XkbKeycodeToKeysym (mDisplay, i, 0, 0);
         gKeycodes[i] = translateKeyCodeA (keySym);
         }
       }
@@ -2276,25 +2270,25 @@ void cMiniFB::freeResources() {
 
   #ifdef _WIN32
     destroyGLcontext();
-    if (window && hdc) {
-      ReleaseDC (window, hdc);
-      DestroyWindow (window);
+    if (mWindow && mHDC) {
+      ReleaseDC (mWindow, mHDC);
+      DestroyWindow (mWindow);
       }
-    window = 0;
-    hdc = 0;
+    mWindow = 0;
+    mHDC = 0;
 
     #ifdef USE_WINTAB
       winTabUnload();
     #endif
   #else
     if (gDevice)
-      XCloseDevice (display, gDevice);
+      XCloseDevice (mDisplay, gDevice);
     destroyGLcontext();
   #endif
 
   // not sure why ?
   drawBuffer = nullptr;
-  isClosed = true;
+  mClosed = true;
   }
 //}}}
 
@@ -2321,29 +2315,29 @@ bool cMiniFB::createGLcontext() {
                                  0, 0, 0,                       // no layer, visible, damage masks
                                  };
 
-    int pixelFormat = ChoosePixelFormat (hdc, &pfd);
+    int pixelFormat = ChoosePixelFormat (mHDC, &pfd);
     if (!pixelFormat) {
       cLog::log (LOGERROR, fmt::format ("ChoosePixelFormat failed {}", MB_ICONERROR | MB_OK));
       return false;
       }
 
-    if (!SetPixelFormat (hdc, pixelFormat, &pfd)) {
+    if (!SetPixelFormat (mHDC, pixelFormat, &pfd)) {
       cLog::log (LOGERROR, fmt::format ("SetPixelFormat failed {}", MB_ICONERROR | MB_OK));
       return false;
       }
     //}}}
-    hGLRC = wglCreateContext (hdc);
-    wglMakeCurrent (hdc, hGLRC);
+    mHGLRC = wglCreateContext (mHDC);
+    wglMakeCurrent (mHDC, mHGLRC);
     gSwapInterval = (tGlSwapIntervalProc)wglGetProcAddress ("wglSwapIntervalEXT");
   #else
     // check openGL version
     GLint majorGLX = 0;
     GLint minorGLX = 0;
-    glXQueryVersion (display, &majorGLX, &minorGLX);
+    glXQueryVersion (mDisplay, &majorGLX, &minorGLX);
     if ((majorGLX <= 1) && (minorGLX < 2)) {
       //{{{  error, return
       cLog::log (LOGERROR, "GLX 1.2 or greater is required");
-      XCloseDisplay (display);
+      XCloseDisplay (mDisplay);
 
       return false;
       }
@@ -2366,15 +2360,15 @@ bool cMiniFB::createGLcontext() {
       GLX_SAMPLES,        0,
       None };
 
-    XVisualInfo* visualInfo = glXChooseVisual (display, screen, glxAttribs);
+    XVisualInfo* visualInfo = glXChooseVisual (mDisplay, mScreen, glxAttribs);
     if (!visualInfo) {
       cLog::log (LOGERROR, "Could not create correct visual window");
-      XCloseDisplay (display);
+      XCloseDisplay (mDisplay);
       return false;
       }
     //}}}
-    context = glXCreateContext (display, visualInfo, NULL, GL_TRUE);
-    glXMakeCurrent (display, window, context);
+    mContext = glXCreateContext (mDisplay, visualInfo, NULL, GL_TRUE);
+    glXMakeCurrent (mDisplay, mWindow, mContext);
 
     if (checkGLExtension ("GLX_EXT_swap_control"))
       gSwapInterval = (tGlSwapIntervalProc)glXGetProcAddress ((const GLubyte*)"glXSwapIntervalEXT");
@@ -2394,11 +2388,11 @@ bool cMiniFB::createGLcontext() {
 //{{{
 void cMiniFB::initGL() {
 
-  glViewport (0, 0, windowWidth, windowHeight);
+  glViewport (0, 0, mWindowWidth, mWindowHeight);
 
   glMatrixMode (GL_PROJECTION);
   glLoadIdentity();
-  glOrtho (0, windowWidth, windowHeight, 0, 2048, -2048);
+  glOrtho (0, mWindowWidth, mWindowHeight, 0, 2048, -2048);
 
   glMatrixMode (GL_MODELVIEW);
   glLoadIdentity();
@@ -2408,8 +2402,8 @@ void cMiniFB::initGL() {
 
   glEnable (GL_TEXTURE_2D);
 
-  glGenTextures (1, &textureId);
-  glBindTexture (GL_TEXTURE_2D, textureId);
+  glGenTextures (1, &mTextureId);
+  glBindTexture (GL_TEXTURE_2D, mTextureId);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -2438,18 +2432,18 @@ void cMiniFB::initGL() {
 //{{{
 void cMiniFB::resizeGL() {
 
-  if (isInitialized) {
+  if (mInitialized) {
     #ifdef _WIN32
-      wglMakeCurrent (hdc, hGLRC);
+      wglMakeCurrent (mHDC, mHGLRC);
     #else
-      glXMakeCurrent (display, window, context);
+      glXMakeCurrent (mDisplay, mWindow, mContext);
     #endif
 
-    glViewport (0,0, windowWidth,windowHeight);
+    glViewport (0,0, mWindowWidth, mWindowHeight);
 
     glMatrixMode (GL_PROJECTION);
     glLoadIdentity();
-    glOrtho (0, windowWidth, windowHeight, 0, 2048, -2048);
+    glOrtho (0, mWindowWidth, mWindowHeight, 0, 2048, -2048);
 
     glClear (GL_COLOR_BUFFER_BIT);
     }
@@ -2459,9 +2453,9 @@ void cMiniFB::resizeGL() {
 void cMiniFB::redrawGL (const void* pixels) {
 
   #ifdef _WIN32
-    wglMakeCurrent (hdc, hGLRC);
+    wglMakeCurrent (mHDC, mHGLRC);
   #else
-    glXMakeCurrent (display, window, context);
+    glXMakeCurrent (mDisplay, mWindow, mContext);
   #endif
 
   GLenum format = RGBA;
@@ -2469,7 +2463,7 @@ void cMiniFB::redrawGL (const void* pixels) {
   // clear
   //glClear (GL_COLOR_BUFFER_BIT);
 
-  glBindTexture (GL_TEXTURE_2D, textureId);
+  glBindTexture (GL_TEXTURE_2D, mTextureId);
   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, bufferWidth, bufferHeight, 0, format, GL_UNSIGNED_BYTE, pixels);
   //glTexSubImage2D (GL_TEXTURE_2D, 0,
   //                 0, 0, buffer_width, buffer_height,
@@ -2480,10 +2474,10 @@ void cMiniFB::redrawGL (const void* pixels) {
   glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 
   // vertices
-  float x = (float)dstOffsetX;
-  float y = (float)dstOffsetY;
-  float w = (float)dstOffsetX + dstWidth;
-  float h = (float)dstOffsetY + dstHeight;
+  float x = (float)mDstOffsetX;
+  float y = (float)mDstOffsetY;
+  float w = (float)mDstOffsetX + mDstWidth;
+  float h = (float)mDstOffsetY + mDstHeight;
   float vertices[] = { x, y, 0, 0,
                        w, y, 1, 0,
                        x, h, 0, 1,
@@ -2498,9 +2492,9 @@ void cMiniFB::redrawGL (const void* pixels) {
 
   // swap buffer
   #ifdef _WIN32
-    SwapBuffers (hdc);
+    SwapBuffers (mHDC);
   #else
-    glXSwapBuffers (display, window);
+    glXSwapBuffers (mDisplay, mWindow);
   #endif
   }
 //}}}
@@ -2508,13 +2502,13 @@ void cMiniFB::redrawGL (const void* pixels) {
 void cMiniFB::destroyGLcontext() {
 
   #ifdef _WIN32
-    if (hGLRC) {
+    if (mHGLRC) {
       wglMakeCurrent (NULL, NULL);
-      wglDeleteContext (hGLRC);
-      hGLRC = 0;
+      wglDeleteContext (mHGLRC);
+      mHGLRC = 0;
       }
   #else
-    glXDestroyContext (display, context);
+    glXDestroyContext (mDisplay, mContext);
   #endif
   }
 //}}}
@@ -2522,25 +2516,25 @@ void cMiniFB::destroyGLcontext() {
 //{{{
 void cMiniFB::resizeDst (uint32_t width, uint32_t height) {
 
-  dstOffsetX = (uint32_t) (width  * factorX);
-  dstOffsetY = (uint32_t) (height * factorY);
-  dstWidth    = (uint32_t) (width  * factorWidth);
-  dstHeight   = (uint32_t) (height * factorHeight);
+  mDstOffsetX = (uint32_t) (width  * mFactorX);
+  mDstOffsetY = (uint32_t) (height * mFactorY);
+  mDstWidth    = (uint32_t) (width  * mFactorWidth);
+  mDstHeight   = (uint32_t) (height * mFactorHeight);
   }
 //}}}
 //{{{
 void cMiniFB::calcDstFactor (uint32_t width, uint32_t height) {
 
-  if (dstWidth == 0)
-    dstWidth = width;
+  if (!mDstWidth)
+    mDstWidth = width;
 
-  factorX     = (float)dstOffsetX / (float)width;
-  factorWidth = (float)dstWidth    / (float)width;
+  mFactorX     = (float)mDstOffsetX / (float)width;
+  mFactorWidth = (float)mDstWidth    / (float)width;
 
-  if (dstHeight == 0)
-    dstHeight = height;
+  if (!mDstHeight)
+    mDstHeight = height;
 
-  factorY      = (float)dstOffsetY / (float)height;
-  factorHeight = (float)dstHeight   / (float)height;
+  mFactorY      = (float)mDstOffsetY / (float)height;
+  mFactorHeight = (float)mDstHeight   / (float)height;
   }
 //}}}

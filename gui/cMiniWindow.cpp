@@ -45,7 +45,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   // state funcs
   //{{{
   mMiniFB->setActiveFunc ([&](cMiniFB* miniFB) {
-    cLog::log (LOGINFO, fmt::format ("active {} unused", miniFB->getWindowActive()));
+    cLog::log (LOGINFO, fmt::format ("active {} unused", miniFB->isWindowActive()));
     });
   //}}}
   //{{{
@@ -81,11 +81,11 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
     if (miniFB->getKeyCode() == KB_KEY_ESCAPE)
       miniFB->close();
 
-    if (miniFB->getKeyPressed())
+    if (miniFB->isKeyPressed())
       if (!keyDown (miniFB->getKeyCode()))
         cLog::log (LOGINFO, fmt::format ("keyboard key:{} pressed:{} mod:{}",
-                                         cMiniFB::getKeyName (miniFB->getKeyCode()), 
-                                         miniFB->getKeyPressed(), 
+                                         cMiniFB::getKeyName (miniFB->getKeyCode()),
+                                         miniFB->isKeyPressed(),
                                          (int)miniFB->getModifierKeys()));
     });
   //}}}
@@ -98,7 +98,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   // pointer funcs
   //{{{
   mMiniFB->setButtonFunc ([&](cMiniFB* miniFB) {
-    if (miniFB->getPointerDown()) {
+    if (miniFB->isPointerDown()) {
       mMousePress = true;
       mMouseMoved = false;
       mMousePressPos = cPoint ((float)miniFB->getPointerPosX(), (float)miniFB->getPointerPosY());
@@ -148,7 +148,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   //}}}
   //{{{
   mMiniFB->setEnterFunc ([&](cMiniFB* miniFB) {
-    cLog::log (LOGINFO, fmt::format ("pointerEnter {} unused", miniFB->getPointerInside()));
+    cLog::log (LOGINFO, fmt::format ("pointerEnter {} unused", miniFB->isPointerInside()));
     });
   //}}}
 

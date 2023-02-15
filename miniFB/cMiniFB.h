@@ -193,26 +193,26 @@ public:
 
   eMiniState update (void* buffer);
   eMiniState updateEvents();
-  void close() { isClosed = true; }
+  void close() { mClosed = true; }
 
   //{{{  gets
-  bool getWindowActive() const { return isWindowActive; }
-  unsigned getWindowWidth() const { return windowWidth; }
-  unsigned getWindowHeight() const { return windowHeight; }
-  unsigned getWindowScaledWidth() const { return windowScaledWidth; }
-  unsigned getWindowScaledHeight() const { return windowScaledHeight; }
+  bool isWindowActive() const { return mWindowActive; }
+  unsigned getWindowWidth() const { return mWindowWidth; }
+  unsigned getWindowHeight() const { return mWindowHeight; }
+  unsigned getWindowScaledWidth() const { return mWindowScaledWidth; }
+  unsigned getWindowScaledHeight() const { return mWindowScaledHeight; }
 
-  int32_t getPointerTimestamp() const { return pointerTimestamp; }
-  bool getPointerDown() const { return isPointerDown; }
-  bool getPointerInside() const { return isPointerInside; }
-  const uint8_t* getPointerButtonStatus() const { return pointerButtonStatus; }
-  int getPointerPosX() const { return pointerPosX; }
-  int getPointerPosY() const { return pointerPosY; }
-  int getPointerPressure() const { return pointerPressure; }
-  float getPointerWheelX() const { return pointerWheelX; }
-  float getPointerWheelY() const { return pointerWheelY; }
+  int32_t getPointerTimestamp() const { return mPointerTimestamp; }
+  bool isPointerDown() const { return mPointerDown; }
+  bool isPointerInside() const { return mPointerInside; }
+  const uint8_t* getPointerButtonStatus() const { return mPointerButtonStatus; }
+  int getPointerPosX() const { return mPointerPosX; }
+  int getPointerPosY() const { return mPointerPosY; }
+  int getPointerPressure() const { return mPointerPressure; }
+  float getPointerWheelX() const { return mPointerWheelX; }
+  float getPointerWheelY() const { return mPointerWheelY; }
 
-  bool getKeyPressed() const { return isKeyPressed; }
+  bool isKeyPressed() const { return mKeyPressed; }
   eMiniKey getKeyCode() const { return keyCode; }
   uint32_t getModifierKeys() const { return modifierKeys; }
 
@@ -276,71 +276,71 @@ private:
   //{{{  vars
   void* userData = nullptr;
 
-  void(*activeFunc)(cMiniFB* miniFB) = nullptr;
-  void(*resizeFunc)(cMiniFB* miniFB) = nullptr;
-  bool(*closeFunc)(cMiniFB* miniFB) = nullptr;
-  void(*keyFunc)(cMiniFB* miniFB) = nullptr;
-  void(*charFunc)(cMiniFB* miniFB) = nullptr;
-  void(*buttonFunc)(cMiniFB* miniFB) = nullptr;
-  void(*moveFunc)(cMiniFB* miniFB) = nullptr;
-  void(*wheelFunc)(cMiniFB* miniFB) = nullptr;
-  void(*enterFunc)(cMiniFB* miniFB) = nullptr;
+  void(*mActiveFunc)(cMiniFB* miniFB) = nullptr;
+  void(*mResizeFunc)(cMiniFB* miniFB) = nullptr;
+  bool(*mCloseFunc)(cMiniFB* miniFB) = nullptr;
+  void(*mKeyFunc)(cMiniFB* miniFB) = nullptr;
+  void(*mCharFunc)(cMiniFB* miniFB) = nullptr;
+  void(*mButtonFunc)(cMiniFB* miniFB) = nullptr;
+  void(*mMoveFunc)(cMiniFB* miniFB) = nullptr;
+  void(*mWheelFunc)(cMiniFB* miniFB) = nullptr;
+  void(*mEnterFunc)(cMiniFB* miniFB) = nullptr;
 
-  uint32_t windowWidth = 0;
-  uint32_t windowHeight = 0;
-  uint32_t windowScaledWidth = 0;
-  uint32_t windowScaledHeight = 0;
+  uint32_t mWindowWidth = 0;
+  uint32_t mWindowHeight = 0;
+  uint32_t mWindowScaledWidth = 0;
+  uint32_t mWindowScaledHeight = 0;
 
-  uint32_t dstOffsetX = 0;
-  uint32_t dstOffsetY = 0;
-  uint32_t dstWidth = 0;
-  uint32_t dstHeight = 0;
+  uint32_t mDstOffsetX = 0;
+  uint32_t mDstOffsetY = 0;
+  uint32_t mDstWidth = 0;
+  uint32_t mDstHeight = 0;
 
-  float    factorX = 0;
-  float    factorY = 0;
-  float    factorWidth = 0;
-  float    factorHeight = 0;
+  float    mFactorX = 0;
+  float    mFactorY = 0;
+  float    mFactorWidth = 0;
+  float    mFactorHeight = 0;
 
   void*    drawBuffer = nullptr;
   uint32_t bufferWidth = 0;
   uint32_t bufferHeight = 0;
   uint32_t bufferStride = 0;
 
-  bool     isInitialized = false;
-  bool     isWindowActive = false;
-  bool     isClosed = false;
+  bool     mInitialized = false;
+  bool     mWindowActive = false;
+  bool     mClosed = false;
 
-  uint32_t isKeyPressed = 0;
+  uint32_t mKeyPressed = 0;
   eMiniKey keyCode = eMiniKey(0);
   uint8_t  keyStatus[512] = {0};
   uint32_t modifierKeys = 0;
   uint32_t codePoint = 0;
 
-  bool     isPointerDown = false;
-  bool     isPointerInside = false;
-  int32_t  pointerTimestamp = 0;
-  uint8_t  pointerButtonStatus[8] = {0};
-  int32_t  pointerPosX = 0;
-  int32_t  pointerPosY = 0;
-  int32_t  pointerPressure = 0;
-  int32_t  pointerTiltX = 0;
-  int32_t  pointerTiltY = 0;
-  float    pointerWheelX = 0;
-  float    pointerWheelY = 0;
+  bool     mPointerDown = false;
+  bool     mPointerInside = false;
+  int32_t  mPointerTimestamp = 0;
+  uint8_t  mPointerButtonStatus[8] = {0};
+  int32_t  mPointerPosX = 0;
+  int32_t  mPointerPosY = 0;
+  int32_t  mPointerPressure = 0;
+  int32_t  mPointerTiltX = 0;
+  int32_t  mPointerTiltY = 0;
+  float    mPointerWheelX = 0;
+  float    mPointerWheelY = 0;
 
-  uint32_t textureId;
+  uint32_t mTextureId;
 
   #ifdef _WIN32
-    HWND       window = 0;
-    WNDCLASS   wc;
-    HDC        hdc = 0;
-    HGLRC      hGLRC = 0;
+    HWND       mWindow = 0;
+    WNDCLASS   mWndClass;
+    HDC        mHDC = 0;
+    HGLRC      mHGLRC = 0;
   #else
-    Window     window = 0;
-    Display*   display = 0;
-    int        screen = 0;
-    GC         gc = 0;
-    GLXContext context = 0;
+    Window     mWindow = 0;
+    Display*   mDisplay = 0;
+    int        mScreen = 0;
+    GC         mGC = 0;
+    GLXContext mContext = 0;
   #endif
   //}}}
   };
