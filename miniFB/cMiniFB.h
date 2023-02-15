@@ -284,26 +284,6 @@ private:
   void(*mWheelFunc)(cMiniFB* miniFB) = nullptr;
   void(*mEnterFunc)(cMiniFB* miniFB) = nullptr;
 
-  uint32_t mWindowWidth = 0;
-  uint32_t mWindowHeight = 0;
-  uint32_t mWindowScaledWidth = 0;
-  uint32_t mWindowScaledHeight = 0;
-
-  uint32_t mDstOffsetX = 0;
-  uint32_t mDstOffsetY = 0;
-  uint32_t mDstWidth = 0;
-  uint32_t mDstHeight = 0;
-
-  float    mFactorX = 0;
-  float    mFactorY = 0;
-  float    mFactorWidth = 0;
-  float    mFactorHeight = 0;
-
-  void*    mBuffer = nullptr;
-  uint32_t mBufferWidth = 0;
-  uint32_t mBufferHeight = 0;
-  uint32_t mBufferStride = 0;
-
   bool     mInitialized = false;
   bool     mWindowActive = false;
   bool     mClosed = false;
@@ -325,6 +305,26 @@ private:
   int32_t  mPointerTiltY = 0;
   float    mPointerWheelX = 0;
   float    mPointerWheelY = 0;
+
+  uint32_t mWindowWidth = 0;
+  uint32_t mWindowHeight = 0;
+  uint32_t mWindowScaledWidth = 0;
+  uint32_t mWindowScaledHeight = 0;
+
+  uint32_t mDstOffsetX = 0;
+  uint32_t mDstOffsetY = 0;
+  uint32_t mDstWidth = 0;
+  uint32_t mDstHeight = 0;
+
+  float    mFactorX = 0;
+  float    mFactorY = 0;
+  float    mFactorWidth = 0;
+  float    mFactorHeight = 0;
+
+  void*    mBuffer = nullptr;
+  uint32_t mBufferWidth = 0;
+  uint32_t mBufferHeight = 0;
+  uint32_t mBufferStride = 0;
 
   uint32_t mTextureId;
 

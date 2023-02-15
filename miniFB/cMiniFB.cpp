@@ -676,7 +676,7 @@ namespace {
       }
     //}}}
     //{{{
-    int translateModEx (int key, int state, int is_pressed) {
+    int translateModEx (int key, int state, int pressed) {
 
       int modifierKeys = translateMod (state);
 
@@ -684,7 +684,7 @@ namespace {
         case KB_KEY_LEFT_SHIFT:
         //{{{
         case KB_KEY_RIGHT_SHIFT:
-          if (is_pressed)
+          if (pressed)
             modifierKeys |= KB_MOD_SHIFT;
           else
             modifierKeys &= ~KB_MOD_SHIFT;
@@ -694,7 +694,7 @@ namespace {
         case KB_KEY_LEFT_CONTROL:
         //{{{
         case KB_KEY_RIGHT_CONTROL:
-          if (is_pressed)
+          if (pressed)
             modifierKeys |= KB_MOD_CONTROL;
           else
             modifierKeys &= ~KB_MOD_CONTROL;
@@ -704,7 +704,7 @@ namespace {
         case KB_KEY_LEFT_ALT:
         //{{{
         case KB_KEY_RIGHT_ALT:
-          if (is_pressed)
+          if (pressed)
             modifierKeys |= KB_MOD_ALT;
           else
             modifierKeys &= ~KB_MOD_ALT;
@@ -714,7 +714,7 @@ namespace {
         case KB_KEY_LEFT_SUPER:
         //{{{
         case KB_KEY_RIGHT_SUPER:
-          if (is_pressed)
+          if (pressed)
             modifierKeys |= KB_MOD_SUPER;
           else
             modifierKeys &= ~KB_MOD_SUPER;
