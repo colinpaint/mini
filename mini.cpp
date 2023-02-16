@@ -179,9 +179,15 @@ protected:
   //{{{
   bool keyDown (int key) {
     switch (key) {
-      case KB_KEY_ESCAPE: setExit(); return true;
-      case ' ':  return true;
-      default: cLog::log (LOGINFO, fmt::format ("key {}", key));
+      case KB_KEY_ESCAPE: 
+        setExit(); 
+        return true;
+
+      case ' ':  
+        return true;
+
+      default: 
+        cLog::log (LOGINFO, fmt::format ("key {}", key));
       }
 
     return false;
