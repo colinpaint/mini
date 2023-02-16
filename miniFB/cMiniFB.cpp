@@ -208,6 +208,7 @@ namespace {
           }
           //}}}
 
+        // get ranges
         AXIS rangeX = {0};
         gWinTab->mWTInfoA (WTI_DEVICES, DVC_X, &rangeX);
         gWinTab->mMaxX = rangeX.axMax;
@@ -1099,61 +1100,7 @@ void cMiniFB::getMonitorScale (float* scale_x, float* scale_y) {
 //}}}
 
 // sets
-//{{{
-bool cMiniFB::setViewportBestFit (uint32_t oldWidth, uint32_t oldHeight) {
-
-  uint32_t newWidth  = mWindowWidth;
-  uint32_t newHeight = mWindowHeight;
-
-  float scale_x = newWidth  / (float) oldWidth;
-  float scale_y = newHeight / (float) oldHeight;
-  if (scale_x >= scale_y)
-    scale_x = scale_y;
-  else
-    scale_y = scale_x;
-
-  uint32_t finalWidth  = (uint32_t)((oldWidth  * scale_x) + 0.5f);
-  uint32_t finalHeight = (uint32_t)((oldHeight * scale_y) + 0.5f);
-
-  uint32_t offset_x = (newWidth  - finalWidth)  >> 1;
-  uint32_t offset_y = (newHeight - finalHeight) >> 1;
-
-  getMonitorScale (&scale_x, &scale_y);
-  return setViewport ((uint32_t)(offset_x / scale_x), (uint32_t)(offset_y / scale_y),
-                      (uint32_t)(finalWidth / scale_x), (uint32_t)(finalHeight / scale_y));
-  }
-//}}}
-//{{{
-bool cMiniFB::setViewport (uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height) {
-
-  if (offset_x + width > mWindowWidth)
-    return false;
-  if (offset_y + height > mWindowHeight)
-    return false;
-
-  #ifdef _WIN32
-    float scale_x, scale_y;
-    getWindowsMonitorScale (mWindow, &scale_x, &scale_y);
-    mDstOffsetX = (uint32_t)(offset_x * scale_x);
-    mDstOffsetY = (uint32_t)(offset_y * scale_y);
-    mDstWidth = (uint32_t)(width  * scale_x);
-    mDstHeight = (uint32_t)(height * scale_y);
-  #else
-    if (offset_x + width > mWindowWidth)
-      return false;
-    if (offset_y + height > mWindowHeight)
-      return false;
-    mDstOffsetX = offset_x;
-    mDstOffsetY = offset_y;
-    mDstWidth = width;
-    mDstHeight = height;
-  #endif
-
-  calcDstFactor (mWindowWidth, mWindowHeight);
-  return true;
-  }
-//}}}
-//{{{  set C style callbacks
+//{{{  C style callbacks
 void cMiniFB::setActiveCallback (void(*callback)(cMiniFB* miniFB)) { mActiveFunc = callback; }
 void cMiniFB::setResizeCallback (void(*callback)(cMiniFB* miniFB)) { mResizeFunc = callback; }
 void cMiniFB::setCloseCallback  (bool(*callback)(cMiniFB* miniFB)) { mCloseFunc = callback; }
@@ -1166,7 +1113,7 @@ void cMiniFB::setMoveCallback   (void(*callback)(cMiniFB* miniFB)) { mMoveFunc =
 void cMiniFB::setWheelCallback  (void(*callback)(cMiniFB* miniFB)) { mWheelFunc = callback; }
 void cMiniFB::setEnterCallback  (void(*callback)(cMiniFB* miniFB)) { mEnterFunc = callback; }
 //}}}
-//{{{  set function style callbacks
+//{{{  function style callbacks
 //{{{
 void cMiniFB::setActiveFunc (function <void (cMiniFB*)> func) {
   cMiniCallbackStub::getInstance (this)->mActiveFunc = bind (func, placeholders::_1);
@@ -1223,6 +1170,60 @@ void cMiniFB::setEnterFunc  (function <void (cMiniFB*)> func) {
   setEnterCallback (cMiniCallbackStub::enterStub);
   }
 //}}}
+//}}}
+//{{{
+bool cMiniFB::setViewportBestFit (uint32_t oldWidth, uint32_t oldHeight) {
+
+  uint32_t newWidth  = mWindowWidth;
+  uint32_t newHeight = mWindowHeight;
+
+  float scale_x = newWidth  / (float) oldWidth;
+  float scale_y = newHeight / (float) oldHeight;
+  if (scale_x >= scale_y)
+    scale_x = scale_y;
+  else
+    scale_y = scale_x;
+
+  uint32_t finalWidth  = (uint32_t)((oldWidth  * scale_x) + 0.5f);
+  uint32_t finalHeight = (uint32_t)((oldHeight * scale_y) + 0.5f);
+
+  uint32_t offset_x = (newWidth  - finalWidth)  >> 1;
+  uint32_t offset_y = (newHeight - finalHeight) >> 1;
+
+  getMonitorScale (&scale_x, &scale_y);
+  return setViewport ((uint32_t)(offset_x / scale_x), (uint32_t)(offset_y / scale_y),
+                      (uint32_t)(finalWidth / scale_x), (uint32_t)(finalHeight / scale_y));
+  }
+//}}}
+//{{{
+bool cMiniFB::setViewport (uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height) {
+
+  if (offset_x + width > mWindowWidth)
+    return false;
+  if (offset_y + height > mWindowHeight)
+    return false;
+
+  #ifdef _WIN32
+    float scale_x, scale_y;
+    getWindowsMonitorScale (mWindow, &scale_x, &scale_y);
+    mDstOffsetX = (uint32_t)(offset_x * scale_x);
+    mDstOffsetY = (uint32_t)(offset_y * scale_y);
+    mDstWidth = (uint32_t)(width  * scale_x);
+    mDstHeight = (uint32_t)(height * scale_y);
+  #else
+    if (offset_x + width > mWindowWidth)
+      return false;
+    if (offset_y + height > mWindowHeight)
+      return false;
+    mDstOffsetX = offset_x;
+    mDstOffsetY = offset_y;
+    mDstWidth = width;
+    mDstHeight = height;
+  #endif
+
+  calcDstFactor (mWindowWidth, mWindowHeight);
+  return true;
+  }
 //}}}
 
 // message handler
@@ -2378,8 +2379,8 @@ bool cMiniFB::createGLcontext() {
       return false;
       }
     //}}}
-    mContext = glXCreateContext (mDisplay, visualInfo, NULL, GL_TRUE);
-    glXMakeCurrent (mDisplay, mWindow, mContext);
+    mGLXContext = glXCreateContext (mDisplay, visualInfo, NULL, GL_TRUE);
+    glXMakeCurrent (mDisplay, mWindow, mGLXContext);
 
     if (hasGLextension ("GLX_EXT_swap_control"))
       gSwapInterval = (tGlSwapIntervalProc)glXGetProcAddress ((const GLubyte*)"glXSwapIntervalEXT");
@@ -2447,7 +2448,7 @@ void cMiniFB::resizeGL() {
     #ifdef _WIN32
       wglMakeCurrent (mHDC, mHGLRC);
     #else
-      glXMakeCurrent (mDisplay, mWindow, mContext);
+      glXMakeCurrent (mDisplay, mWindow, mGLXContext);
     #endif
 
     glViewport (0,0, mWindowWidth, mWindowHeight);
@@ -2466,7 +2467,7 @@ void cMiniFB::redrawGL (const void* pixels) {
   #ifdef _WIN32
     wglMakeCurrent (mHDC, mHGLRC);
   #else
-    glXMakeCurrent (mDisplay, mWindow, mContext);
+    glXMakeCurrent (mDisplay, mWindow, mGLXContext);
   #endif
 
   GLenum format = RGBA;
@@ -2519,7 +2520,7 @@ void cMiniFB::destroyGLcontext() {
       mHGLRC = 0;
       }
   #else
-    glXDestroyContext (mDisplay, mContext);
+    glXDestroyContext (mDisplay, mGLXContext);
   #endif
   }
 //}}}

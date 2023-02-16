@@ -13,6 +13,7 @@
   #include <GL/glx.h>
 #endif
 //}}}
+
 //{{{
 enum eMiniFlags {
               WF_RESIZABLE          = 0x01,
@@ -202,6 +203,7 @@ public:
   unsigned getWindowScaledWidth() const { return mWindowScaledWidth; }
   unsigned getWindowScaledHeight() const { return mWindowScaledHeight; }
 
+  // pointer
   int32_t getPointerTimestamp() const { return mPointerTimestamp; }
   bool isPointerDown() const { return mPointerDown; }
   bool isPointerInside() const { return mPointerInside; }
@@ -212,20 +214,21 @@ public:
   float getPointerWheelX() const { return mPointerWheelX; }
   float getPointerWheelY() const { return mPointerWheelY; }
 
+  // keyboard
   bool isKeyPressed() const { return mKeyPressed; }
   eMiniKey getKeyCode() const { return mKeyCode; }
   uint32_t getModifierKeys() const { return mModifierKeys; }
-
   const uint8_t* getKeyStatus() { return mKeyStatus; }
   uint32_t getCodePoint()const  { return mCodePoint; }
 
+  // other
   void* getUserData() { return userData; }
   void getMonitorScale (float* scale_x, float* scale_y);
   //}}}
   //{{{  sets
   void setUserData (void* user_data) { userData = user_data; }
-  bool setViewport (uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height);
   bool setViewportBestFit (uint32_t oldWidth, uint32_t oldHeight);
+  bool setViewport (uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height);
 
   // C style callbacks
   void setActiveCallback (void(*callback)(cMiniFB* miniFB));
@@ -272,8 +275,21 @@ private:
   void calcDstFactor (uint32_t width, uint32_t height);
 
   //{{{  vars
-  void* userData = nullptr;
+  #ifdef _WIN32
+    HWND       mWindow = 0;
+    WNDCLASS   mWndClass;
+    HDC        mHDC = 0;
+    HGLRC      mHGLRC = 0;
+  #else
+    Window     mWindow = 0;
+    Display*   mDisplay = 0;
+    int        mScreen = 0;
+    GC         mGC = 0;
+    GLXContext mGLXContext = 0;
+  #endif
 
+  void* userData = nullptr;
+  // callbacks
   void(*mActiveFunc)(cMiniFB* miniFB) = nullptr;
   void(*mResizeFunc)(cMiniFB* miniFB) = nullptr;
   bool(*mCloseFunc)(cMiniFB* miniFB) = nullptr;
@@ -284,6 +300,7 @@ private:
   void(*mWheelFunc)(cMiniFB* miniFB) = nullptr;
   void(*mEnterFunc)(cMiniFB* miniFB) = nullptr;
 
+  // callback info
   bool     mInitialized = false;
   bool     mWindowActive = false;
   bool     mClosed = false;
@@ -306,6 +323,7 @@ private:
   float    mPointerWheelX = 0;
   float    mPointerWheelY = 0;
 
+  // window size
   uint32_t mWindowWidth = 0;
   uint32_t mWindowHeight = 0;
   uint32_t mWindowScaledWidth = 0;
@@ -321,24 +339,13 @@ private:
   float    mFactorWidth = 0;
   float    mFactorHeight = 0;
 
+  // pixels buffer
   void*    mBuffer = nullptr;
   uint32_t mBufferWidth = 0;
   uint32_t mBufferHeight = 0;
   uint32_t mBufferStride = 0;
 
+  // openGL texture
   uint32_t mTextureId;
-
-  #ifdef _WIN32
-    HWND       mWindow = 0;
-    WNDCLASS   mWndClass;
-    HDC        mHDC = 0;
-    HGLRC      mHGLRC = 0;
-  #else
-    Window     mWindow = 0;
-    Display*   mDisplay = 0;
-    int        mScreen = 0;
-    GC         mGC = 0;
-    GLXContext mContext = 0;
-  #endif
   //}}}
   };
