@@ -192,7 +192,7 @@ public:
   static cMiniFB* create (const std::string& title, uint32_t width, uint32_t height, uint32_t flags);
   static std::string getKeyName (eMiniKey key);
 
-  eMiniState update (void* buffer);
+  eMiniState updatePixels (void* pixels);
   eMiniState updateEvents();
   void close() { mClosed = true; }
 
@@ -340,10 +340,8 @@ private:
   float    mFactorHeight = 0;
 
   // pixels buffer
-  void*    mBuffer = nullptr;
-  uint32_t mBufferWidth = 0;
-  uint32_t mBufferHeight = 0;
-  uint32_t mBufferStride = 0;
+  uint32_t mPixelsWidth = 0;
+  uint32_t mPixelsHeight = 0;
 
   // openGL texture
   uint32_t mTextureId;

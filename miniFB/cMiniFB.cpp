@@ -1031,18 +1031,17 @@ string cMiniFB::getKeyName (eMiniKey key) {
 
 // cMiniFB
 //{{{
-eMiniState cMiniFB::update (void* buffer) {
+eMiniState cMiniFB::updatePixels (void* pixels) {
 
   if (mClosed) {
     freeResources();
     return STATE_EXIT;
     }
 
-  if (!buffer)
+  if (!pixels)
     return STATE_INVALID_BUFFER;
 
-  mBuffer = buffer;
-  redrawGL (buffer);
+  redrawGL (pixels);
 
   return STATE_OK;
   }
@@ -1791,9 +1790,8 @@ bool cMiniFB::setViewport (uint32_t offset_x, uint32_t offset_y, uint32_t width,
 //{{{
 bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32_t flags) {
 
-  mBufferWidth  = width;
-  mBufferHeight = height;
-  mBufferStride = width * 4;
+  mPixelsWidth  = width;
+  mPixelsHeight = height;
 
   #ifdef _WIN32
     //{{{  windows
@@ -2298,8 +2296,6 @@ void cMiniFB::freeResources() {
     destroyGLcontext();
   #endif
 
-  // not sure why ?
-  mBuffer = nullptr;
   mClosed = true;
   }
 //}}}
@@ -2476,7 +2472,7 @@ void cMiniFB::redrawGL (const void* pixels) {
   //glClear (GL_COLOR_BUFFER_BIT);
 
   glBindTexture (GL_TEXTURE_2D, mTextureId);
-  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, mBufferWidth, mBufferHeight, 0, format, GL_UNSIGNED_BYTE, pixels);
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, mPixelsWidth, mPixelsHeight, 0, format, GL_UNSIGNED_BYTE, pixels);
   //glTexSubImage2D (GL_TEXTURE_2D, 0,
   //                 0, 0, buffer_width, buffer_height,
   //                 format, GL_UNSIGNED_BYTE, pixels);

@@ -193,7 +193,7 @@ void cWindow::uiLoop (bool useChanged, bool drawPerf,
                   fmt::format ("{:05d}:{:05d}us {} chars", renderUs, frameUs, getNumFontChars()));
         }
 
-      mMiniFB->update (getPixels());
+      mMiniFB->updatePixels (getPixels());
       frameUs = duration_cast<microseconds>(system_clock::now() - time).count();
       }
     else {
