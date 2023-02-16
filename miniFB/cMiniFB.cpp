@@ -2393,12 +2393,11 @@ bool cMiniFB::createGLcontext() {
     cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
   #endif
 
-  initGL();
-  return true;
+  return initGL();
   }
 //}}}
 //{{{
-void cMiniFB::initGL() {
+bool cMiniFB::initGL() {
 
   glViewport (0, 0, mWindowWidth, mWindowHeight);
 
@@ -2431,14 +2430,15 @@ void cMiniFB::initGL() {
   if (!gSwapInterval) {
     // error, return
     cLog::log (LOGERROR, "no swapInterval extension");
-    return;
+    return false;
     }
 
   #ifdef _WIN32
-    gSwapInterval (0);
+    gSwapInterval (1);
   #else
     gSwapInterval (glXGetCurrentDisplay(), glXGetCurrentDrawable(), 1);
   #endif
+  return true;
   }
 //}}}
 //{{{
@@ -2528,10 +2528,10 @@ void cMiniFB::destroyGLcontext() {
 //{{{
 void cMiniFB::resizeDst (uint32_t width, uint32_t height) {
 
-  mDstOffsetX = (uint32_t) (width  * mFactorX);
-  mDstOffsetY = (uint32_t) (height * mFactorY);
-  mDstWidth    = (uint32_t) (width  * mFactorWidth);
-  mDstHeight   = (uint32_t) (height * mFactorHeight);
+  mDstOffsetX = (uint32_t)(width  * mFactorX);
+  mDstOffsetY = (uint32_t)(height * mFactorY);
+  mDstWidth = (uint32_t)(width  * mFactorWidth);
+  mDstHeight = (uint32_t)(height * mFactorHeight);
   }
 //}}}
 //{{{
@@ -2540,13 +2540,13 @@ void cMiniFB::calcDstFactor (uint32_t width, uint32_t height) {
   if (!mDstWidth)
     mDstWidth = width;
 
-  mFactorX     = (float)mDstOffsetX / (float)width;
+  mFactorX = (float)mDstOffsetX / (float)width;
   mFactorWidth = (float)mDstWidth    / (float)width;
 
   if (!mDstHeight)
     mDstHeight = height;
 
-  mFactorY      = (float)mDstOffsetY / (float)height;
+  mFactorY = (float)mDstOffsetY / (float)height;
   mFactorHeight = (float)mDstHeight   / (float)height;
   }
 //}}}

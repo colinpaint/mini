@@ -266,7 +266,7 @@ private:
   void freeResources();
   //{{{  openGL
   bool createGLcontext();
-  void initGL();
+  bool initGL();
   void resizeGL();
   void redrawGL (const void* pixels);
   void destroyGLcontext();

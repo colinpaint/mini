@@ -1,4 +1,4 @@
-// cMiniWindow.cpp
+// cMiniWindow.cpp - minimal window and box system
 //{{{  includes
 #include "cWindow.h"
 

@@ -1,4 +1,4 @@
-// cWindow.h
+// cWindow.h - minimal window and box system
 #pragma once
 //{{{  includes
 #include "cDrawTexture.h"
