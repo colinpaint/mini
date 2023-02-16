@@ -6,15 +6,6 @@
 #include "../gui/cWindow.h"
 
 //{{{
-struct sBrushPoint {
-  cPoint mPos;
-  int mPressure;
-  int mTimestamp;
-
-  sBrushPoint (cPoint pos, int pressure, int timestamp) : mPos(pos), mPressure(pressure), mTimestamp(timestamp) {}
-  };
-//}}}
-//{{{
 class cLayer {
 public:
   cLayer (const std::string& name, const cColor& color, cPoint pos)

@@ -12,6 +12,8 @@
   #include <X11/Xlib.h>
   #include <GL/glx.h>
 #endif
+
+#include "../common/basicTypes.h"
 //}}}
 
 //{{{
@@ -186,6 +188,17 @@ enum eMiniKey {
 #define KB_KEY_LAST KB_KEY_MENU
 //}}}
 
+//{{{
+struct sBrushPoint {
+  int mTimestamp;
+  cPoint mPos;
+  int mPressure;
+
+  sBrushPoint() : mTimestamp(0), mPos({0,0}), mPressure(255) {}
+  sBrushPoint (cPoint pos, int pressure, int timestamp) : mTimestamp(timestamp), mPos(pos), mPressure(pressure) {}
+  };
+//}}}
+
 class cMiniFB {
 public:
   // statics
@@ -322,6 +335,7 @@ private:
   int32_t  mPointerTiltY = 0;
   float    mPointerWheelX = 0;
   float    mPointerWheelY = 0;
+  sBrushPoint mBrushPoint;
 
   // window size
   uint32_t mWindowWidth = 0;

@@ -27,7 +27,7 @@ using namespace std;
 constexpr int kInitialHeaderBufferSize = 256;
 constexpr int kRecvBufferSize = 2048;
 
-namespace { 
+namespace {
   //{{{
   const uint8_t kHeaderState[88] = {
   //  *    \t    \n   \r    ' '     ,     :   PAD
@@ -155,7 +155,7 @@ void cHttp::freeContent() {
 
 // protected
 //{{{
-int cHttp::connectToHost (const std::string& host) {
+int cHttp::connectToHost (const string& host) {
 
   if ((mSocket == 0) || (host != mLastHost)) {
     // not connected or different host
@@ -232,7 +232,7 @@ int cHttp::connectToHost (const std::string& host) {
   }
 //}}}
 //{{{
-bool cHttp::getSend (const std::string& sendStr) {
+bool cHttp::getSend (const string& sendStr) {
 
   if (send (mSocket, sendStr.c_str(), (int)sendStr.size(), 0) < 0) {
     #ifdef _WIN32

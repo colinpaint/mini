@@ -467,9 +467,10 @@ namespace {
     uint32_t gNumEventClasses = 0;
     XEventClass gEventClasses[16];
 
-    int32_t gRangeX = 0;
-    int32_t gRangeY = 0;
+    int32_t gMaxX = 0;
+    int32_t gMaxY = 0;
     int32_t gMaxPressure = 0;
+    int32_t gMaxTilt = 0;
 
     //{{{
     int translateKeyCodeB (int keySym) {
@@ -2080,15 +2081,15 @@ bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32
               if (valuatorInfo->num_axes > 0) {
                 // x
                 int32_t minX = valuatorInfo->axes[0].min_value;
-                gRangeX = valuatorInfo->axes[0].max_value;
-                cLog::log (LOGINFO, fmt::format ("- stylus xRange {}:{}", minX, gRangeX));
+                gMaxX = valuatorInfo->axes[0].max_value;
+                cLog::log (LOGINFO, fmt::format ("- stylus xRange {}:{}", minX, gMaxX));
                 }
 
               if (valuatorInfo->num_axes > 1) {
                 // y
                 int32_t minY = valuatorInfo->axes[1].min_value;
-                gRangeY = valuatorInfo->axes[1].max_value;
-                cLog::log (LOGINFO, fmt::format ("- stylus yRange {}:{}", minY, gRangeY));
+                gMaxY = valuatorInfo->axes[1].max_value;
+                cLog::log (LOGINFO, fmt::format ("- stylus yRange {}:{}", minY, gMaxY));
                 }
 
               if (valuatorInfo->num_axes > 2) {
@@ -2096,6 +2097,13 @@ bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32
                 int32_t minPressure = valuatorInfo->axes[2].min_value;
                 gMaxPressure = valuatorInfo->axes[2].max_value;
                 cLog::log (LOGINFO, fmt::format ("- stylus pressureRange {}:{}", minPressure, gMaxPressure));
+                }
+
+              if (valuatorInfo->num_axes > 3) {
+                // pressure
+                int32_t minTilt = valuatorInfo->axes[3].min_value;
+                gMaxYTilt = valuatorInfo->axes[3].max_value;
+                cLog::log (LOGINFO, fmt::format ("- stylus tilteRange {}:{}", minTilt, gMaxTilt));
                 }
 
               XEventClass eventClass;
