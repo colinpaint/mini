@@ -1,4 +1,4 @@
-// cMiniFB.cpp
+// cMiniFB.cpp - mini frameBuffer, based on https://github.com/emoon/minifb, but hacked to death
 // enable wintab WT_PACKET, WT_PROXIMITY, but pen WM_POINTER* messages id as mouse not pen
 //#define USE_WINTAB
 //{{{  includes

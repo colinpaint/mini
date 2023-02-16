@@ -16,19 +16,19 @@
 
 //{{{
 enum eMiniFlags {
-              WF_RESIZABLE          = 0x01,
-              WF_FULLSCREEN         = 0x02,
-              WF_FULLSCREEN_DESKTOP = 0x04,
-              WF_BORDERLESS         = 0x08,
-              WF_ALWAYS_ON_TOP      = 0x10 };
+  WF_RESIZABLE          = 0x01,
+  WF_FULLSCREEN         = 0x02,
+  WF_FULLSCREEN_DESKTOP = 0x04,
+  WF_BORDERLESS         = 0x08,
+  WF_ALWAYS_ON_TOP      = 0x10 };
 //}}}
 //{{{
 enum eMiniState {
-                    STATE_OK             =  0,
-                    STATE_EXIT           = -1,
-                    STATE_INVALID_WINDOW = -2,
-                    STATE_INVALID_BUFFER = -3,
-                    STATE_INTERNAL_ERROR = -4 };
+  STATE_OK             =  0,
+  STATE_EXIT           = -1,
+  STATE_INVALID_WINDOW = -2,
+  STATE_INVALID_BUFFER = -3,
+  STATE_INTERNAL_ERROR = -4 };
 //}}}
 //{{{
 enum eMiniPointerButton {
