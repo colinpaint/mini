@@ -179,14 +179,14 @@ protected:
   //{{{
   bool keyDown (int key) {
     switch (key) {
-      case KB_KEY_ESCAPE: 
-        setExit(); 
+      case KB_KEY_ESCAPE:
+        setExit();
         return true;
 
-      case ' ':  
+      case ' ':
         return true;
 
-      default: 
+      default:
         cLog::log (LOGINFO, fmt::format ("key {}", key));
       }
 
@@ -234,9 +234,9 @@ private:
   eLogLevel logLevel = LOGINFO;
   bool fullScreen = false;
   #ifdef _WIN32
-    string fileRoot = "../../piccies/burger.jpg";  // launched in windowsBuild/release/
+    string fileRoot = "../../piccies/burger.jpg"; // launched in windowsBuild/release/
   #else
-    string fileRoot = "../piccies/burger.jpg";     // launched in build/
+    string fileRoot = "../piccies/burger.jpg";    // launched in build/
   #endif
   string tiledMapApiKey;
   //{{{  parse params to command line options

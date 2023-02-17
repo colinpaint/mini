@@ -2308,6 +2308,7 @@ void cMiniFB::freeResources() {
   }
 //}}}
 
+// openGL
 //{{{
 bool cMiniFB::createGLcontext() {
 
@@ -2481,9 +2482,7 @@ void cMiniFB::redrawGL (const void* pixels) {
 
   glBindTexture (GL_TEXTURE_2D, mTextureId);
   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, mPixelsWidth, mPixelsHeight, 0, format, GL_UNSIGNED_BYTE, pixels);
-  //glTexSubImage2D (GL_TEXTURE_2D, 0,
-  //                 0, 0, buffer_width, buffer_height,
-  //                 format, GL_UNSIGNED_BYTE, pixels);
+  //glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, buffer_width, buffer_height, format, GL_UNSIGNED_BYTE, pixels);
 
   // draw single texture
   glEnableClientState (GL_VERTEX_ARRAY);
