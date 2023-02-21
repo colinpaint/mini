@@ -2102,7 +2102,7 @@ bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32
               if (valuatorInfo->num_axes > 3) {
                 // pressure
                 int32_t minTilt = valuatorInfo->axes[3].min_value;
-                gMaxYTilt = valuatorInfo->axes[3].max_value;
+                gMaxTilt = valuatorInfo->axes[3].max_value;
                 cLog::log (LOGINFO, fmt::format ("- stylus tilteRange {}:{}", minTilt, gMaxTilt));
                 }
 
