@@ -10,8 +10,11 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
 
   target_compile_definitions (${PROJECT_NAME} PUBLIC ${BUILD_D2D})
   target_compile_options (${PROJECT_NAME} PUBLIC /W4
+                                                 ${BUILD_MSVC_COMPILE_OPTIONS}
+                                                 /arch:AVX
+#                                                 /arch:AVX512
                                                  /fp:fast
-                                                 ${BUILD_MSVC_COMPILE_OPTIONS})
+                                                 )
 else()
   add_library (${PROJECT_NAME} ${files})
 
