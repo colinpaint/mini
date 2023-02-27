@@ -10,6 +10,8 @@ set (CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "limited configs" FO
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
   set (BUILD_MSVC_COMPILE_OPTIONS "/arch:AVX" CACHE STRING "msvc compile options")
   option (WINMAIN_ENTRY "winMain entry" OFF)
+  option (USE_AVX512 "use avx512" OFF)
+  option (USE_AVX2 "use avx2" OFF)
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
   set (BUILD_LINUX_COMPILE_OPTIONS "-Ofast" CACHE STRING "gcc compile options")
 endif()
