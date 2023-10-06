@@ -62,7 +62,7 @@ public:
     if (!tiledMapApiKey.empty()) {
       //{{{  create tiledMap, layers, threads, gui
       #ifdef _WIN32
-        string mapFileRoot = "D:/maps";
+        string mapFileRoot = "C:/maps";
       #else
         string mapFileRoot = "/home/pi/maps";
       #endif
