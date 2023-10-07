@@ -12,9 +12,9 @@
 enum eLogLevel { LOGNOTICE, LOGERROR, LOGINFO, LOGINFO1, LOGINFO2, LOGINFO3, eMaxLog };
 
 //{{{
-struct cLine {
-  cLine() {}
-  cLine (eLogLevel logLevel, uint64_t threadId,
+struct cLogLine {
+  cLogLine() {}
+  cLogLine (eLogLevel logLevel, uint64_t threadId,
          std::chrono::time_point<std::chrono::system_clock> timePoint, const std::string& lineString)
     : mLogLevel(logLevel), mThreadId(threadId), mTimePoint(timePoint), mString(lineString) {}
 
@@ -35,7 +35,7 @@ public:
   // get
   static enum eLogLevel getLogLevel();
   static std::string getThreadName (uint64_t threadId);
-  static bool getLine (cLine& line, unsigned lineNum, unsigned& lastLineIndex);
+  static bool getLine (cLogLine& line, unsigned lineNum, unsigned& lastLineIndex);
 
   // set
   static void cycleLogLevel();

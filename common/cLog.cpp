@@ -61,7 +61,7 @@ namespace {
                                        fmt::color::lavender};    // info3
 
   map <uint64_t, string> mThreadNameMap;
-  deque <cLine> mLineDeque;
+  deque <cLogLine> mLineDeque;
   mutex mLinesMutex;
 
   FILE* mFile = NULL;
@@ -136,7 +136,7 @@ string cLog::getThreadName (uint64_t threadId) {
   }
 //}}}
 //{{{
-bool cLog::getLine (cLine& line, unsigned lineNum, unsigned& lastLineIndex) {
+bool cLog::getLine (cLogLine& line, unsigned lineNum, unsigned& lastLineIndex) {
 // still a bit too dumb, holding onto lastLineIndex between searches helps
 
   lock_guard<mutex> lockGuard (mLinesMutex);
@@ -210,7 +210,7 @@ void cLog::log (enum eLogLevel logLevel, const string& logStr) {
 
   if (mBuffer) {
     // buffer for widget display
-    mLineDeque.push_front (cLine (logLevel, getThreadId(), now, logStr));
+    mLineDeque.push_front (cLogLine (logLevel, getThreadId(), now, logStr));
     if (mLineDeque.size() > kMaxBuffer)
       mLineDeque.pop_back();
     }

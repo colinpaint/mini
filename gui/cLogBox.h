@@ -69,7 +69,7 @@ public:
     auto lastTimePoint = mWindow.getNowDaylight();
 
     // draw lines
-    cLine logLine;
+    cLogLine logLine;
     float maxWidth = 0.f;
     float y = mWindow.getHeight() + (mLogScroll % int(mWindow.getConsoleHeight())) - 2.f;
     while ((y > 20.f) && cLog::getLine (logLine, logLineNum++, lastLineIndex)) {
