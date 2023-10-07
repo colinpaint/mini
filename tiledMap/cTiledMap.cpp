@@ -364,7 +364,7 @@ void cTiledMap::launchThreads (uint32_t numThreads) {
       loadTiles (threadIndex);
       cLog::log (LOGERROR, "exit");
       }).detach();
-  };
+  }
 //}}}
 
 //{{{
