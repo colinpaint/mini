@@ -106,12 +106,13 @@ namespace utils {
   //}}}
 
   //{{{
-  inline std::string validFileString (const std::string& str, const char* inValidChars) {
+  inline std::string getValidFileString (const std::string& str) {
+
+    const char* inValidChars=  "<>:/|?*\"\'\\";
 
     std::string validStr = str;
     for (auto i = 0u; i < strlen(inValidChars); ++i)
       validStr.erase (std::remove (validStr.begin(), validStr.end(), inValidChars[i]), validStr.end());
-
     return validStr;
     }
   //}}}
@@ -121,7 +122,6 @@ namespace utils {
     return std::wstring (str.begin(), str.end());
     }
   //}}}
-
   #ifdef _WIN32
     //{{{
     inline std::string wstringToString (const std::wstring& input) {
@@ -140,31 +140,4 @@ namespace utils {
       }
     //}}}
   #endif
-
-  // old stuff
-  //{{{
-  //inline std::string getTimeDateString (const time_t& time) {
-
-    //tm* localTm = localtime (&time);
-
-    //const char day_name[][4] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-    //const char mon_name[][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                                 //"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-
-    //return dec(localTm->tm_hour,2,'0') + "." +
-           //dec(localTm->tm_min,2,'0') + "." +
-           //dec(localTm->tm_sec,2,'0') + " " +
-           //day_name[localTm->tm_wday] + " " +
-           //dec(localTm->tm_mday) + " " +
-           //mon_name[localTm->tm_mon] + " " +
-           //dec(1900 + localTm->tm_year);
-    //}
-  //}}}
-  //{{{
-  //inline std::string getTimeShortString (const time_t& time) {
-
-    //tm* localTm = localtime (&time);
-    //return dec(localTm->tm_hour,2,'0') + "." + dec(localTm->tm_min,2,'0');
-    //}
-  //}}}
   }
