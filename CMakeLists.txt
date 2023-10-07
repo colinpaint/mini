@@ -16,7 +16,6 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
   set (BUILD_LINUX_COMPILE_OPTIONS "-Ofast" CACHE STRING "gcc compile options")
 endif()
 #
-#
 add_subdirectory (fmt)
 add_subdirectory (common)
 add_subdirectory (simd)

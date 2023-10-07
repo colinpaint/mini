@@ -1,17 +1,19 @@
 project (common)
-  message (STATUS "using ${CMAKE_HOST_SYSTEM_NAME}")
+
+  message (STATUS "building common")
+
+  add_library (${PROJECT_NAME} basicTypes.h date.h cSemaphore.h cLog.h cLog.cpp)
+  target_link_libraries (${PROJECT_NAME} PUBLIC fmt)
 
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-    message (STATUS "building for Windows")
-    add_library (${PROJECT_NAME} basicTypes.h date.h cSemaphore.h cLog.h cLog.cpp resolve.h cFileList.h)
+    add_library (${PROJECT_NAME} resolve.h cFileList.h)
 
-    target_link_directories (${PROJECT_NAME} PUBLIC ../lib64)
-    target_link_libraries (${PROJECT_NAME} PUBLIC fmt tbb12)
+    target_link_libraries (${PROJECT_NAME} PUBLIC tbb12)
 
     target_compile_definitions (${PROJECT_NAME} PUBLIC ${BUILD_D2D})
     target_compile_options (${PROJECT_NAME} PUBLIC /W4
-                                                   ${BUILD_MSVC_COMPILE_OPTIONS}
                                                    /fp:fast
+                                                   ${BUILD_MSVC_COMPILE_OPTIONS}
                                                    )
     if (USE_AVX512)
       target_compile_options (${PROJECT_NAME} PUBLIC /arch:AVX512)
@@ -21,12 +23,10 @@ project (common)
       target_compile_options (${PROJECT_NAME} PUBLIC /arch:AVX)
     endif()
 
-  elseif()
-    message (STATUS "building for Linux")
-    add_library (${PROJECT_NAME} basicTypes.h date.h cSemaphore.h cLog.h cLog.cpp)
+  else()
 
     include (findTBB.cmake)
-    target_link_libraries (${PROJECT_NAME} PUBLIC fmt stdc++fs TBB::tbb pthread)
+    target_link_libraries (${PROJECT_NAME} PUBLIC stdc++fs TBB::tbb pthread)
 
     target_compile_definitions (${PROJECT_NAME} PUBLIC _LARGEFILE64_SOURCE _FILE_OFFSET_BITS=64)
     target_compile_options (${PROJECT_NAME} PUBLIC -Wall
