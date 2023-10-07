@@ -1,4 +1,4 @@
-// utils.h
+// utils.h - simple utils using format and string
 //{{{  includes
 #pragma once
 
