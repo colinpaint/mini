@@ -1,9 +1,9 @@
 project (common)
-  set (files basicTypes.h date.h cSemaphore.h cLog.h cLog.cpp)
-
   message (STATUS "using ${CMAKE_HOST_SYSTEM_NAME}")
+
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-    add_library (${PROJECT_NAME} ${files} resolve.h cFileList.h)
+    message (STATUS "building for Windows")
+    add_library (${PROJECT_NAME} basicTypes.h date.h cSemaphore.h cLog.h cLog.cpp resolve.h cFileList.h)
 
     target_link_directories (${PROJECT_NAME} PUBLIC ../lib64)
     target_link_libraries (${PROJECT_NAME} PUBLIC fmt tbb12)
@@ -21,8 +21,9 @@ project (common)
       target_compile_options (${PROJECT_NAME} PUBLIC /arch:AVX)
     endif()
 
-  else()
-    add_library (${PROJECT_NAME} ${files})
+  elseif()
+    message (STATUS "building for Linux")
+    add_library (${PROJECT_NAME} basicTypes.h date.h cSemaphore.h cLog.h cLog.cpp)
 
     include (findTBB.cmake)
     target_link_libraries (${PROJECT_NAME} PUBLIC fmt stdc++fs TBB::tbb pthread)
@@ -41,6 +42,4 @@ project (common)
                                                    ${BUILD_LINUX_COMPILE_OPTIONS}
                                                    #-Wno-format-overflow
                                                    )
-  else()
-    message (FATAL_ERROR, "unknown CMAKE_HOST_SYSTEM_NAME = ${CMAKE_HOST_SYSTEM_NAME}")
   endif()
