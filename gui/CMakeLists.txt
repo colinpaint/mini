@@ -3,7 +3,7 @@ project (gui)
 add_library (${PROJECT_NAME} cWindow.h cMiniWindow.cpp
                              cTexture.h cTexture.cpp
                              cDrawAA.h cDrawTexture.h cDrawTexture.cpp
-                             stb_truetype.h freeSansBold.h freeSansBold.cpp
+                             ../stb/stb_truetype.h freeSansBold.h freeSansBold.cpp
                              basicBoxes.h
                              cLogBox.h)
 

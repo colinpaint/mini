@@ -1,5 +1,7 @@
 project (miniFB)
-add_library (${PROJECT_NAME} cMiniFB.h cMiniFB.cpp pktDef.h winTab.h)
+add_library (${PROJECT_NAME} cMiniFB.h cMiniFB.cpp 
+                             pktDef.h winTab.h
+                             )
 
 target_include_directories (${PROJECT_NAME} PUBLIC common)
 target_link_libraries (${PROJECT_NAME} PUBLIC common)

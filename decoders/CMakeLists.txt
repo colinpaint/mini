@@ -10,7 +10,7 @@ project (decoders)
 
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
     target_include_directories (${PROJECT_NAME} PUBLIC common ../include/ffmpeg)
-    target_link_directories (${PROJECT_NAME} PUBLIC ../lib64)
+    target_link_directories (${PROJECT_NAME} PUBLIC ../windowsLib64)
     target_link_libraries (${PROJECT_NAME} PUBLIC common avdevice avfilter avformat avcodec avutil swresample swscale)
 
   else()

@@ -1,11 +1,15 @@
 project (common)
-  set (files basicTypes.h date.h cSemaphore.h cLog.h cLog.cpp)
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-    add_library (${PROJECT_NAME} ${files} fileUtils.h)
+    add_library (${PROJECT_NAME} basicTypes.h date.h cSemaphore.h fileUtils.h
+                                 cLog.h cLog.cpp
+                                 )
   else()
-    add_library (${PROJECT_NAME} ${files})
+    add_library (${PROJECT_NAME} basicTypes.h date.h cSemaphore.h
+                                 cLog.h cLog.cpp
+                                 )
   endif()
 
+  target_include_directories (${PROJECT_NAME} PUBLIC fmt/include)
   target_link_libraries (${PROJECT_NAME} PUBLIC fmt)
 
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)

@@ -1,6 +1,8 @@
 // cSongLoader.cpp - audio,video loader, launches cSongPlayer
 //{{{  includes
 #define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#define WIN32_LEAN_AND_MEAN
 
 // c++
 #include <map>
