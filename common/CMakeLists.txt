@@ -1,11 +1,12 @@
 project (common)
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-    add_library (${PROJECT_NAME} basicTypes.h date.h 
-                                 cSemaphore.h fileUtils.h
+    add_library (${PROJECT_NAME} basicTypes.h date.h
+                                 cSemaphore.h 
                                  cLog.h cLog.cpp
+                                 fileUtils.h
                                  )
   else()
-    add_library (${PROJECT_NAME} basicTypes.h date.h 
+    add_library (${PROJECT_NAME} basicTypes.h date.h
                                  cSemaphore.h
                                  cLog.h cLog.cpp
                                  )
