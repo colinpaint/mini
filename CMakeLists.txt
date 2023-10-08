@@ -18,7 +18,6 @@ endif()
 #
 add_subdirectory (fmt)
 add_subdirectory (common)
-add_subdirectory (simd)
 add_subdirectory (miniFB)
 add_subdirectory (net)
 add_subdirectory (audio)

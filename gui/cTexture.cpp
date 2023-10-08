@@ -9,7 +9,7 @@
 #include "../common/utils.h"
 #include "../common/cLog.h"
 
-#include "../simd/SimdLib.h"
+#include "../include/Simd/SimdLib.h"
 
 // only implmentation
 #define STB_IMAGE_IMPLEMENTATION

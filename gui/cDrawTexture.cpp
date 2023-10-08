@@ -13,7 +13,7 @@
 #include "../common/utils.h"
 #include "../common/cLog.h"
 
-#include "../simd/SimdLib.h"
+#include "../include/Simd/SimdLib.h"
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "../stb/stb_truetype.h"
