@@ -2,7 +2,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
-#include <algorithm> // std::min, std::max
+#include <algorithm>  // std::min, std::max
 #include <functional> // function<> callbacks
 
 #define _USE_MATH_DEFINES

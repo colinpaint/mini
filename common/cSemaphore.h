@@ -1,12 +1,8 @@
 // cSemaphore.h
-//{{{  includes
 #pragma once
-
 #include <mutex>
 #include <condition_variable>
-
 #include "cLog.h"
-//}}}
 
 class cSemaphore {
 public:

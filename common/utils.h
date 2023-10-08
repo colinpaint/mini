@@ -1,19 +1,15 @@
 // utils.h - simple utils using format and string
-//{{{  includes
 #pragma once
-
+#include <cstdint>
 #include <string>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
-#include <stdio.h>
-
 #include "../fmt/include/fmt/format.h"
 
 #ifdef _WIN32
@@ -21,7 +17,6 @@
   #define NOMINMAX
   #include <windows.h>
 #endif
-//}}}
 
 namespace utils {
   //{{{

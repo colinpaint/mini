@@ -6,18 +6,12 @@
   #define NOMINMAX
 #endif
 
-#include "cLog.h"
 
 #ifdef _WIN32
   #include "windows.h"
 #endif
 
 #ifdef __linux__
-  #include <stdio.h>
-  #include <stdlib.h>
-  #include <stdint.h>
-  #include <string.h>
-
   #include <stddef.h>
   #include <unistd.h>
   #include <cstdarg>
@@ -25,10 +19,10 @@
   #include <sys/types.h>
   #include <sys/stat.h>
   #include <sys/syscall.h>
-  #define gettid() syscall(SYS_gettid)
-
   #include <signal.h>
   #include <pthread.h>
+
+  #define gettid() syscall(SYS_gettid)
 #endif
 
 #include <algorithm>
@@ -45,6 +39,8 @@
 #define rename_utf8   rename
 #define fopen64_utf8  fopen
 #define stat64_utf8   stat64
+
+#include "cLog.h"
 
 using namespace std;
 //}}}
