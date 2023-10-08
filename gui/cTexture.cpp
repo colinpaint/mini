@@ -13,7 +13,7 @@
 
 // only implmentation
 #define STB_IMAGE_IMPLEMENTATION
-#include "../decoders/stb_image.h"
+#include "../stb/stb_image.h"
 
 // wuff png decoder
 #define WUFFS_IMPLEMENTATION

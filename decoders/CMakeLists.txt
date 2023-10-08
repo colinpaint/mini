@@ -2,7 +2,7 @@ project (decoders)
   add_library (${PROJECT_NAME} iAudioDecoder.h
                                cAudioParser.h cAudioParser.cpp
                                cFFmpegAudioDecoder.h cFFmpegAudioDecoder.cpp
-                               stb_image.h
+                               ../stb/stb_image.h
                                lodepng.h lodepng.cpp
                                wuffs-v0.3.c
                                #fpng.h fpng.cpp
