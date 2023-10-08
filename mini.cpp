@@ -12,7 +12,11 @@
 
 #include "gui/cWindow.h"
 #include "gui/basicBoxes.h"
+#include "gui/cWindowBox.h"
 #include "gui/cLogBox.h"
+#include "gui/cClockBox.h"
+#include "gui/cCalenderBox.h"
+#include "gui/cDateBox.h"
 
 #include "paint/cPaintBox.h"
 #include "paint/cPaint.h"
