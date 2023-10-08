@@ -11,6 +11,7 @@ project (common)
     target_compile_options (${PROJECT_NAME} PUBLIC /W4
                                                    /fp:fast
                                                    ${BUILD_MSVC_COMPILE_OPTIONS}
+                                                   )
     if (USE_AVX512)
       target_compile_options (${PROJECT_NAME} PUBLIC /arch:AVX512)
     elseif (USE_AVX2)
@@ -28,6 +29,7 @@ project (common)
                                                    -Wextra
                                                    -Wno-missing-field-initializers
                                                    -Wno-format-security
+                                                   -Wno-format-overflow
                                                    -pedantic
                                                    -flax-vector-conversions
                                                    -ftree-vectorize
@@ -35,6 +37,5 @@ project (common)
                                                    -march=native
                                                    -g
                                                    ${BUILD_LINUX_COMPILE_OPTIONS}
-                                                   #-Wno-format-overflow
                                                    )
   endif()
