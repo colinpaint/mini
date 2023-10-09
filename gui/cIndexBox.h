@@ -21,21 +21,22 @@ public:
 
   //{{{
   virtual bool wheel (int delta, cPoint pos) final {
-
-    (void)delta;
     (void)pos;
 
     setIndex (mIndex + delta/120);
+    //cLog::log (LOGINFO, fmt::format ("wheel {} {} {} {}", delta, pos.x, pos.y, mIndex));
+
     return true;
     }
   //}}}
   //{{{
   virtual bool down (bool right, cPoint pos) final {
-
     (void)right;
-    (void)pos;
 
     setIndex (uint32_t(pos.y / getBoxHeight()));
+    //cLog::log (LOGINFO, fmt::format ("down {} {} {} {}",
+    //                                 uint32_t(pos.y / getBoxHeight()), pos.x, pos.y, mIndex));
+
     return true;
     }
   //}}}
@@ -54,7 +55,9 @@ public:
 private:
   //{{{
   void setIndex (uint32_t index) {
-    mCallback (std::min (std::max (index, 0u), (uint32_t)mStrings.size()-1));
+
+    mIndex = std::min (std::max (index, 0u), (uint32_t)mStrings.size()-1);
+    mCallback (mIndex);
     }
   //}}}
 
