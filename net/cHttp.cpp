@@ -2,6 +2,7 @@
 //{{{  includes
 #include "cHttp.h"
 
+#include "fmt/format.h"
 #include "../common/cLog.h"
 
 #ifdef _WIN32

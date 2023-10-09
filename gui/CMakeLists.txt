@@ -29,7 +29,7 @@ project (gui)
     else()
       # Simd prebuilt library
       message (STATUS "using prebuilt simd library")
-      target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders lib/linux64)
+      target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders ../include/Simd lib/linux64)
       target_link_libraries (${PROJECT_NAME} PUBLIC miniFB decoders Simd)
     endif()
 

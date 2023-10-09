@@ -6,10 +6,10 @@
 
 #include "../common/date.h"
 #include "../common/basicTypes.h"
-#include "../common/utils.h"
 #include "../common/cLog.h"
+#include "../common/utils.h"
 
-#include "../include/Simd/SimdLib.h"
+#include "SimdLib.h"
 
 // only implmentation
 #define STB_IMAGE_IMPLEMENTATION

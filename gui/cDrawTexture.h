@@ -1,5 +1,6 @@
 // cDrawTexture.h
 #pragma once
+#include "../common/basicTypes.h"
 #include "cTexture.h"
 
 class cDrawAA;

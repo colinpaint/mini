@@ -3,7 +3,6 @@
 //{{{  includes
 #include "../common/date.h"
 #include "../common/basicTypes.h"
-#include "../common/cLog.h"
 
 #include "cWindow.h"
 //}}}

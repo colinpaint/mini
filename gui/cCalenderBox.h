@@ -3,8 +3,9 @@
 //{{{  includes
 #include <iostream>
 #include <functional>
+
 #include "../common/basicTypes.h"
-#include "../common/cLog.h"
+
 #include "cWindow.h"
 //}}}
 

@@ -31,6 +31,7 @@
 
 #define RGBA 0x1908  // [ Core in gl 1.0, gles1 1.0, gles2 2.0, glsc2 2.0 ]
 
+#include "fmt/format.h"
 #include "../common/cLog.h"
 
 using namespace std;

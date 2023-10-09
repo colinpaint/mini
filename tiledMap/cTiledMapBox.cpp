@@ -5,6 +5,9 @@
 #include <array>
 #include <vector>
 
+#include "../common/cLog.h"
+#include "fmt/format.h"
+
 #include "../gui/cWindow.h"
 
 #include "../tiledMap/cTiledMap.h"

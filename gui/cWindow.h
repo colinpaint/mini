@@ -7,6 +7,8 @@
 #include <thread>
 #include <deque>
 
+#include "../common/basicTypes.h"
+
 // some keycodes
 #include "../miniFB/cMiniFB.h"
 //}}}

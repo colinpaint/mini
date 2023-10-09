@@ -5,8 +5,8 @@
 #include <chrono>
 
 #include "../common/basicTypes.h"
-#include "../common/utils.h"
 #include "../common/cLog.h"
+#include "../common/utils.h"
 
 #include "../miniFB/cMiniFB.h"
 

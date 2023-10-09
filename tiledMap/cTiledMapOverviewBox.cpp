@@ -6,9 +6,8 @@
 #include <array>
 #include <vector>
 
-//#define WIN32_LEAN_AND_MEAN
-//#define NOMINMAX
-//#include <windows.h>
+#include "../common/cLog.h"
+#include "fmt/format.h"
 
 #include "../gui/cWindow.h"
 

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <functional>
 
-#include "../common/cLog.h"
+#include "../common/basicTypes.h"
 
 #include "cWindow.h"
 //}}}

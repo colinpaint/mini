@@ -4,8 +4,9 @@
 #include <iostream>
 #include <functional>
 
+#include "fmt/format.h"
 #include "../common/basicTypes.h"
-#include "../common/cLog.h"
+
 #include "cWindow.h"
 //}}}
 

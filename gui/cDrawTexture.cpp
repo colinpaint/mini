@@ -8,12 +8,13 @@
 #include <algorithm>
 #include <array>
 #include <map>
+
 #include "../common/date.h"
 #include "../common/basicTypes.h"
-#include "../common/utils.h"
 #include "../common/cLog.h"
+#include "../common/utils.h"
 
-#include "../include/Simd/SimdLib.h"
+#include "SimdLib.h"
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "../stb/stb_truetype.h"
