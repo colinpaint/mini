@@ -33,7 +33,7 @@ public:
     (void)right;
 
     cLog::log (LOGINFO, fmt::format ("down pos:{},{}", pos.x, pos.y));
-    setIndex (pos.y / getBoxHeight());
+    setIndex (int32_t(pos.y / getBoxHeight()));
 
     return true;
     }
