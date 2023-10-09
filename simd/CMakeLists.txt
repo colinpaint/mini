@@ -1,8 +1,8 @@
-project (mySimd)
+project (simd)
   file (GLOB FILES smdLib.h *.cpp Simd/*.h sse41/*.cpp avx2/*.cpp avx512/*.cpp)
   add_library (${PROJECT_NAME} ${FILES})
 
-  # include internal directory ./Simd 
+  # include internal directory ./Simd
   target_include_directories (${PROJECT_NAME} PRIVATE . ./Simd)
   target_link_libraries (${PROJECT_NAME} PRIVATE common)
 
