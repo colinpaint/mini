@@ -23,8 +23,8 @@ public:
   virtual bool wheel (int delta, cPoint pos) final {
     (void)pos;
 
-    setIndex (mIndex + delta/120);
-    //cLog::log (LOGINFO, fmt::format ("wheel {} {} {} {}", delta, pos.x, pos.y, mIndex));
+    cLog::log (LOGINFO, fmt::format ("wheel delta:{} pos {}:{}", delta, pos.x, pos.y));
+    setIndex (mIndex + delta);
 
     return true;
     }
@@ -33,9 +33,8 @@ public:
   virtual bool down (bool right, cPoint pos) final {
     (void)right;
 
-    setIndex (uint32_t(pos.y / getBoxHeight()));
-    //cLog::log (LOGINFO, fmt::format ("down {} {} {} {}",
-    //                                 uint32_t(pos.y / getBoxHeight()), pos.x, pos.y, mIndex));
+    cLog::log (LOGINFO, fmt::format ("down pos:{},{}", pos.x, pos.y));
+    setIndex (pos.y / getBoxHeight());
 
     return true;
     }
@@ -54,9 +53,9 @@ public:
 
 private:
   //{{{
-  void setIndex (uint32_t index) {
+  void setIndex (int32_t index) {
 
-    mIndex = std::min (std::max (index, 0u), (uint32_t)mStrings.size()-1);
+    mIndex = (uint32_t)std::min (std::max (index, 0), (int32_t)(mStrings.size()-1));
     mCallback (mIndex);
     }
   //}}}
