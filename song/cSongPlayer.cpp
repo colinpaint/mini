@@ -17,7 +17,6 @@
 #ifdef _WIN32
   #define WIN32_LEAN_AND_MEAN
   #include "../audio/audioWASAPI.h"
-  #include "../audio/cWinAudio16.h"
 #else // linux
   #include "../audio/cLinuxAudio.h"
 #endif

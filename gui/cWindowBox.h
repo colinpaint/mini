@@ -21,15 +21,18 @@ public:
   virtual bool down (bool right, cPoint pos) final {
     (void)right;
     (void)pos;
+
     if (pos.x < getWidth()/2)
       mWindow.toggleFullScreen();
     else
       mWindow.setExit();
+
     return true;
     }
   //}}}
   //{{{
   virtual void resize() final {
+
     layout();
     mEnable = mWindow.getFullScreen();
     }
@@ -37,11 +40,7 @@ public:
 
   virtual void draw() final {
     cRect r(mRect);
-    //#ifdef BUILD_D2D
-    //  std::wstring text = mWindow.getFullScreen() ? L"\x32\x72" : L"\x31\x72";
-    //#else
-      std::string text = mWindow.getFullScreen() ? "full exit" : "exit";
-    //#endif
+    std::string text = mWindow.getFullScreen() ? "full exit" : "exit";
     if (mSelfSize)
       r.left += getWidth() - measureText (text, cWindow::kSymbolFont).x;
     drawTextShadow (kWhite, r, text, cWindow::kSymbolFont);

@@ -1,10 +1,11 @@
 // cWinAudio32.cpp
 //{{{  includes
+#define _CRT_SECURE_NO_WARNINGS
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+#define NOMINMAX
 
 #include "cWinAudio32.h"
 
-#include "../common/basicTypes.h"
 #include "../common/cLog.h"
 
 #pragma comment(lib,"Xaudio2.lib")
@@ -49,7 +50,7 @@ cAudio::~cAudio() {
 
 //{{{
 void cAudio::setVolume (float volume) {
-  mDstVolume = min (max (volume, 0.f), getMaxVolume());
+  mDstVolume = std::min (std::max (volume, 0.f), getMaxVolume());
   }
 //}}}
 //{{{

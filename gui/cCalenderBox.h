@@ -38,6 +38,7 @@ public:
   //}}}
   //{{{
   virtual void draw() final {
+
     auto datePoint = date::floor<date::days>(mWindow.getNowDaylight());
 
     const float dayWidth = (getWidth() - (2 * getRoundRadius())) / 7;
