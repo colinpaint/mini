@@ -38,7 +38,7 @@ project (gui)
     else()
       # Simd prebuilt library
       target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders ../include/Simd)
-      if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
+      if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
         message (STATUS "using prebuilt linux ARM SIMD library")
         target_link_directories (${PROJECT_NAME} PUBLIC ../lib/arm64)
       else()
