@@ -1,21 +1,21 @@
 // utils.h - simple utils using format and string
 #pragma once
+//{{{  includes
 #include <cstdint>
 #include <string>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-//#include <stdlib.h>
-//#include <string.h>
 #include <fcntl.h>
-#include "../fmt/include/fmt/format.h"
+#include "fmt/format.h"
 
 #ifdef _WIN32
   #define WIN32_LEAN_AND_MEAN
   #define NOMINMAX
   #include <windows.h>
 #endif
+//}}}
 
 namespace utils {
   //{{{

@@ -17,7 +17,7 @@ project (common)
 
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
     # windows
-    target_include_directories (${PROJECT_NAME} PUBLIC ../lib/windows64/tbb)
+    target_link_directories (${PROJECT_NAME} PUBLIC ../lib/windows64/tbb)
     target_link_libraries (${PROJECT_NAME} PUBLIC tbb12)
 
     target_compile_definitions (${PROJECT_NAME} PUBLIC ${BUILD_D2D})

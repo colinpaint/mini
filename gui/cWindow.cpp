@@ -1,4 +1,4 @@
-// cMiniWindow.cpp - minimal window and box system
+// cWindow.cpp - minimal window and box system
 //{{{  includes
 #include "cWindow.h"
 
@@ -25,10 +25,12 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   (void)fullScreen;
 
   #ifdef _WIN32
+    // windows
     TIME_ZONE_INFORMATION timeZoneInfo;
     if (GetTimeZoneInformation (&timeZoneInfo) == TIME_ZONE_ID_DAYLIGHT)
       mDayLightSeconds = -timeZoneInfo.DaylightBias * 60;
   #else
+    // linux
     cLog::log (LOGERROR, fmt::format ("linux timezone correction not implemented"));
   #endif
 
@@ -36,7 +38,7 @@ bool cWindow::createWindow (const string& title, uint32_t width, uint32_t height
   if (!mMiniFB)
     return false;
 
-  // create texture static resources after window, may use its openGL resources in future
+  // create static texture resources after window, may use its openGL resources in future
   cDrawTexture::createStaticResources (getBoxHeight() * 4.0f / 5.0f);
 
   // create cTexture pixels on the heap

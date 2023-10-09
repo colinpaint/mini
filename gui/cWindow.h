@@ -74,6 +74,7 @@ public:
   void resized();
   void toggleFullScreen();
 
+  // cBox
   //{{{
   class cBox {
   public:
@@ -392,7 +393,6 @@ public:
     cRect mRect = { 0.f };
     };
   //}}}
-  //{{{  add, remove cBox
   //{{{
   cBox* add (cBox* box) {
     mBoxes.push_back (box);
@@ -408,7 +408,6 @@ public:
     return box;
     }
   //}}}
-
   //{{{
   cBox* addRight (cBox* box) {
     cBox* lastBox = mBoxes.back();
@@ -436,7 +435,6 @@ public:
     return box;
     }
   //}}}
-
   //{{{
   cBox* addFront (cBox* box) {
 
@@ -453,14 +451,12 @@ public:
     return box;
     }
   //}}}
-
   //{{{
   cBox* addBackground (cBox* box) {
     mBackgroundBoxes.push_front (box);
     return box;
     }
   //}}}
-
   //{{{
   void removeBox (cBox* box) {
 
@@ -472,14 +468,12 @@ public:
         }
     }
   //}}}
-
   //{{{
   void toTop (cBox* box) {
 
     removeBox (box);
     mBoxes.push_back (box);
     }
-  //}}}
   //}}}
 
 protected:
@@ -596,7 +590,7 @@ private:
 
   inline static int mDayLightSeconds = 0;
   //}}}
-
+  //{{{  vars
   cMiniFB* mMiniFB = nullptr;
 
   cPoint mMousePos = {0.f};
@@ -634,4 +628,5 @@ private:
 
   // screen
   bool mFullScreen = false;
+  //}}}
   };
