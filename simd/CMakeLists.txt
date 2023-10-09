@@ -1,4 +1,6 @@
 project (simd)
+  message (STATUS "building local SIMD library")
+
   file (GLOB FILES smdLib.h *.cpp Simd/*.h sse41/*.cpp avx2/*.cpp avx512/*.cpp)
   add_library (${PROJECT_NAME} ${FILES})
 
