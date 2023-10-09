@@ -198,9 +198,13 @@ protected:
     }
   //}}}
 private:
+  // paint
   cPaint* mPaint = nullptr;
+
+  // tiledMap
   cTiledMap* mTiledMap = nullptr;
 
+  // song
   vector <cBox*> mRadioBoxes;
   cSongLoader* mSongLoader = nullptr;
   cSongLoaderBox* mSongLoaderBox = nullptr;
