@@ -10,15 +10,15 @@ project (decoders)
 
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
     target_include_directories (${PROJECT_NAME} PUBLIC common ../include/ffmpeg)
-    target_link_directories (${PROJECT_NAME} PUBLIC ../windowsLib64)
-    target_link_libraries (${PROJECT_NAME} PUBLIC common 
+    target_link_directories (${PROJECT_NAME} PUBLIC lib/windows64)
+    target_link_libraries (${PROJECT_NAME} PUBLIC common
                                                   avdevice avfilter avformat avcodec avutil
                                                   swresample swscale)
 
   else()
     find_package (PkgConfig REQUIRED)
     pkg_check_modules (FFMPEG REQUIRED IMPORTED_TARGET
-                       libavdevice libavfilter libavformat libavcodec libavutil 
+                       libavdevice libavfilter libavformat libavcodec libavutil
                        libswresample libswscale)
 
     target_include_directories (${PROJECT_NAME} PUBLIC common PkgConfig::FFMPEG)

@@ -10,16 +10,17 @@ project (gui)
                                cDrawTexture.h cDrawTexture.cpp
                                )
 
-
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-    target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders windowsLib64)
+    # windows
+    target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders lib/windows64 lib/windows64/ffmpeg)
     target_link_libraries (${PROJECT_NAME} PUBLIC miniFB decoders Simd.lib)
 
     # shutup warnings in third party library
     set_source_files_properties (cTexture.cpp PROPERTIES COMPILE_FLAGS "/wd4505 /wd4100 /wd4127 /wd4310")
 
   else()
-    target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders linuxLib64/)
+    # linux
+    target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders lib/linux64)
     target_link_libraries (${PROJECT_NAME} PUBLIC miniFB decoders Simd)
 
     # shutup warnings in third party library

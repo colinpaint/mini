@@ -2137,6 +2137,7 @@ bool cMiniFB::init (const string& title, uint32_t width, uint32_t height, uint32
 void cMiniFB::initKeycodes() {
 
   #ifdef _WIN32
+    // windows
     if (gKeycodes[0x00B] != KB_KEY_0) {
       //{{{  alpha numeric
       gKeycodes[0x00B] = KB_KEY_0;
@@ -2265,8 +2266,9 @@ void cMiniFB::initKeycodes() {
       gKeycodes[0x04A] = KB_KEY_KP_SUBTRACT;
       //}}}
       }
+
   #else
-    // clear keys
+    // linux - clear keys
     for (size_t i = 0; i < sizeof(gKeycodes) / sizeof(gKeycodes[0]); ++i)
       gKeycodes[i] = KB_KEY_UNKNOWN;
 
@@ -2280,6 +2282,7 @@ void cMiniFB::initKeycodes() {
         gKeycodes[i] = translateKeyCodeA (keySym);
         }
       }
+
   #endif
   }
 //}}}
@@ -2287,6 +2290,7 @@ void cMiniFB::initKeycodes() {
 void cMiniFB::freeResources() {
 
   #ifdef _WIN32
+    // windows
     destroyGLcontext();
     if (mWindow && mHDC) {
       ReleaseDC (mWindow, mHDC);
@@ -2298,10 +2302,13 @@ void cMiniFB::freeResources() {
     #ifdef USE_WINTAB
       winTabUnload();
     #endif
+
   #else
+    // linux
     if (gDevice)
       XCloseDevice (mDisplay, gDevice);
     destroyGLcontext();
+
   #endif
 
   mClosed = true;
@@ -2313,6 +2320,7 @@ void cMiniFB::freeResources() {
 bool cMiniFB::createGLcontext() {
 
   #ifdef _WIN32
+    // windows
     //{{{  setup windows pixel format for openGL
     PIXELFORMATDESCRIPTOR pfd = {sizeof(PIXELFORMATDESCRIPTOR), // size
                                  1,                             // version
@@ -2346,8 +2354,12 @@ bool cMiniFB::createGLcontext() {
     mHGLRC = wglCreateContext (mHDC);
     wglMakeCurrent (mHDC, mHGLRC);
     gSwapInterval = (tGlSwapIntervalProc)wglGetProcAddress ("wglSwapIntervalEXT");
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
+
   #else
-    // check openGL version
+    // linux - check openGL version
     GLint majorGLX = 0;
     GLint minorGLX = 0;
     glXQueryVersion (mDisplay, &majorGLX, &minorGLX);
@@ -2389,13 +2401,11 @@ bool cMiniFB::createGLcontext() {
 
     if (hasGLextension ("GLX_EXT_swap_control"))
       gSwapInterval = (tGlSwapIntervalProc)glXGetProcAddress ((const GLubyte*)"glXSwapIntervalEXT");
-  #endif
-
-  cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
-  cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
-  cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
-  #ifndef _WIN32
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VENDOR));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_RENDERER));
+    cLog::log (LOGINFO, (const char*)glGetString (GL_VERSION));
     cLog::log (LOGINFO, (const char*)glGetString (GL_SHADING_LANGUAGE_VERSION));
+
   #endif
 
   return initGL();
@@ -2443,6 +2453,7 @@ bool cMiniFB::initGL() {
   #else
     gSwapInterval (glXGetCurrentDisplay(), glXGetCurrentDrawable(), 1);
   #endif
+
   return true;
   }
 //}}}
@@ -2517,13 +2528,17 @@ void cMiniFB::redrawGL (const void* pixels) {
 void cMiniFB::destroyGLcontext() {
 
   #ifdef _WIN32
+    // windows
     if (mHGLRC) {
       wglMakeCurrent (NULL, NULL);
       wglDeleteContext (mHGLRC);
       mHGLRC = 0;
       }
+
   #else
+    // linux
     glXDestroyContext (mDisplay, mGLXContext);
+
   #endif
   }
 //}}}

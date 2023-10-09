@@ -1,7 +1,7 @@
 project (common)
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
     add_library (${PROJECT_NAME} basicTypes.h date.h
-                                 cSemaphore.h 
+                                 cSemaphore.h
                                  cLog.h cLog.cpp
                                  fileUtils.h
                                  )
@@ -16,6 +16,8 @@ project (common)
   target_link_libraries (${PROJECT_NAME} PUBLIC fmt)
 
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
+    # windows
+    target_include_directories (${PROJECT_NAME} PUBLIC ../lib/windows64/tbb)
     target_link_libraries (${PROJECT_NAME} PUBLIC tbb12)
 
     target_compile_definitions (${PROJECT_NAME} PUBLIC ${BUILD_D2D})
@@ -32,6 +34,7 @@ project (common)
     endif()
 
   else()
+    # linux
     include (findTBB.cmake)
     target_link_libraries (${PROJECT_NAME} PUBLIC stdc++fs TBB::tbb pthread)
 

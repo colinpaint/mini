@@ -277,6 +277,7 @@ private:
   bool init (const std::string& title, uint32_t width, uint32_t height, uint32_t flags);
   void initKeycodes();
   void freeResources();
+
   //{{{  openGL
   bool createGLcontext();
   bool initGL();
@@ -302,6 +303,7 @@ private:
   #endif
 
   void* userData = nullptr;
+
   // callbacks
   void(*mActiveFunc)(cMiniFB* miniFB) = nullptr;
   void(*mResizeFunc)(cMiniFB* miniFB) = nullptr;
