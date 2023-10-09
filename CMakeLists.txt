@@ -26,6 +26,7 @@ add_subdirectory (gui)
 add_subdirectory (song)
 add_subdirectory (tiledMap)
 add_subdirectory (paint)
+add_subdirectory (mySimd)
 #
 project (mini VERSION 1.0.0)
   add_executable (${PROJECT_NAME} mini.cpp)
