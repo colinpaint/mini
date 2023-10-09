@@ -21,13 +21,17 @@ project (gui)
 
   else()
     # linux
-    # Simd prebuilt library
-    target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders lib/linux64)
-    target_link_libraries (${PROJECT_NAME} PUBLIC miniFB decoders Simd)
-
-    # simd library
-    #target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders simd)
-    #target_link_libraries (${PROJECT_NAME} PUBLIC miniFB decoders simd)
+    if (USE_LOCAL_SIMD)
+      # local simd library
+      message (STATUS "using local simd library")
+      target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders simd)
+      target_link_libraries (${PROJECT_NAME} PUBLIC miniFB decoders simd)
+    else()
+      # Simd prebuilt library
+      message (STATUS "using prebuilt simd library")
+      target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders lib/linux64)
+      target_link_libraries (${PROJECT_NAME} PUBLIC miniFB decoders Simd)
+    endif()
 
     # shutup third party library warnings
     target_compile_options (${PROJECT_NAME} PRIVATE -Wno-unused-parameter)
