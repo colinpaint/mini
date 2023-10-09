@@ -7,6 +7,7 @@
 #include "cWinAudio32.h"
 
 #include "../common/cLog.h"
+#include "fmt/format.h"
 
 #pragma comment(lib,"Xaudio2.lib")
 //}}}
