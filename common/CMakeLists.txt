@@ -16,7 +16,8 @@ project (common)
   target_link_libraries (${PROJECT_NAME} PUBLIC fmt)
 
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-    # windows
+    # windows - tbb prebuilt library
+    message (STATUS "using prebuilt windows X86-64 tbb library")
     target_link_directories (${PROJECT_NAME} PUBLIC ../lib/windows64)
     target_link_libraries (${PROJECT_NAME} PUBLIC tbb12)
 
@@ -33,8 +34,7 @@ project (common)
     endif()
 
   else()
-    # linux
-    # tbb prebuilt library
+    # linux - tbb prebuilt library
     if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
       message (STATUS "using prebuilt linux ARM tbb library")
       target_link_directories (${PROJECT_NAME} PUBLIC ../lib/arm64)
