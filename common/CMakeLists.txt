@@ -38,14 +38,12 @@ project (common)
     if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
       message (STATUS "using prebuilt linux ARM tbb library")
       target_link_directories (${PROJECT_NAME} PUBLIC ../lib/arm64)
-      target_link_libraries (${PROJECT_NAME} PUBLIC stdc++fs tbb.so.12 pthread)
+      target_link_libraries (${PROJECT_NAME} PUBLIC tbb pthread stdc++fs)
     else()
       message (STATUS "using prebuilt linux X86-64 tbb library")
       target_link_directories (${PROJECT_NAME} PUBLIC ../lib/linux64)
-      target_link_libraries (${PROJECT_NAME} PUBLIC stdc++fs tbb pthread)
+      target_link_libraries (${PROJECT_NAME} PUBLIC tbb pthread stdc++fs )
     endif()
-
-    target_link_libraries (${PROJECT_NAME} PUBLIC stdc++fs tbb pthread)
 
     target_compile_definitions (${PROJECT_NAME} PUBLIC _LARGEFILE64_SOURCE _FILE_OFFSET_BITS=64)
     target_compile_options (${PROJECT_NAME} PUBLIC -Wall
