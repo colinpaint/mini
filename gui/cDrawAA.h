@@ -2,6 +2,7 @@
 #pragma once
 //{{{  includes
 #include <functional>
+
 #include "../common/basicTypes.h"
 #include "../common/cLog.h"
 //}}}

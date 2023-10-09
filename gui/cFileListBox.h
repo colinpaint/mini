@@ -3,6 +3,7 @@
 //{{{  includes
 #include <array>
 #include <functional>
+
 #include "../common/basicTypes.h"
 #include "../common/cFileList.h"
 

@@ -1,11 +1,13 @@
 // basicBoxes.h
 #pragma once
+//{{{  includes
 #include <iostream>
 #include <functional>
-#include "../common/date.h"
+
 #include "../common/basicTypes.h"
 #include "../common/cLog.h"
 #include "cWindow.h"
+//}}}
 
 class cWindowBox : public cWindow::cBox {
 public:

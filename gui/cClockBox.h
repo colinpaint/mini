@@ -1,9 +1,13 @@
 // basicBoxes.h
 #pragma once
+//{{{  includes
 #include <iostream>
 #include <functional>
+
 #include "../common/cLog.h"
+
 #include "cWindow.h"
+//}}}
 
 class cClockBox : public cWindow::cBox {
 public:

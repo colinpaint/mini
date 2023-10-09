@@ -6,6 +6,7 @@ project (gui)
                                cDrawAA.h
                                cDrawTexture.h cDrawTexture.cpp
                                basicBoxes.h
+                               cIndexBox.h cListBox.h
                                cWindowBox.h cTextureBox.h cLogBox.h
                                cClockBox.h cCalenderBox.h cDateBox.h
                                )

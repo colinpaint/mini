@@ -1,9 +1,12 @@
 // cLogBox.h
 #pragma once
-#include "../common/basicTypes.h"
+//{{{  includes
 #include "../common/date.h"
+#include "../common/basicTypes.h"
 #include "../common/cLog.h"
+
 #include "cWindow.h"
+//}}}
 
 class cLogBox : public cWindow::cBox {
 public:

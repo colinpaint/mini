@@ -11,12 +11,12 @@
 #include "common/utils.h"
 
 #include "gui/cWindow.h"
-#include "gui/basicBoxes.h"
 #include "gui/cWindowBox.h"
+#include "gui/basicBoxes.h"
+#include "gui/cIndexBox.h"
 #include "gui/cLogBox.h"
 #include "gui/cClockBox.h"
 #include "gui/cCalenderBox.h"
-#include "gui/cDateBox.h"
 
 #include "paint/cPaintBox.h"
 #include "paint/cPaint.h"
@@ -52,6 +52,7 @@ public:
 
     //{{{  create paint, gui
     mPaint = new cPaint (*this);
+
     mPaint->addLayer (new cTextureLayer ("burger", cTexture::createLoad(fileRoot),
                                          {getWidth()/2.f, getHeight()/2.f}, 0.5f));
     mPaint->addLayer (new cRectangleLayer ("text background", kDarkBlue, {100.f, 100.f}, {100.f,100.f}));
@@ -60,6 +61,7 @@ public:
     mPaint->addLayer (new cTextLayer ("text line 3", kGreenYellow, {150.f, 190.f}, "last line of text"));
     mPaint->addLayer (new cEllipseLayer ("solid circle", kGreen, {200.f, 200.f}, 100.f));
     mPaint->addLayer (new cEllipseLayer ("outline circle", kYellow, {300.f, 300.f}, 100.f, 4.f));
+
     addBackground (new cPaintBox (*this, 0,0, *mPaint));
     //}}}
 
@@ -77,26 +79,22 @@ public:
                          [&]() { changed(); },
                          [&](uint32_t width, uint32_t height, uint8_t* pixels, bool free) -> cTexture {
                          return create (width, height, pixels, free); } );
-
       mTiledMap->addLayer ({"os",
                             "ecn.t{}.tiles.virtualearth.net", "tiles/r{}?g=5938&lbl=l1&productSet=mmOS&key={}", ".png",
                             true,4000, 12,15});
-
       mTiledMap->addLayer ({"aerial",
                             "ecn.t{}.tiles.virtualearth.net", "tiles/a{}?g=5939&key={}", ".jpg",
                             true,2048, 10,16}); // 3,18
-
       mTiledMap->addLayer ({"road",
                             "ecn.t{}.tiles.virtualearth.net", "tiles/r{}?g=5939&mkt=en-GB&shading=hill&key={}", ".png",
                             false,0, 9,17});
+      addBelow (new cIndexBox (*this, 5, mTiledMap->getLayerNames(), mTiledMap->getLayerIndex(),
+                               [&](uint32_t index) { (void)index; mTiledMap->tilesChanged (true); }));
 
       mTiledMap->launchThreads (kMapLoadThreads);
 
       add (new cTiledMapBox (*this, getWidthInBoxes()/2,getHeightInBoxes()-8, *mTiledMap), -getWidthInBoxes()/2,-getHeightInBoxes()+8);
       add (new cTiledMapOverviewBox (*this, 6, 8, *mTiledMap), -6, -8);
-      //add (new cIndexBox (this, 5, mTiledMap.getLayerNames(), mTiledMap.getLayerIndex(), 
-      //                   [&](uint32_t index) { (void)index; mTiledMap.tilesChanged (true); }), 
-      //     0.f, 1);
       }
       //}}}
 
