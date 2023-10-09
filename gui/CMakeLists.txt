@@ -13,8 +13,16 @@ project (gui)
 
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
     # windows
-    target_link_directories (${PROJECT_NAME} PUBLIC ../lib/windows64)
-    target_link_libraries (${PROJECT_NAME} PUBLIC miniFB decoders Simd.lib)
+    if (USE_LOCAL_SIMD)
+      # local simd library
+      message (STATUS "using local simd library")
+      target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders ../simd)
+      target_link_libraries (${PROJECT_NAME} PUBLIC miniFB decoders simd)
+    else()
+      message (STATUS "using prebuilt simd library")
+      target_link_directories (${PROJECT_NAME} PUBLIC ../lib/windows64)
+      target_link_libraries (${PROJECT_NAME} PUBLIC miniFB decoders Simd.lib)
+    endif()
 
     # shutup third party library warnings
     set_source_files_properties (cTexture.cpp PROPERTIES COMPILE_FLAGS "/wd4505 /wd4100 /wd4127 /wd4310")
@@ -24,7 +32,7 @@ project (gui)
     if (USE_LOCAL_SIMD)
       # local simd library
       message (STATUS "using local simd library")
-      target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders simd)
+      target_include_directories (${PROJECT_NAME} PUBLIC miniFB decoders ../simd)
       target_link_libraries (${PROJECT_NAME} PUBLIC miniFB decoders simd)
     else()
       # Simd prebuilt library

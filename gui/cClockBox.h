@@ -4,6 +4,7 @@
 #include <iostream>
 #include <functional>
 
+#include "../common/date.h"
 #include "../common/basicTypes.h"
 
 #include "cWindow.h"

@@ -17,6 +17,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
   set (BUILD_LINUX_COMPILE_OPTIONS "-Ofast" CACHE STRING "gcc compile options")
 endif()
 #
+#
 if (USE_LOCAL_SIMD)
   add_subdirectory (simd)
 endif()

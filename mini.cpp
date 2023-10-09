@@ -5,9 +5,9 @@
   #include <windows.h>
 #endif
 
-#include "fmt/format.h"
 #include "common/basicTypes.h"
 #include "common/cLog.h"
+#include "fmt/format.h"
 #include "common/utils.h"
 
 #include "gui/cWindow.h"

@@ -18,11 +18,14 @@
 // wuff png decoder
 #define WUFFS_IMPLEMENTATION
 #define WUFFS_CONFIG__STATIC_FUNCTIONS
+
 #ifdef _WIN32
   #pragma warning(push)
     #pragma warning(disable : 4334) // c++20 shift warning disabled
 #endif
+
 #include "../decoders/wuffs-v0.3.c"
+
 #ifdef _WIN32
   #pragma warning(pop)
 #endif
