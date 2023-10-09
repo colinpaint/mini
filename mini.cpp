@@ -94,7 +94,7 @@ public:
 
       add (new cTiledMapBox (*this, getWidthInBoxes()/2,getHeightInBoxes()-8, *mTiledMap), -getWidthInBoxes()/2,-getHeightInBoxes()+8);
       add (new cTiledMapOverviewBox (*this, 6, 8, *mTiledMap), -6, -8);
-      //add (new cIndexBox (this, 5, mTiledMap.getLayerNames(), mTiledMap.getLayerIndex(), [&](uint32_t index) { (void)index; mTiledMap.tilesChanged (true); }), 0.f, 1);
+      add (new cIndexBox (this, 5, mTiledMap.getLayerNames(), mTiledMap.getLayerIndex(), [&](uint32_t index) { (void)index; mTiledMap.tilesChanged (true); }), 0.f, 1);
       }
       //}}}
 
