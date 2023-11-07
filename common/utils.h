@@ -8,9 +8,13 @@
 #include <iomanip>
 #include <algorithm>
 #include <fcntl.h>
+#include <time.h>
+
+#include "../common/cLog.h"
 #include "fmt/format.h"
 
 #ifdef _WIN32
+  #define _CRT_SECURE_NO_WARNINGS
   #define WIN32_LEAN_AND_MEAN
   #define NOMINMAX
   #include <windows.h>
@@ -134,4 +138,6 @@ namespace utils {
       }
     //}}}
   #endif
+
+  std::string getDvbString (uint8_t* buf);
   }

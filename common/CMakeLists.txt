@@ -3,12 +3,14 @@ project (common)
     add_library (${PROJECT_NAME} basicTypes.h date.h
                                  cSemaphore.h
                                  cLog.h cLog.cpp
+                                 utils.h utils.cpp
                                  fileUtils.h
                                  )
   else()
     add_library (${PROJECT_NAME} basicTypes.h date.h
                                  cSemaphore.h
                                  cLog.h cLog.cpp
+                                 utils.h utils.cpp
                                  )
   endif()
 

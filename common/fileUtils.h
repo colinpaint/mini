@@ -398,6 +398,7 @@ private:
   std::string mWatchRootName;
   };
 //}}}
+
 //{{{
 bool resolveShortcut (const std::string& shortcut, std::string& fullName) {
 
