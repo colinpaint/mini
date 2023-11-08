@@ -1,8 +1,6 @@
 project (song)
   add_library (${PROJECT_NAME} cBipBuffer.h
-                               readerWriterQueue.h
                                cDvbSource.h cDvbSource.cpp
-                               cDvbUtils.h cDvbUtils.cpp
                                cSong.h cSong.cpp
                                cSongLoader.h cSongLoader.cpp
                                cSongPlayer.h cSongPlayer.cpp

@@ -16,13 +16,14 @@
 #include "../common/date.h"
 #include "../common/utils.h"
 #include "../common/cLog.h"
+#include "../common/cDvbUtils.h"
+#include "../common/readerWriterQueue.h"
 
 // song
 #include "cSong.h"
 #include "cSongLoader.h"
 #include "cSongPlayer.h"
 #include "iVideoPool.h"
-#include "readerWriterQueue.h"
 
 // decoder
 #include "../decoders/cAudioParser.h"
@@ -34,10 +35,8 @@
 
 // dvb
 #include "cDvbSource.h"
-#include "cDvbUtils.h"
 
 using namespace std;
-using namespace chrono;
 //}}}
 
 //{{{
@@ -45,7 +44,7 @@ class cDvbEpgItem {
 public:
   cDvbEpgItem() {}
 
-  cDvbEpgItem (const string& programName, system_clock::time_point startTime, seconds duration)
+  cDvbEpgItem (const string& programName, chrono::system_clock::time_point startTime, chrono::seconds duration)
     : mProgramName(programName), mStartTime(startTime), mDuration(duration) {}
 
   // line2022 - don't trust this
@@ -56,13 +55,13 @@ public:
 
   // gets
   string getProgramName() { return mProgramName; }
-  system_clock::time_point getStartTime() { return mStartTime; }
-  seconds getDuration() { return mDuration; }
+  chrono::system_clock::time_point getStartTime() { return mStartTime; }
+  chrono::seconds getDuration() { return mDuration; }
 
 private:
   string mProgramName;
-  system_clock::time_point mStartTime;
-  seconds mDuration;
+  chrono::system_clock::time_point mStartTime;
+  chrono::seconds mDuration;
   };
 //}}}
 //{{{
@@ -101,7 +100,7 @@ private:
   string mName;
 
   cDvbEpgItem mNowEpgItem;
-  map <system_clock::time_point, cDvbEpgItem*> mEpgItemMap;
+  map <chrono::system_clock::time_point, cDvbEpgItem*> mEpgItemMap;
   };
 //}}}
 
@@ -328,8 +327,8 @@ public:
       if (tid == 0x70) {
         int sectionLength = cDvbUtils::getSectionLength (ts+1);
         if (sectionLength >= 8) {
-          auto timePoint = system_clock::from_time_t (cDvbUtils::getEpochTime (ts+3) + cDvbUtils::getBcdTime (ts+5));
-          string timeString = date::format ("%T", date::floor<seconds>(timePoint));
+          auto timePoint = chrono::system_clock::from_time_t (cDvbUtils::getEpochTime (ts+3) + cDvbUtils::getBcdTime (ts+5));
+          string timeString = date::format ("%T", date::floor<chrono::seconds>(timePoint));
           mCallback (timeString);
           }
         }
@@ -404,9 +403,9 @@ public:
 
   //{{{
   virtual void payload (uint8_t* ts, int tsLeft, bool payloadStart, int continuityCount, bool reuseFromFront) final {
-
     (void)continuityCount;
     (void)reuseFromFront;
+
     if (payloadStart) {
       //{{{  start section
       mSectionSize = 0;
@@ -471,7 +470,7 @@ public:
             switch (tag) {
               //{{{
               case 0x48: // service
-                mCallback (sid, cDvbUtils::getString (ts+4));
+                mCallback (sid, cDvbUtils::getDvbString (ts+4));
                 break;
               //}}}
               //{{{
@@ -581,8 +580,8 @@ public:
 
         // iterate eit events
         while (mSectionLength > 0) {
-          system_clock::time_point startTime = system_clock::from_time_t (cDvbUtils::getEpochTime (ts+2) + cDvbUtils::getBcdTime (ts+4));
-          seconds duration (cDvbUtils::getBcdTime (ts+7));
+          chrono::system_clock::time_point startTime = chrono::system_clock::from_time_t (cDvbUtils::getEpochTime (ts+2) + cDvbUtils::getBcdTime (ts+4));
+          chrono::seconds duration (cDvbUtils::getBcdTime (ts+7));
           int running = (ts[10] & 0xE0) >> 5;
           int loopLength = ((ts[10] & 0x0F) << 8) + ts[11];
           //{{{  unused fields
@@ -607,7 +606,7 @@ public:
                 bool now = (tid == 0x4E) && (running == 0x04);
                 bool epg = (tid == 0x50) || (tid == 0x51);
                 if (now || epg) {
-                  cDvbEpgItem dvbEpgItem (cDvbUtils::getString (ts+5), startTime, duration);
+                  cDvbEpgItem dvbEpgItem (cDvbUtils::getDvbString (ts+5), startTime, duration);
                   mCallback (sid, now, dvbEpgItem);
                   }
                 }
@@ -1687,7 +1686,7 @@ public:
 
         // get value for tag #EXT-X-PROGRAM-DATE-TIME:
         istringstream inputStream (getTagValue (http.getContent(), "#EXT-X-PROGRAM-DATE-TIME:", '\n'));
-        system_clock::time_point extXProgramDateTimePoint;
+        chrono::system_clock::time_point extXProgramDateTimePoint;
         // !!! this blows up with warnings but still works !!!!!
         inputStream >> date::parse ("%FT%T", extXProgramDateTimePoint);
 

@@ -1,20 +1,14 @@
 project (common)
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-    add_library (${PROJECT_NAME} basicTypes.h date.h
-                                 cSemaphore.h
-                                 cLog.h cLog.cpp
-                                 utils.h utils.cpp
-                                 fileUtils.h
-                                 )
+    add_library (${PROJECT_NAME} basicTypes.h date.h cSemaphore.h readerWriterQueue.h utils.h cDvbUtils.h
+                                 cDvbUtils.h cDvbUtils.cpp cDvbUtilsHuff.cpp
+                                 cLog.h cLog.cpp fileUtils.h)
   else()
-    add_library (${PROJECT_NAME} basicTypes.h date.h
-                                 cSemaphore.h
-                                 cLog.h cLog.cpp
-                                 utils.h utils.cpp
-                                 )
+    add_library (${PROJECT_NAME} basicTypes.h date.h cSemaphore.h readerWriterQueue.h utils.h
+                                 cDvbUtils.h cDvbUtils.cpp cDvbUtilsHuff.cpp
+                                 cLog.h cLog.cpp)
   endif()
 
-  target_include_directories (${PROJECT_NAME} PUBLIC fmt/include)
   target_link_libraries (${PROJECT_NAME} PUBLIC fmt)
 
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
@@ -22,8 +16,7 @@ project (common)
     message (STATUS "using prebuilt windows X86-64 tbb library lib/windows64/tbb12.lib")
     target_compile_options (${PROJECT_NAME} PUBLIC /W4
                                                    /fp:fast
-                                                   ${BUILD_MSVC_COMPILE_OPTIONS}
-                                                   )
+                                                   ${BUILD_MSVC_COMPILE_OPTIONS} )
     if (USE_AVX512)
       message (STATUS "windows built with AVX X2 AVX512")
       target_compile_options (${PROJECT_NAME} PUBLIC /arch:AVX512)
@@ -52,8 +45,7 @@ project (common)
                                                    -fno-exceptions
                                                    -march=native
                                                    -g
-                                                   ${BUILD_LINUX_COMPILE_OPTIONS}
-                                                   )
+                                                   ${BUILD_LINUX_COMPILE_OPTIONS} )
 
     if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
       message (STATUS "using prebuilt linux ARM tbb library lib/arm64/libtbb.lib")

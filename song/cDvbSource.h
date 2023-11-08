@@ -46,8 +46,7 @@ private:
 
   std::string mTuneString = "untuned";
 
-  #ifdef _WIN32
-  #else
+  #ifndef _WIN32
     //{{{  linux vars
     fe_hierarchy_t getHierarchy();
     fe_guard_interval_t getGuard();

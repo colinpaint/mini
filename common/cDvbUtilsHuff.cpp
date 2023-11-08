@@ -1,4 +1,4 @@
-// utils.cpp - simple utils using format and string
+// cDvbUtilsHuff.cpp
 //{{{  includes
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -6,7 +6,7 @@
 #include <string>
 #include <time.h>
 
-#include "utils.h"
+#include "cDvbUtils.h"
 
 #include "../common/cLog.h"
 #include "fmt/format.h"
@@ -5746,13 +5746,6 @@ namespace { // anonymous
           3160  /* 128 */
   };
   //}}}
-
-  //{{{
-  bool isHuff (uint8_t* buf) {
-
-    return (buf[0] == 0x1F) && (buf[1] == 1 || buf[1] == 2);
-    }
-  //}}}
   //{{{
   string huffDecode (const unsigned char* src, size_t size) {
 
@@ -5828,36 +5821,40 @@ namespace { // anonymous
     return decodedString;
     }
   //}}}
-  }
-
-namespace utils {
   //{{{
-  string getDvbString (uint8_t* buf) {
+  bool isHuff (uint8_t* buf) {
 
-    if (isHuff (buf+1))
-      return huffDecode (buf+1, buf[0]);
-
-    else {
-      // simple string length, followed by null terminated char array
-      int len = *buf++;
-
-      string str;
-      for (int i = 0; i < len; i++) {
-        if (*buf == 0)
-          break;
-
-        if (((*buf >= ' ') && (*buf <= '~')) || (*buf == '\n') || (*buf >= 0xa0)) //((*buf >= 0xa0) && (*buf <= 0xff)))
-          str += *buf;
-        if (*buf == 0x8A)
-          str += '\n';
-        if ((*buf == 0x86 || (*buf == 0x87)))
-          str += ' ';
-
-        buf++;
-        }
-
-      return str;
-      }
+    return (buf[0] == 0x1F) && (buf[1] == 1 || buf[1] == 2);
     }
   //}}}
   }
+
+//{{{
+string cDvbUtils::getDvbString (uint8_t* buf) {
+
+  if (isHuff (buf+1))
+    return huffDecode (buf+1, buf[0]);
+
+  else {
+    // simple string length, followed by null terminated char array
+    int len = *buf++;
+
+    string str;
+    for (int i = 0; i < len; i++) {
+      if (*buf == 0)
+        break;
+
+      if (((*buf >= ' ') && (*buf <= '~')) || (*buf == '\n') || (*buf >= 0xa0)) //((*buf >= 0xa0) && (*buf <= 0xff)))
+        str += *buf;
+      if (*buf == 0x8A)
+        str += '\n';
+      if ((*buf == 0x86 || (*buf == 0x87)))
+        str += ' ';
+
+      buf++;
+      }
+
+    return str;
+    }
+  }
+//}}}

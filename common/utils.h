@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <time.h>
 
+#include "../common/cDvbUtils.h"
 #include "../common/cLog.h"
 #include "fmt/format.h"
 
@@ -138,6 +139,4 @@ namespace utils {
       }
     //}}}
   #endif
-
-  std::string getDvbString (uint8_t* buf);
   }
