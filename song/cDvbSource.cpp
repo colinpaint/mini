@@ -638,7 +638,7 @@ using namespace std;
     //}}}
     }
 #else
-  //{{{  linux defines
+  //{{{  linux 
   #define MAX_DELIVERY_SYSTEMS 2
   #define DELSYS 0
   #define FREQUENCY 1
@@ -915,55 +915,8 @@ void cDvbSource::tune (int frequency) {
 //}}}
 
 #ifdef _WIN32
-  uint8_t* cDvbSource::getBlockBDA (int& len) { return mGrabberCB.getBlock (len); }
-  void cDvbSource::releaseBlock (int len) { mGrabberCB.releaseBlock (len); }
-  void cDvbSource::run() { mMediaControl->Run(); }
-#else // linux
-  //{{{
-  cTsBlock* cDvbSource::getBlocks (cTsBlockPool* blockPool) {
-
-    cTsBlock* firstBlock = NULL;
-    cTsBlock* lastBlock = NULL;
-
-    constexpr int kMaxRead = 50;
-    struct iovec iovecs[kMaxRead];
-
-    // allocate blocks
-    for (int i = 0; i < kMaxRead; i++) {
-      // allocate block
-      cTsBlock* block = blockPool->newBlock();
-
-      // form forward linked list
-      if (!firstBlock)
-        firstBlock = block;
-      if (lastBlock)
-        lastBlock->mNextBlock = block;
-      block->mNextBlock = NULL;
-      lastBlock = block;
-
-      // set iovec
-      iovecs[i].iov_base = block->mTs;
-      iovecs[i].iov_len = 188;
-      }
-
-    // wait for iovecs ready to read
-    while (poll (fds, 1, -1) <= 0)
-      cLog::log (LOGINFO, fmt::format ("poll waiting"));
-
-    // read iovecs
-    int size = readv (fds[0].fd, iovecs, kMaxRead);
-    if (size < 0) {
-      cLog::log (LOGERROR, fmt::format ("readv DVR failed {}", strerror(errno)));
-      size = 0;
-      }
-    size /= 188;
-
-    if (size != kMaxRead)
-      cLog::log (LOGERROR, fmt::format ("size {}", size));
-
-    return firstBlock;
-    }
-  //}}}
+#else 
+  // linux
   //{{{
   fe_hierarchy_t cDvbSource::getHierarchy() {
 

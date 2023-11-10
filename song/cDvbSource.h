@@ -32,14 +32,6 @@ public:
   void reset();
   void tune (int frequency);
 
-  #ifdef _WIN32
-    uint8_t* getBlockBDA (int& len);
-    void releaseBlock (int len);
-    void run();
-  #else // linux
-    cTsBlock* getBlocks (cTsBlockPool* blockPool);
-  #endif
-
 private:
   int mFrequency = 0;
   int mAdapter = 0;
