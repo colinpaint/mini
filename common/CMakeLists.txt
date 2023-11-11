@@ -1,12 +1,15 @@
 project (common)
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-    add_library (${PROJECT_NAME} basicTypes.h date.h cSemaphore.h readerWriterQueue.h utils.h cDvbUtils.h
+    add_library (${PROJECT_NAME} basicTypes.h date.h utils.h cSemaphore.h cBipBuffer.h readerWriterQueue.h
                                  cDvbUtils.h cDvbUtils.cpp cDvbUtilsHuff.cpp
-                                 cLog.h cLog.cpp fileUtils.h)
+                                 cLog.h cLog.cpp 
+                                 fileUtils.h
+                                 )
   else()
-    add_library (${PROJECT_NAME} basicTypes.h date.h cSemaphore.h readerWriterQueue.h utils.h
+    add_library (${PROJECT_NAME} basicTypes.h date.h utils.h cSemaphore.h cBipBuffer.h readerWriterQueue.h
                                  cDvbUtils.h cDvbUtils.cpp cDvbUtilsHuff.cpp
-                                 cLog.h cLog.cpp)
+                                 cLog.h cLog.cpp
+                                 )
   endif()
 
   target_link_libraries (${PROJECT_NAME} PUBLIC fmt)

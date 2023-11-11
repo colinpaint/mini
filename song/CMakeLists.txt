@@ -1,6 +1,5 @@
 project (song)
-  add_library (${PROJECT_NAME} cBipBuffer.h
-                               cDvbSource.h cDvbSource.cpp
+  add_library (${PROJECT_NAME} cDvbSource.h cDvbSource.cpp
                                cSong.h cSong.cpp
                                cSongLoader.h cSongLoader.cpp
                                cSongPlayer.h cSongPlayer.cpp
