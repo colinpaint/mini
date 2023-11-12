@@ -1,30 +1,29 @@
-// cWinAudio32.cpp
+// cWInAudio32.cpp
+#ifdef __WIN32
+
 //{{{  includes
-#define _CRT_SECURE_NO_WARNINGS
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
-#define NOMINMAX
 
 #include "cWinAudio32.h"
 
+#include <cstdint>
 #include "../common/cLog.h"
-#include "fmt/format.h"
 
 #pragma comment(lib,"Xaudio2.lib")
 //}}}
 const int kMaxBuffers = 2;
-const int kMaxChannels = 6;
+const int kMaxNumChannels = 6;
 const int kBitsPerSample = 32;
 const int kMaxSamples = 2048;
 
 // public
 //{{{
-cAudio::cAudio (int srcChannels, int srcSampleRate, int latency, bool int16) : mDstVolume(kDefaultVolume) {
-
+cAudio::cAudio (int srcNumChannels, int srcSampleRate, int latency, bool bit16) : mDstVolume(kDefaultVolume) {
   (void)latency;
-  (void)int16;
+  (void)bit16;
 
   // alloc and clear mSilence
-  mSilence = (float*)calloc (kMaxChannels * kMaxSamples, kBitsPerSample/8);
+  mSilence = (float*)calloc (kMaxNumChannels * kMaxSamples, kBitsPerSample/8);
 
   // guess initial buffer alloc
   for (auto i = 0; i < kMaxBuffers; i++) {
@@ -51,16 +50,16 @@ cAudio::~cAudio() {
 
 //{{{
 void cAudio::setVolume (float volume) {
-  mDstVolume = std::min (std::max (volume, 0.f), getMaxVolume());
+  mDstVolume = min (max (volume, 0.f), getMaxVolume());
   }
 //}}}
 //{{{
-void cAudio::play (int srcChannels, void* srcSamples, int srcNumSamples, float pitch) {
+void cAudio::play (int srcNumChannels, void* srcSamples, int srcNumSamples, float pitch) {
 // play silence if src == nullptr, maintains timing
 
   if (srcChannels != mSrcChannels) {
     //{{{  recreate sourceVoice with new num of channels
-    cLog::log (LOGNOTICE, fmt::format ("audPlay - srcChannels:{} changedTo:{}", mSrcChannels, srcChannels));
+    cLog::log (LOGNOTICE, fmt::format ("audPlay - srcChannels:{} changedTo:{}" + mSrcChannels, srcChannels));
     close();
 
     open (srcChannels, mSrcSampleRate);
@@ -141,7 +140,7 @@ void cAudio::play (int srcChannels, void* srcSamples, int srcNumSamples, float p
             }
             //}}}
           }
-        cLog::log (LOGNOTICE, fmt::format ("6 to 2 mixdown changed to {}", (int)mMixDown));
+        cLog::log (LOGNOTICE,fmt::format ("6 to 2 mixdown changed to {}", mMixDown));
         }
         //}}}
       else if (mDstChannels == 4) {
@@ -288,7 +287,7 @@ void cAudio::play (int srcChannels, void* srcSamples, int srcNumSamples, float p
             }
             //}}}
           }
-        cLog::log (LOGNOTICE, fmt::format ("6 to 6 mixdown changed to {} ", (int)mMixDown));
+        cLog::log (LOGNOTICE, fmt::format ("6 to 6 mixdown changed to {} ", mMixDown));
         }
         //}}}
       }
@@ -300,7 +299,7 @@ void cAudio::play (int srcChannels, void* srcSamples, int srcNumSamples, float p
                                   1.f, 0.f,  // dst L
                                   0.f, 1.f}; // dst R
         mSourceVoice->SetOutputMatrix (mMasteringVoice, mSrcChannels, mDstChannels, kLevelMatrix, XAUDIO2_COMMIT_NOW);
-        cLog::log (LOGNOTICE, fmt::format ("2 to 2 mixdown changed to {} nothing changed", (int)mMixDown));
+        cLog::log (LOGNOTICE, fmt::format ("2 to 2 mixdown changed to {} nothing changed", mMixDown));
         }
         //}}}
       else if (mDstChannels == 4) {
@@ -323,7 +322,7 @@ void cAudio::play (int srcChannels, void* srcSamples, int srcNumSamples, float p
                                    1.f, 0.f,  // dst BL
                                    0.f, 1.f}; // dst BR
         mSourceVoice->SetOutputMatrix (mMasteringVoice, mSrcChannels, mDstChannels, kLevelMatrix, XAUDIO2_COMMIT_NOW);
-        cLog::log (LOGNOTICE, fmt::format( "2 to 6 mixdown changed to {} nothing changed", (int)mMixDown));
+        cLog::log (LOGNOTICE, fmt::format( "2 to 6 mixdown changed to {} nothing changed", mMixDown));
         }
         //}}}
       }
@@ -342,9 +341,9 @@ void cAudio::play (int srcChannels, void* srcSamples, int srcNumSamples, float p
 
 // private
 //{{{
-void cAudio::open (int srcChannels, int srcSampleRate) {
+void cAudio::open (int srcNumChannels, int srcSampleRate) {
 
-  mSrcChannels = srcChannels;
+  mSrcNumChannels = srcNumChannels;
   mSrcSampleRate = srcSampleRate;
 
   // create XAudio2 engine.
@@ -407,3 +406,4 @@ void cAudio::close() {
     }
   }
 //}}}
+#endif

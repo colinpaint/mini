@@ -127,7 +127,7 @@ void kiss_fft_stride (kiss_fft_cfg cfg, const kiss_fft_cpx* fin, kiss_fft_cpx* f
  Cleans up some memory that gets managed internally. Not necessary to call, but it might clean up
  your compiler output to call this before you exit.
 */
-//void kiss_fft_cleanup();
+void kiss_fft_cleanup();
 //}}}
 
 //{{{

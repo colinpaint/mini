@@ -1,6 +1,8 @@
 // cWinAudio32.h
 #pragma once
 //{{{  includes
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdint.h>
 #include <xaudio2.h>
 #include <vector>
@@ -10,7 +12,7 @@
 
 class cAudio : public iAudio {
 public:
-  cAudio (int srcChannels, int srcSampleRate, int latency, bool int16);
+  cAudio (int srcNumChannels, int srcSampleRate, int latency, bool bit16);
   virtual ~cAudio();
 
   int getDstChannels() { return mDstChannels; }
@@ -33,7 +35,7 @@ public:
   eMixDown getMixDown() { return mMixDown; }
   void setMixDown (eMixDown mixDown) { mMixDown = mixDown; }
 
-  void play (int srcChannels, void* srcSamples, int srcNumSamples, float pitch);
+  void play (int srcNumChannels, void* srcSamples, int srcNumSamples, float pitch);
 
 private:
   const float kMaxVolume = 3.f;
@@ -74,11 +76,11 @@ private:
   eMixDown mMixDown = eBestMix;
   eMixDown mLastMixDown = eNoMix;
 
-  int mDstChannels = 0;
+  int mDstNumChannels = 0;
   int mDstSampleRate = 0;
   int mDstChannelMask = 0;
 
-  int mSrcChannels = 0;
+  int mSrcNumChannels = 0;
   int mSrcSampleRate = 0;
 
   // buffers
