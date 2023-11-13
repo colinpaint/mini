@@ -76,8 +76,8 @@ private:
   float mDstOverviewCentre = 0.f;
 
   // mOverview cache
-  std::array <float,1920> mOverviewValuesL = { 0.f };
-  std::array <float,1920> mOverviewValuesR = { 0.f };
+  std::array <float,3000> mOverviewValuesL = { 0.f };
+  std::array <float,3000> mOverviewValuesR = { 0.f };
   int64_t mOverviewTotalFrames = 0;
   int64_t mOverviewLastFrame = 0;
   int64_t mOverviewFirstFrame = 0;

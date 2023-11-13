@@ -577,7 +577,7 @@ void cSongLoaderBox::drawOverview (cSong* song, int64_t playFrame, bool mono) {
     cSong::cFrame* framePtr = song->findFrameByFrameNum (playFrame);
 
     drawRectangleUnclipped (framePtr->isSilence() ? kRed : kDimGray,
-                   {left, mDstOverviewTop, left + 1.f, mDstOverviewTop + mOverviewHeight});
+                            {left, mDstOverviewTop, left + 1.f, mDstOverviewTop + mOverviewHeight});
 
     if (framePtr && framePtr->getPowerValues()) {
       float* powerValues = framePtr->getPowerValues();
