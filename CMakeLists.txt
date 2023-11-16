@@ -8,6 +8,7 @@ set (CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "limited configs" FO
 #
 #
 option (USE_LOCAL_SIMD "use localSimd" OFF)
+#
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
   set (BUILD_MSVC_COMPILE_OPTIONS "/arch:AVX" CACHE STRING "msvc compile options")
   option (WINMAIN_ENTRY "winMain entry" OFF)
