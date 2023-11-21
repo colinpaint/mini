@@ -5,7 +5,7 @@ x86/
 .vs/
 
 build
-windowsBuild
+wbuild
 
 *.o
 *.~*
