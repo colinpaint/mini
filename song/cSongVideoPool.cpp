@@ -16,13 +16,23 @@
 #include "../common/utils.h"
 #include "../common/cLog.h"
 
-#include "cSong.h"
+//{{{  include libav
+#ifdef _WIN32
+  #pragma warning (push)
+  #pragma warning (disable: 4244)
+#endif
 
 extern "C" {
   #include <libavcodec/avcodec.h>
   #include <libavformat/avformat.h>
   #include <libswscale/swscale.h>
   }
+
+#ifdef _WIN32
+  #pragma warning (pop)
+#endif
+//}}}
+#include "cSong.h"
 
 #if defined (__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64)
   #define INTEL_SSE2
@@ -1827,7 +1837,7 @@ public:
 protected:
   cVideoPool (bool planar, int poolSize, cSong* song)
   #ifdef _WIN32
-    : mPlanar (planar), mMaxPoolSize( poolSize), mSong(song) {} 
+    : mPlanar (planar), mMaxPoolSize( poolSize), mSong(song) {}
   #else
     : mMaxPoolSize( poolSize), mSong(song) { (void)planar; }
   #endif

@@ -1,6 +1,13 @@
 // cSongPlayer.cpp - player
 //{{{  includes
-#define _CRT_SECURE_NO_WARNINGS
+#ifdef _WIN32
+  #define _CRT_SECURE_NO_WARNINGS
+  #define WIN32_LEAN_AND_MEAN
+  #include "../audio/audioWASAPI.h"
+#else // linux
+  #include "../audio/cLinuxAudio.h"
+#endif
+
 #include "cSongPlayer.h"
 
 #include <array>
@@ -13,13 +20,6 @@
 
 // song
 #include "cSong.h"
-
-#ifdef _WIN32
-  #define WIN32_LEAN_AND_MEAN
-  #include "../audio/audioWASAPI.h"
-#else // linux
-  #include "../audio/cLinuxAudio.h"
-#endif
 
 using namespace std;
 //}}}
