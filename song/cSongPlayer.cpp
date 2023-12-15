@@ -91,8 +91,8 @@ using namespace std;
       array <float,2048*2> samples = { 0.f };
 
       song->togglePlaying();
-      //{{{  audio16 player thread, video follows playPts
-      cAudio audio (2, song->getSampleRate(), 40000, false);
+      //{{{  player thread, video follows playPts
+      cAudio audio (2, song->getSampleRate(), 40000);
 
       cSong::cFrame* frame;
       while (!mExit) {
