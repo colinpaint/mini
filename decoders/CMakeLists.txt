@@ -8,7 +8,7 @@ project (decoders)
                                #fpng.h fpng.cpp
                                )
 
-  if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
+  if (CMAKE_HOST_WIN32)
     target_include_directories (${PROJECT_NAME} PUBLIC ../include/ffmpeg)
     target_link_directories (${PROJECT_NAME} PUBLIC ../lib/windows64)
     target_link_libraries (${PROJECT_NAME} PUBLIC common

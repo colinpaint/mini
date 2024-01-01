@@ -1,8 +1,8 @@
 project (common)
-  if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
+  if (CMAKE_HOST_WIN32)
     add_library (${PROJECT_NAME} basicTypes.h date.h utils.h cSemaphore.h cBipBuffer.h readerWriterQueue.h
                                  cDvbUtils.h cDvbUtils.cpp cDvbUtilsHuff.cpp
-                                 cLog.h cLog.cpp 
+                                 cLog.h cLog.cpp
                                  fileUtils.h
                                  )
   else()
@@ -14,7 +14,7 @@ project (common)
 
   target_link_libraries (${PROJECT_NAME} PUBLIC fmt)
 
-  if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
+  if (CMAKE_HOST_WIN32)
     # windows - tbb prebuilt library
     message (STATUS "using prebuilt windows X86-64 tbb library lib/windows64/tbb12.lib")
     target_compile_options (${PROJECT_NAME} PUBLIC /W4

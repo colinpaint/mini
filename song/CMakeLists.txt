@@ -8,7 +8,7 @@ project (song)
 
   target_link_libraries (${PROJECT_NAME} PRIVATE common audio net decoders)
 
-  if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
+  if (CMAKE_HOST_WIN32)
     target_link_libraries (${PROJECT_NAME} PRIVATE ws2_32)
   endif()
 #

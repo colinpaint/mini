@@ -11,7 +11,7 @@ project (gui)
                                cClockBox.h cCalenderBox.h cDateBox.h
                                )
 
-  if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
+  if (CMAKE_HOST_WIN32)
     # windows
     if (USE_LOCAL_SIMD)
       # local simd library
