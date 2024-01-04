@@ -1,7 +1,7 @@
 // cLogBox.h
 #pragma once
 //{{{  includes
-#include "../common/date.h"
+#include "../date/include/date/date.h"
 #include "../common/basicTypes.h"
 
 #include "cWindow.h"

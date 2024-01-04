@@ -4,7 +4,6 @@
 
 #include "cTexture.h"
 
-#include "../common/date.h"
 #include "../common/basicTypes.h"
 #include "../common/cLog.h"
 #include "../common/utils.h"

@@ -23,6 +23,7 @@ if (USE_LOCAL_SIMD)
   add_subdirectory (simd)
 endif()
 #
+add_subdirectory (date)
 add_subdirectory (fmt)
 add_subdirectory (common)
 add_subdirectory (miniFB)

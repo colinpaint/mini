@@ -9,10 +9,9 @@
 #include <array>
 #include <map>
 
-#include "../common/date.h"
 #include "../common/basicTypes.h"
-#include "../common/cLog.h"
 #include "../common/utils.h"
+#include "../common/cLog.h"
 
 #include "SimdLib.h"
 

@@ -1,12 +1,12 @@
 project (common)
   if (CMAKE_HOST_WIN32)
-    add_library (${PROJECT_NAME} basicTypes.h date.h utils.h cSemaphore.h cBipBuffer.h readerWriterQueue.h
+    add_library (${PROJECT_NAME} basicTypes.h utils.h cSemaphore.h cBipBuffer.h readerWriterQueue.h
                                  cDvbUtils.h cDvbUtils.cpp cDvbUtilsHuff.cpp
                                  cLog.h cLog.cpp
                                  fileUtils.h
                                  )
   else()
-    add_library (${PROJECT_NAME} basicTypes.h date.h utils.h cSemaphore.h cBipBuffer.h readerWriterQueue.h
+    add_library (${PROJECT_NAME} basicTypes.h utils.h cSemaphore.h cBipBuffer.h readerWriterQueue.h
                                  cDvbUtils.h cDvbUtils.cpp cDvbUtilsHuff.cpp
                                  cLog.h cLog.cpp
                                  )
