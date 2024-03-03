@@ -22,6 +22,6 @@ project (decoders)
                        libswresample libswscale)
 
     target_include_directories (${PROJECT_NAME} PUBLIC common PkgConfig::FFMPEG)
-    target_link_libraries (${PROJECT_NAME} PUBLIC common PkgConfig::FFMPEG drm)
+    target_link_libraries (${PROJECT_NAME} PUBLIC common PkgConfig::FFMPEG drm lzma z)
 
   endif()
